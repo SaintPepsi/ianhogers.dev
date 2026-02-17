@@ -34,7 +34,7 @@ export default {
         },
         sparkle: {
           '0%': { 'background-position': '0 0' },
-          '100%': { 'background-position': '-100% 0' },
+          '100%': { 'background-position': '-70px 0' },
         },
         wiggle: {
           '0%, 100%': { transform: 'rotate(-3deg)' },
