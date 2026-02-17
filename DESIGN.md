@@ -51,14 +51,14 @@ A community section for:
 ### Shoutout: Bambooboys (MapleLegends ~2015)
 - Template/living page — Ian updates it as he remembers things
 - Guild from MapleLegends (MapleStory private server)
-- Members to mention: Inviper, Kenneth, vincentmango, ice pack, and more
+- Members to mention: Inviper, Kenneth, ice pack, Vincekun, Yamato (aka Firion secks, aka Cecil), Poofcakes, SgtUber, and more
+- SAINTPEPSI.png is art by SgtUber (not AsianFox), displayed on the Bambooboys page
 - Ian streamed back then — embed stream clips/screenshots later
 - Markdown-based so easy to edit over time
 
 ### Shoutout: AsianFox
 - Artist from another MapleStory private server
 - Created several art pieces for Ian:
-  - SAINTPEPSI.png
   - pepsi_transparent_by_asianfox-datirzr.png
   - screenshot__156__by_asianfox_datirvm_by_asianfox-datisbw.png
   - spoopy_woopy_by_asianfox-dau1zhy-50.png
