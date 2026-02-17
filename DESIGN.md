@@ -92,7 +92,7 @@ assets/
 - **interaction_hand.png** (128x16, 8 frames of 16x16):
   - Frames 1-4: finger pointing, wiggling up and down (use as hover cursor on clickable elements)
   - Frames 5-8: grabbing animation (use for drag/active states)
-- **star_grow.png** (70x13, ~4 frames): star sparkle/grow animation
+- **star_grow.png** (70x13, 5 frames of 14x13): star sparkle/grow animation
 - **carrot_grow.png** (56x12): carrot grow animation spritesheet
 - All pixel art must be rendered with `image-rendering: pixelated` and aspect-ratio locked (no stretching/distortion)
 
