@@ -41,20 +41,24 @@ const currentPath = Astro.url.pathname;
       </a>
       <div class="flex items-center gap-4 text-sm font-mono">
         <!-- Side toggle pill -->
-        <a
-          href={side === 'dev' ? '/personal' : '/dev'}
-          class="side-toggle no-underline flex items-center gap-0 rounded-full border-2 border-gray-700 hover:border-gray-500 transition-all p-0.5"
-          title={side === 'dev' ? 'Switch to personal side' : 'Switch to dev side'}
-        >
-          <span class:list={[
-            "inline-flex items-center justify-center w-9 h-9 rounded-full text-sm transition-all",
-            side === 'personal' ? 'bg-amber-500/25 text-amber-400 shadow-inner' : 'text-gray-500'
-          ]}>😊</span>
-          <span class:list={[
-            "inline-flex items-center justify-center w-9 h-9 rounded-full text-xs font-bold transition-all",
-            side === 'dev' ? 'bg-purple-500/25 text-purple-300 shadow-inner' : 'text-gray-500'
-          ]}>&lt;/&gt;</span>
-        </a>
+        <div class="side-toggle flex items-center gap-0 rounded-full border-2 border-gray-700 transition-all p-0.5">
+          <a
+            href="/personal"
+            class:list={[
+              "no-underline inline-flex items-center justify-center w-9 h-9 rounded-full text-sm transition-all hover:opacity-80",
+              side === 'personal' ? 'bg-amber-500/25 text-amber-400 shadow-inner' : 'text-gray-500'
+            ]}
+            title="Personal side"
+          >😊</a>
+          <a
+            href="/dev"
+            class:list={[
+              "no-underline inline-flex items-center justify-center w-9 h-9 rounded-full text-xs font-bold transition-all hover:opacity-80",
+              side === 'dev' ? 'bg-purple-500/25 text-purple-300 shadow-inner' : 'text-gray-500'
+            ]}
+            title="Dev side"
+          >&lt;/&gt;</a>
+        </div>
         <a href="/about" class:list={["no-underline text-sm", currentPath.startsWith('/about') ? 'accent-text' : 'text-gray-400 accent-text-hover']}>about</a>
         <a href="/shoutouts" class:list={["no-underline text-sm", currentPath.startsWith('/shoutouts') ? 'accent-text' : 'text-gray-400 accent-text-hover']}>shoutouts</a>
       </div>
