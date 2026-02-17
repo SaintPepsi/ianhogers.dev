@@ -143,6 +143,19 @@ img[src*="pixel-art"] {
 }
 
 /* ═══════════════════════════════════════
+   STAR SPRITESHEET (70x13, 5 frames of 14x13)
+   ═══════════════════════════════════════ */
+.star-sprite {
+  display: inline-block;
+  background: url('/assets/pixel-art/decorative/star_grow.png') left center no-repeat;
+  background-size: 500% 100%;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  aspect-ratio: 14 / 13;
+}
+
+/* ═══════════════════════════════════════
    GLOW EFFECTS
    ═══════════════════════════════════════ */
 .glow-amber {

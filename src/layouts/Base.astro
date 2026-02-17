@@ -36,7 +36,7 @@ const currentPath = Astro.url.pathname;
     <!-- ✦ Header -->
     <nav class="max-w-3xl mx-auto w-full px-6 py-5 flex items-center justify-between">
       <a href="/" class="no-underline hover:opacity-80 flex items-center gap-3">
-        <img src="/assets/pixel-art/decorative/star_grow.png" alt="" class="pixel-sprite w-6 h-6 animate-sparkle" />
+        <span class="star-sprite w-6 h-6 animate-sparkle" aria-hidden="true"></span>
         <span class="font-display text-2xl text-white tracking-wide">Ian Hogers</span>
       </a>
       <div class="flex items-center gap-4 text-sm font-mono">
@@ -84,7 +84,7 @@ const currentPath = Astro.url.pathname;
     <!-- Floating decorative elements -->
     {side === 'personal' && (
       <div class="fixed bottom-4 right-4 opacity-30 pointer-events-none hidden lg:block">
-        <img src="/assets/pixel-art/decorative/carrot_grow.png" alt="" class="pixel-sprite w-10 h-10 animate-float" />
+        <img src="/assets/pixel-art/decorative/carrot-small.png" alt="" class="pixel-sprite w-10 h-auto animate-float" />
       </div>
     )}
     {side === 'dev' && (

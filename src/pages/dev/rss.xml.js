@@ -7,7 +7,7 @@ export async function GET(context) {
     .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 
   return rss({
-    title: 'Ian Hogers — Dev',
+    title: 'Ian Hogers - Dev',
     description: 'Code, agents, AI, and engineering notes from Ian Hogers.',
     site: context.site,
     items: posts.map((post) => ({

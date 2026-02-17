@@ -17,7 +17,7 @@ const personalPosts = (await getCollection('personal'))
   <!-- ✦ Hero -->
   <section class="py-10 md:py-16 relative">
     <!-- Floating decorations -->
-    <img src="/assets/pixel-art/decorative/star_grow.png" alt="" class="pixel-sprite w-8 h-8 absolute -top-2 right-8 animate-sparkle opacity-60 hidden md:block" />
+    <span class="star-sprite w-8 h-8 absolute -top-2 right-8 animate-sparkle opacity-60 hidden md:block" aria-hidden="true"></span>
     <img src="/assets/pixel-art/decorative/carrot-small.png" alt="" class="pixel-sprite w-6 h-6 absolute top-20 -right-2 animate-float opacity-40 hidden md:block" />
     <img src="/assets/pixel-art/game-assets/wow_yellow.png" alt="" class="pixel-sprite w-7 h-7 absolute bottom-8 right-16 animate-float-slow opacity-30 hidden md:block" />
 
@@ -110,7 +110,7 @@ const personalPosts = (await getCollection('personal'))
   <section class="mb-12">
     <div class="pixel-divider mb-8" style="--divider-color: #2a2438;"></div>
     <div class="flex items-center gap-3 mb-4">
-      <img src="/assets/pixel-art/decorative/star_grow.png" alt="" class="pixel-sprite w-5 h-5 animate-sparkle" />
+      <span class="star-sprite w-5 h-5 animate-sparkle" aria-hidden="true"></span>
       <h2 class="text-2xl mb-0">Friends & Shoutouts</h2>
     </div>
     <p class="text-gray-400 text-sm mb-4">People, guilds, and artists that made the journey fun.</p>

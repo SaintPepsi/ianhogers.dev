@@ -23,7 +23,7 @@ export default {
       animation: {
         'float': 'float 3s ease-in-out infinite',
         'float-slow': 'float 5s ease-in-out infinite',
-        'sparkle': 'sparkle 1.5s ease-in-out infinite',
+        'sparkle': 'sparkle 0.75s steps(5) infinite',
         'bounce-slow': 'bounce 3s ease-in-out infinite',
         'wiggle': 'wiggle 2s ease-in-out infinite',
       },
@@ -33,8 +33,8 @@ export default {
           '50%': { transform: 'translateY(-10px)' },
         },
         sparkle: {
-          '0%, 100%': { opacity: '1', transform: 'scale(1)' },
-          '50%': { opacity: '0.5', transform: 'scale(0.8)' },
+          '0%': { 'background-position': '0 0' },
+          '100%': { 'background-position': '-100% 0' },
         },
         wiggle: {
           '0%, 100%': { transform: 'rotate(-3deg)' },
