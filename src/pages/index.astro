@@ -54,7 +54,7 @@ const personalPosts = (await getCollection('personal'))
       <div class="pixel-box pixel-box-lavender p-6 hover:shadow-lg transition-all group glow-lavender">
         <div class="flex items-center gap-3 mb-4">
           <img src="/assets/pixel-art/game-assets/wow_blue.png" alt="" class="pixel-sprite w-6 h-6" />
-          <h2 class="text-2xl text-purple-300 mb-0">Dev</h2>
+          <a href="/dev" class="no-underline"><h2 class="text-2xl text-purple-300 mb-0 hover:opacity-80 transition-opacity">Dev</h2></a>
         </div>
         <p class="text-xs text-gray-500 font-mono mb-4">code · agents · AI · engineering</p>
         {devPosts.length > 0 ? (
@@ -81,7 +81,7 @@ const personalPosts = (await getCollection('personal'))
       <div class="pixel-box pixel-box-amber p-6 hover:shadow-lg transition-all group glow-amber">
         <div class="flex items-center gap-3 mb-4">
           <img src="/assets/pixel-art/decorative/sample-bunny.png" alt="" class="pixel-sprite w-6 h-6" />
-          <h2 class="text-2xl text-amber-400 mb-0">Life</h2>
+          <a href="/personal" class="no-underline"><h2 class="text-2xl text-amber-400 mb-0 hover:opacity-80 transition-opacity">Life</h2></a>
         </div>
         <p class="text-xs text-gray-500 font-mono mb-4">cooking · bunnies · crafts · everything else</p>
         {personalPosts.length > 0 ? (
