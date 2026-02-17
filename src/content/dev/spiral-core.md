@@ -37,7 +37,9 @@ Was it the right call? Absolutely. Your brain being on fire is not a valid deplo
 
 Here's the funny part. I'm now using [OpenClaw](https://openclaw.com), which does basically what I was trying to build. An autonomous agent system with orchestration, integrations, the whole package. And it works really well.
 
-Part of me laughs about it. I spent months building my own version of something that already existed (or was about to exist). But honestly, I don't regret the work. The things I learned about agent architecture, about Rust async patterns, about how to structure AI systems. That knowledge didn't disappear just because I stopped the project.
+The thing is, spiral-core came first. I was already deep into building this before OpenClaw was even a thing. So when I eventually discovered OpenClaw and saw it doing what I'd been grinding towards, it was this weird mix of "oh cool, someone actually shipped it" and "...well damn."
+
+But honestly, I don't regret the work. The things I learned about agent architecture, about Rust async patterns, about how to structure AI systems. That knowledge didn't disappear just because I stopped the project. A lot of what I built into spiral-core's guidelines came from a decade of my own experience, and that understanding helps me use tools like OpenClaw way more effectively now.
 
 Sometimes you build something not because the world needs it, but because you need to build it. And sometimes you need to stop building it, too.
 
