@@ -13,12 +13,7 @@
 }
 
 @layer base {
-  * {
-    cursor: url('/assets/pixel-art/ui/interaction_hand.png'), auto;
-  }
-  a, button, [role="button"], input[type="submit"], select {
-    cursor: url('/assets/pixel-art/ui/interaction_hand.png'), pointer;
-  }
+  /* Custom cursor handled via JS spritesheet animation - see cursor.js */
 
   body {
     @apply bg-bg text-gray-200 font-sans antialiased;
@@ -138,6 +133,13 @@
   image-rendering: pixelated;
   image-rendering: -moz-crisp-edges;
   image-rendering: crisp-edges;
+  object-fit: contain;
+}
+img[src*="pixel-art"] {
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  object-fit: contain;
 }
 
 /* ═══════════════════════════════════════

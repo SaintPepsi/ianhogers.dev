@@ -18,9 +18,9 @@ That's literally it.
 
 ## What actually matters
 
-- **Flour quality** — Use decent bread flour. This is the one thing worth spending on.
-- **Time and temperature** — Warmer = faster. Cooler = slower, more flavour. Your fridge is your best tool.
-- **Don't overwork it** — A few stretch-and-folds, not a workout.
+- **Flour quality** - Use decent bread flour. This is the one thing worth spending on.
+- **Time and temperature** - Warmer = faster. Cooler = slower, more flavour. Your fridge is your best tool.
+- **Don't overwork it** - A few stretch-and-folds, not a workout.
 
 ## What doesn't matter
 

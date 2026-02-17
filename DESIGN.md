@@ -84,6 +84,18 @@ assets/
     └── ui/                        ← sound toggles, arrows, interaction hand
 ```
 
+## Writing Style
+- **No em dashes.** Ian is Dutch, not a grammar wizard. Keep writing natural and straightforward.
+- Use commas, periods, or just break sentences apart. No fancy punctuation.
+
+## Spritesheet Details
+- **interaction_hand.png** (128x16, 8 frames of 16x16):
+  - Frames 1-4: finger pointing, wiggling up and down (use as hover cursor on clickable elements)
+  - Frames 5-8: grabbing animation (use for drag/active states)
+- **star_grow.png** (70x13, ~4 frames): star sparkle/grow animation
+- **carrot_grow.png** (56x12): carrot grow animation spritesheet
+- All pixel art must be rendered with `image-rendering: pixelated` and aspect-ratio locked (no stretching/distortion)
+
 ## TODO / Awaiting
 - [ ] Ian to provide link to pixel art drawing stream
 - [ ] More GIFs to be added
