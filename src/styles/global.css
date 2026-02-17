@@ -242,3 +242,23 @@ img[src*="pixel-art"] {
   background: var(--accent, #a78bfa);
   color: #0f0f0f;
 }
+
+/* ═══════════════════════════════════════
+   MOBILE RESPONSIVE
+   ═══════════════════════════════════════ */
+html {
+  overflow-x: hidden;
+}
+
+@media (max-width: 640px) {
+  .pixel-box {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  .prose h2 {
+    @apply text-xl mt-8 mb-3;
+  }
+  .prose h3 {
+    @apply text-lg mt-6 mb-2;
+  }
+}
