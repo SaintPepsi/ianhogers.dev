@@ -5,7 +5,7 @@ date: 2026-02-17
 tags: ["rust", "ai", "agents", "burnout", "spiral-core"]
 ---
 
-Earlier this year I was building something ambitious. An AI agent orchestration system, written in Rust, powered by Claude Code. I called it [spiral-core](https://github.com/SaintPepsi/spiral-core).
+Last year, around mid-2025, I was building something ambitious. An AI agent orchestration system, written in Rust, powered by Claude Code. I called it [spiral-core](https://github.com/SaintPepsi/spiral-core).
 
 The idea was simple enough: what if you could have specialized AI agents that actually work together? Not just a chatbot, but a whole system. SpiralDev for coding, SpiralPM for project management, SpiralQA for testing. All coordinated through a central runtime. Discord bot integration, HTTP API, the works. Think of it like n8n but for AI agents. Automated pipelines where the agents actually think.
 
