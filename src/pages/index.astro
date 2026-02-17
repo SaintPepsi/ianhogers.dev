@@ -21,12 +21,15 @@ const personalPosts = (await getCollection('personal'))
     <img src="/assets/pixel-art/decorative/carrot-small.png" alt="" class="pixel-sprite w-6 h-6 absolute top-20 -right-2 animate-float opacity-40 hidden md:block" />
     <img src="/assets/pixel-art/game-assets/wow_yellow.png" alt="" class="pixel-sprite w-7 h-7 absolute bottom-8 right-16 animate-float-slow opacity-30 hidden md:block" />
 
-    <h1 class="font-display text-3xl sm:text-5xl md:text-7xl leading-tight mb-6">
-      <span class="block">Ian Hogers</span>
-      <span class="block text-2xl sm:text-3xl md:text-4xl mt-2">
-        gets stuff <span class="text-violet-400 inline-block animate-wiggle">DONE.</span>
-      </span>
-    </h1>
+    <div class="flex flex-col md:flex-row items-center gap-8 mb-2">
+      <img src="/assets/from-old-site/hero-ian.webp" alt="Ian Hogers illustrated logo" class="w-32 md:w-44 flex-shrink-0 rounded-lg" />
+      <h1 class="font-display text-3xl sm:text-5xl md:text-7xl leading-tight">
+        <span class="block">Ian Hogers</span>
+        <span class="block text-2xl sm:text-3xl md:text-4xl mt-2">
+          gets stuff <span class="text-violet-400 inline-block animate-wiggle">DONE.</span>
+        </span>
+      </h1>
+    </div>
 
     <div class="pixel-box p-5 mb-8 max-w-lg">
       <div class="font-mono text-sm text-gray-400 space-y-1.5">
