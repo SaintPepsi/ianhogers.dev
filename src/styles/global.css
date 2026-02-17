@@ -119,7 +119,7 @@
 }
 .side-toggle::after {
   content: '';
-  @apply absolute inset-0 rounded-full opacity-0 transition-opacity;
+  @apply absolute inset-0 rounded-full opacity-0 transition-opacity pointer-events-none;
   box-shadow: 0 0 12px var(--accent-glow, rgba(167,139,250,0.2));
 }
 .side-toggle:hover::after {
