@@ -1,14 +1,37 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+@font-face {
+  font-family: 'Weiholmir';
+  src: url('/assets/fonts/Weiholmir_regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
 
 @layer base {
+  * {
+    cursor: url('/assets/pixel-art/ui/interaction_hand.png'), auto;
+  }
+  a, button, [role="button"], input[type="submit"], select {
+    cursor: url('/assets/pixel-art/ui/interaction_hand.png'), pointer;
+  }
+
   body {
     @apply bg-bg text-gray-200 font-sans antialiased;
+    background-image:
+      radial-gradient(ellipse at 20% 50%, rgba(179, 136, 255, 0.03) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(245, 158, 11, 0.03) 0%, transparent 50%);
   }
-  h1, h2, h3, h4 {
+  h1, h2, h3 {
+    font-family: 'Weiholmir', cursive;
+    @apply text-white;
+    letter-spacing: 0.02em;
+  }
+  h4, h5, h6 {
     @apply font-mono font-bold text-white;
   }
   a {
@@ -25,29 +48,125 @@
   }
 }
 
-/* Side-specific accent colors */
+/* ═══════════════════════════════════════
+   PIXEL ART BORDER BOX
+   ═══════════════════════════════════════ */
+.pixel-box {
+  @apply bg-surface relative;
+  border: 3px solid;
+  border-image: repeating-linear-gradient(
+    90deg,
+    var(--box-color, #4a4458) 0px,
+    var(--box-color, #4a4458) 4px,
+    transparent 4px,
+    transparent 8px
+  ) 3;
+  image-rendering: pixelated;
+}
+.pixel-box::before {
+  content: '';
+  @apply absolute -top-1 -left-1 -right-1 -bottom-1 pointer-events-none;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.pixel-box-amber { --box-color: #f59e0b; }
+.pixel-box-lavender { --box-color: #b388ff; }
+.pixel-box-crimson { --box-color: #ef5350; }
+
+/* ═══════════════════════════════════════
+   PIXEL DIVIDER
+   ═══════════════════════════════════════ */
+.pixel-divider {
+  height: 4px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--divider-color, #4a4458) 0px,
+    var(--divider-color, #4a4458) 4px,
+    transparent 4px,
+    transparent 8px
+  );
+  image-rendering: pixelated;
+}
+
+/* ═══════════════════════════════════════
+   SIDE-SPECIFIC ACCENTS
+   ═══════════════════════════════════════ */
 .side-dev {
-  --accent: #b388ff; /* lavender purple */
+  --accent: #b388ff;
   --accent-hover: #ce93d8;
-  --accent-secondary: #ef5350; /* crimson red */
+  --accent-secondary: #ef5350;
   --accent-secondary-hover: #e57373;
+  --accent-glow: rgba(179, 136, 255, 0.15);
 }
 .side-personal {
-  --accent: #f59e0b; /* amber */
+  --accent: #f59e0b;
   --accent-hover: #fbbf24;
+  --accent-secondary: #f59e0b;
+  --accent-glow: rgba(245, 158, 11, 0.15);
 }
 .side-neutral {
-  --accent: #a78bfa; /* violet */
+  --accent: #a78bfa;
   --accent-hover: #c4b5fd;
+  --accent-glow: rgba(167, 139, 250, 0.1);
 }
 
 .accent-text { color: var(--accent); }
 .accent-text-hover:hover { color: var(--accent); }
 .accent-bg { background-color: var(--accent); }
-.accent-bg-hover:hover { background-color: var(--accent-hover); }
 .accent-border { border-color: var(--accent); }
-.accent-border-hover:hover { border-color: var(--accent); }
 
+/* ═══════════════════════════════════════
+   SIDE TOGGLE PILL
+   ═══════════════════════════════════════ */
+.side-toggle {
+  @apply relative;
+  image-rendering: pixelated;
+}
+.side-toggle::after {
+  content: '';
+  @apply absolute inset-0 rounded-full opacity-0 transition-opacity;
+  box-shadow: 0 0 12px var(--accent-glow, rgba(167,139,250,0.2));
+}
+.side-toggle:hover::after {
+  @apply opacity-100;
+}
+
+/* ═══════════════════════════════════════
+   DECORATIVE PIXEL SPRITE
+   ═══════════════════════════════════════ */
+.pixel-sprite {
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
+/* ═══════════════════════════════════════
+   GLOW EFFECTS
+   ═══════════════════════════════════════ */
+.glow-amber {
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.15), 0 0 40px rgba(245, 158, 11, 0.05);
+}
+.glow-lavender {
+  box-shadow: 0 0 20px rgba(179, 136, 255, 0.15), 0 0 40px rgba(179, 136, 255, 0.05);
+}
+.glow-crimson {
+  box-shadow: 0 0 20px rgba(239, 83, 80, 0.15), 0 0 40px rgba(239, 83, 80, 0.05);
+}
+
+/* ═══════════════════════════════════════
+   MARQUEE / TICKER
+   ═══════════════════════════════════════ */
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.marquee-track {
+  animation: marquee 20s linear infinite;
+}
+
+/* ═══════════════════════════════════════
+   PROSE STYLING
+   ═══════════════════════════════════════ */
 .prose {
   @apply text-gray-300 leading-relaxed;
 }
@@ -75,4 +194,36 @@
 }
 .prose a:hover {
   @apply underline;
+}
+.prose img {
+  @apply rounded-lg my-6;
+  image-rendering: auto;
+}
+.prose img.pixel {
+  image-rendering: pixelated;
+}
+
+/* ═══════════════════════════════════════
+   SCROLLBAR
+   ═══════════════════════════════════════ */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-bg;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--accent, #4a4458);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-hover, #6a6478);
+}
+
+/* ═══════════════════════════════════════
+   SELECTION
+   ═══════════════════════════════════════ */
+::selection {
+  background: var(--accent, #a78bfa);
+  color: #0f0f0f;
 }

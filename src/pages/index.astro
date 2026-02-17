@@ -14,62 +14,116 @@ const personalPosts = (await getCollection('personal'))
 ---
 
 <Base title="Ian Hogers — Gets Stuff DONE">
-  <div class="py-12 md:py-20">
-    <h1 class="text-4xl md:text-5xl leading-tight mb-6">
-      Ian Hogers gets stuff <span class="text-violet-400">DONE.</span>
+  <!-- ✦ Hero -->
+  <section class="py-10 md:py-16 relative">
+    <!-- Floating decorations -->
+    <img src="/assets/pixel-art/decorative/star_grow.png" alt="" class="pixel-sprite w-8 h-8 absolute -top-2 right-8 animate-sparkle opacity-60 hidden md:block" />
+    <img src="/assets/pixel-art/decorative/carrot-small.png" alt="" class="pixel-sprite w-6 h-6 absolute top-20 -right-2 animate-float opacity-40 hidden md:block" />
+    <img src="/assets/pixel-art/game-assets/wow_yellow.png" alt="" class="pixel-sprite w-7 h-7 absolute bottom-8 right-16 animate-float-slow opacity-30 hidden md:block" />
+
+    <h1 class="font-display text-5xl md:text-7xl leading-tight mb-6">
+      <span class="block">Ian Hogers</span>
+      <span class="block text-3xl md:text-4xl mt-2">
+        gets stuff <span class="text-violet-400 inline-block animate-wiggle">DONE.</span>
+      </span>
     </h1>
-    <div class="font-mono text-lg text-gray-400 space-y-2 mb-10">
-      <p>Need a website? — <span class="text-white">Done.</span></p>
-      <p>Need a game built? — <span class="text-white">Done.</span></p>
-      <p>Need something baked or cooked? — <span class="text-white">Done.</span></p>
-      <p>Need some voice acting? — <span class="text-white">Done.</span></p>
-      <p>Need a bunny rescued? — <span class="text-white">Done.</span> 🐰</p>
+
+    <div class="pixel-box p-5 mb-8 max-w-lg">
+      <div class="font-mono text-sm text-gray-400 space-y-1.5">
+        <p>Need a website? — <span class="text-white">Done.</span></p>
+        <p>Need a game built? — <span class="text-white">Done.</span></p>
+        <p>Need something baked? — <span class="text-white">Done.</span></p>
+        <p>Need some voice acting? — <span class="text-white">Done.</span></p>
+        <p>Need a bunny rescued? — <span class="text-white">Done.</span>
+          <img src="/assets/pixel-art/decorative/sample-bunny.png" alt="bunny" class="pixel-sprite w-5 h-5 inline-block ml-1 -mt-1" />
+        </p>
+      </div>
     </div>
-    <p class="text-gray-300 max-w-lg mb-12">
+
+    <p class="text-gray-400 max-w-lg text-sm leading-relaxed mb-4">
       Software engineer. Game developer. Dutch-Australian. I build things, fix things, and occasionally rescue rabbits. No fluff, no corporate speak — just work that ships.
     </p>
+  </section>
 
-    <!-- Two sides -->
-    <div class="grid md:grid-cols-2 gap-8 mb-10">
+  <!-- ✦ Two Sides -->
+  <section class="mb-12">
+    <div class="pixel-divider mb-8" style="--divider-color: #2a2438;"></div>
+
+    <div class="grid md:grid-cols-2 gap-6">
       <!-- Dev side -->
-      <div class="border border-gray-800 rounded-lg p-6 hover:border-purple-400/40 transition-colors">
-        <h2 class="text-xl mb-1 text-purple-300">⚡ Dev</h2>
-        <p class="text-sm text-gray-500 font-mono mb-4">code · agents · AI · engineering</p>
+      <div class="pixel-box pixel-box-lavender p-6 hover:shadow-lg transition-all group glow-lavender">
+        <div class="flex items-center gap-3 mb-4">
+          <img src="/assets/pixel-art/game-assets/wow_blue.png" alt="" class="pixel-sprite w-6 h-6" />
+          <h2 class="text-2xl text-purple-300 mb-0">Dev</h2>
+        </div>
+        <p class="text-xs text-gray-500 font-mono mb-4">code · agents · AI · engineering</p>
         {devPosts.length > 0 ? (
-          <ul class="space-y-3 mb-4">
+          <ul class="space-y-2 mb-4">
             {devPosts.map((post) => (
-              <li>
-                <a href={`/dev/${post.id}/`} class="text-sm text-gray-300 hover:text-purple-300 no-underline">
+              <li class="flex items-start gap-2">
+                <img src="/assets/pixel-art/ui/green_up_arrow_tiny.png" alt="" class="pixel-sprite w-3 h-3 mt-1.5 opacity-60" />
+                <a href={`/dev/${post.id}/`} class="text-sm text-gray-300 hover:text-purple-300 no-underline transition-colors">
                   {post.data.title}
                 </a>
               </li>
             ))}
           </ul>
         ) : (
-          <p class="text-sm text-gray-600 mb-4">Posts incoming...</p>
+          <p class="text-sm text-gray-600 mb-4 font-mono">Posts incoming...</p>
         )}
-        <a href="/dev" class="text-sm font-mono text-purple-300 no-underline hover:underline">all dev posts →</a>
+        <a href="/dev" class="text-sm font-mono text-purple-300 no-underline hover:underline inline-flex items-center gap-1">
+          all dev posts
+          <img src="/assets/pixel-art/ui/green_up_arrow_tiny.png" alt="" class="pixel-sprite w-3 h-3 rotate-90" />
+        </a>
       </div>
 
       <!-- Personal side -->
-      <div class="border border-gray-800 rounded-lg p-6 hover:border-amber-400/40 transition-colors">
-        <h2 class="text-xl mb-1 text-amber-400">🐰 Life</h2>
-        <p class="text-sm text-gray-500 font-mono mb-4">cooking · bunnies · crafts · everything else</p>
+      <div class="pixel-box pixel-box-amber p-6 hover:shadow-lg transition-all group glow-amber">
+        <div class="flex items-center gap-3 mb-4">
+          <img src="/assets/pixel-art/decorative/sample-bunny.png" alt="" class="pixel-sprite w-6 h-6" />
+          <h2 class="text-2xl text-amber-400 mb-0">Life</h2>
+        </div>
+        <p class="text-xs text-gray-500 font-mono mb-4">cooking · bunnies · crafts · everything else</p>
         {personalPosts.length > 0 ? (
-          <ul class="space-y-3 mb-4">
+          <ul class="space-y-2 mb-4">
             {personalPosts.map((post) => (
-              <li>
-                <a href={`/personal/${post.id}/`} class="text-sm text-gray-300 hover:text-amber-400 no-underline">
+              <li class="flex items-start gap-2">
+                <img src="/assets/pixel-art/decorative/carrot-small.png" alt="" class="pixel-sprite w-3 h-3 mt-1.5 opacity-60" />
+                <a href={`/personal/${post.id}/`} class="text-sm text-gray-300 hover:text-amber-400 no-underline transition-colors">
                   {post.data.title}
                 </a>
               </li>
             ))}
           </ul>
         ) : (
-          <p class="text-sm text-gray-600 mb-4">Posts incoming...</p>
+          <p class="text-sm text-gray-600 mb-4 font-mono">Posts incoming...</p>
         )}
-        <a href="/personal" class="text-sm font-mono text-amber-400 no-underline hover:underline">all life posts →</a>
+        <a href="/personal" class="text-sm font-mono text-amber-400 no-underline hover:underline inline-flex items-center gap-1">
+          all life posts
+          <img src="/assets/pixel-art/ui/green_up_arrow_tiny.png" alt="" class="pixel-sprite w-3 h-3 rotate-90" />
+        </a>
       </div>
     </div>
-  </div>
+  </section>
+
+  <!-- ✦ Quick shoutouts teaser -->
+  <section class="mb-12">
+    <div class="pixel-divider mb-8" style="--divider-color: #2a2438;"></div>
+    <div class="flex items-center gap-3 mb-4">
+      <img src="/assets/pixel-art/decorative/star_grow.png" alt="" class="pixel-sprite w-5 h-5 animate-sparkle" />
+      <h2 class="text-2xl mb-0">Friends & Shoutouts</h2>
+    </div>
+    <p class="text-gray-400 text-sm mb-4">People, guilds, and artists that made the journey fun.</p>
+    <div class="flex flex-wrap gap-3">
+      <a href="/shoutouts/bambooboys" class="pixel-box p-3 px-4 no-underline hover:bg-surface-light transition-colors text-sm text-gray-300 hover:text-white">
+        🍃 Bambooboys Guild
+      </a>
+      <a href="/shoutouts/asianfox" class="pixel-box p-3 px-4 no-underline hover:bg-surface-light transition-colors text-sm text-gray-300 hover:text-white">
+        🎨 AsianFox
+      </a>
+      <a href="/shoutouts" class="p-3 px-4 text-sm text-gray-500 hover:text-gray-300 no-underline font-mono">
+        see all →
+      </a>
+    </div>
+  </section>
 </Base>

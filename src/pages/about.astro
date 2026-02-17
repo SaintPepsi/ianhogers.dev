@@ -3,23 +3,47 @@ import Base from '../layouts/Base.astro';
 ---
 
 <Base title="About — Ian Hogers" side="neutral">
-  <h1 class="text-3xl md:text-4xl mb-8">About</h1>
-  <div class="prose">
-    <p>I'm Ian — also known as <strong>SanCoca</strong> online. Dutch-Australian software engineer and game developer based in the real world, building things that work.</p>
-    <p>I've been writing code since I was a kid and never really stopped. I build websites, games, tools, and whatever else needs building. If there's a problem, I solve it. If there's a thing that should exist, I make it.</p>
+  <section class="py-6">
+    <div class="flex items-center gap-4 mb-8">
+      <img src="/assets/pixel-art/game-assets/overlord_statue_active.png" alt="" class="pixel-sprite w-12 h-12 animate-float" />
+      <h1 class="text-4xl md:text-5xl mb-0">About</h1>
+    </div>
 
-    <h2>The two sides</h2>
-    <p>This site has two halves because I do:</p>
-    <ul>
-      <li><strong class="text-purple-300">Dev</strong> — software engineering, AI agents, game development, technical deep-dives. The stuff that pays the bills and keeps the brain sharp.</li>
-      <li><strong class="text-amber-400">Life</strong> — cooking, baking, bunny rescue, voice acting, crafts, and whatever else I'm into. The stuff that keeps me human.</li>
-    </ul>
-    <p>Same person, different modes. Pick your side, or read both. I don't judge.</p>
+    <div class="pixel-box p-6 mb-8">
+      <div class="prose">
+        <p>I'm <strong>Ian</strong> — also known as <strong class="text-violet-400">SanCoca</strong> online. Dutch-Australian software engineer and game developer based in the real world, building things that work.</p>
+        <p>I've been writing code since I was a kid and never really stopped. I build websites, games, tools, and whatever else needs building. If there's a problem, I solve it. If there's a thing that should exist, I make it.</p>
+      </div>
+    </div>
 
-    <h2>How I work</h2>
-    <p>Direct. No-nonsense. I'd rather ship something good today than talk about shipping something perfect next quarter. If you want meetings about meetings, I'm the wrong person. If you want stuff done — let's go.</p>
+    <div class="grid md:grid-cols-2 gap-6 mb-8">
+      <div class="pixel-box pixel-box-lavender p-5">
+        <div class="flex items-center gap-2 mb-3">
+          <img src="/assets/pixel-art/game-assets/wow_blue.png" alt="" class="pixel-sprite w-5 h-5" />
+          <h2 class="text-xl text-purple-300 mb-0">Dev Side</h2>
+        </div>
+        <p class="text-sm text-gray-400">Software engineering, AI agents, game development, technical deep-dives. The stuff that pays the bills and keeps the brain sharp.</p>
+      </div>
+      <div class="pixel-box pixel-box-amber p-5">
+        <div class="flex items-center gap-2 mb-3">
+          <img src="/assets/pixel-art/decorative/sample-bunny.png" alt="" class="pixel-sprite w-5 h-5" />
+          <h2 class="text-xl text-amber-400 mb-0">Life Side</h2>
+        </div>
+        <p class="text-sm text-gray-400">Cooking, baking, bunny rescue, voice acting, crafts, and whatever else I'm into. The stuff that keeps me human.</p>
+      </div>
+    </div>
 
-    <h2>Get in touch</h2>
-    <p>Find me online as <strong>SanCoca</strong> or reach out at <a href="mailto:ian@ianhogers.com">ian@ianhogers.com</a>.</p>
-  </div>
+    <div class="prose mb-8">
+      <h2>How I work</h2>
+      <p>Direct. No-nonsense. I'd rather ship something good today than talk about shipping something perfect next quarter. If you want meetings about meetings, I'm the wrong person. If you want stuff done — let's go.</p>
+
+      <h2>Get in touch</h2>
+      <p>Find me online as <strong class="text-violet-400">SanCoca</strong> or reach out at <a href="mailto:ian@ianhogers.com">ian@ianhogers.com</a>.</p>
+    </div>
+
+    <div class="flex items-center gap-2 text-xs text-gray-600 font-mono">
+      <img src="/assets/pixel-art/decorative/star_grow.png" alt="" class="pixel-sprite w-4 h-4 animate-sparkle opacity-40" />
+      <span>Same person, different modes. Pick your side, or read both.</span>
+    </div>
+  </section>
 </Base>

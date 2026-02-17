@@ -1,0 +1,38 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+
+<Base title="Shoutouts — Ian Hogers" side="neutral">
+  <section class="py-6">
+    <div class="flex items-center gap-4 mb-4">
+      <img src="/assets/pixel-art/decorative/star_grow.png" alt="" class="pixel-sprite w-8 h-8 animate-sparkle" />
+      <h1 class="text-4xl md:text-5xl mb-0">Shoutouts</h1>
+    </div>
+    <p class="text-gray-400 mb-8 max-w-lg">People, guilds, and artists I've crossed paths with online. The internet is better because of them.</p>
+
+    <div class="space-y-6">
+      <!-- Bambooboys -->
+      <a href="/shoutouts/bambooboys" class="pixel-box p-6 block no-underline hover:bg-surface-light transition-all group">
+        <div class="flex items-center gap-3 mb-2">
+          <span class="text-2xl">🍃</span>
+          <h2 class="text-2xl text-green-400 mb-0 group-hover:text-green-300 transition-colors">Bambooboys</h2>
+        </div>
+        <p class="text-sm text-gray-400">MapleLegends guild (~2015). The crew. Good times, good people.</p>
+        <span class="text-xs font-mono text-gray-600 mt-2 block">read more →</span>
+      </a>
+
+      <!-- AsianFox -->
+      <a href="/shoutouts/asianfox" class="pixel-box p-6 block no-underline hover:bg-surface-light transition-all group">
+        <div class="flex items-center gap-3 mb-2">
+          <span class="text-2xl">🎨</span>
+          <h2 class="text-2xl text-pink-400 mb-0 group-hover:text-pink-300 transition-colors">AsianFox</h2>
+        </div>
+        <p class="text-sm text-gray-400">Talented artist from the MapleStory community. Made some incredible pieces.</p>
+        <span class="text-xs font-mono text-gray-600 mt-2 block">see the art →</span>
+      </a>
+    </div>
+
+    <div class="pixel-divider mt-10 mb-6" style="--divider-color: #2a2438;"></div>
+    <p class="text-xs font-mono text-gray-600">More shoutouts coming as I remember people. The internet is vast and memory is finite.</p>
+  </section>
+</Base>

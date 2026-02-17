@@ -5,12 +5,41 @@ export default {
     extend: {
       colors: {
         accent: '#f59e0b',
-        bg: '#0f0f0f',
-        surface: '#1a1a1a',
+        bg: '#121018',
+        surface: '#1e1a28',
+        'surface-light': '#2a2438',
+        amber: {
+          400: '#fbbf24',
+          500: '#f59e0b',
+        },
+        lavender: '#b388ff',
+        crimson: '#ef5350',
       },
       fontFamily: {
+        display: ['"Weiholmir"', 'cursive'],
         mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
         sans: ['"Inter"', 'system-ui', 'sans-serif'],
+      },
+      animation: {
+        'float': 'float 3s ease-in-out infinite',
+        'float-slow': 'float 5s ease-in-out infinite',
+        'sparkle': 'sparkle 1.5s ease-in-out infinite',
+        'bounce-slow': 'bounce 3s ease-in-out infinite',
+        'wiggle': 'wiggle 2s ease-in-out infinite',
+      },
+      keyframes: {
+        float: {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-10px)' },
+        },
+        sparkle: {
+          '0%, 100%': { opacity: '1', transform: 'scale(1)' },
+          '50%': { opacity: '0.5', transform: 'scale(0.8)' },
+        },
+        wiggle: {
+          '0%, 100%': { transform: 'rotate(-3deg)' },
+          '50%': { transform: 'rotate(3deg)' },
+        },
       },
     },
   },

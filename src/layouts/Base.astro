@@ -7,6 +7,7 @@ interface Props {
 
 const { title, description = 'Ian Hogers gets stuff DONE.', side = 'neutral' } = Astro.props;
 const sideClass = `side-${side}`;
+const currentPath = Astro.url.pathname;
 ---
 
 <!doctype html>
@@ -21,33 +22,76 @@ const sideClass = `side-${side}`;
     <title>{title}</title>
   </head>
   <body class="min-h-screen flex flex-col">
-    <nav class="max-w-2xl mx-auto w-full px-6 py-6 flex items-center justify-between">
-      <a href="/" class="font-mono font-bold text-white text-lg no-underline hover:opacity-80">IH</a>
-      <div class="flex items-center gap-6 text-sm font-mono">
+    <!-- ✦ Marquee ticker -->
+    <div class="overflow-hidden bg-surface/60 border-b border-gray-800/50 py-1">
+      <div class="flex whitespace-nowrap marquee-track" style="width: max-content;">
+        {Array(4).fill(null).map(() => (
+          <span class="text-xs font-mono text-gray-600 mx-4">
+            ✦ welcome to ian's corner of the internet ✦ software engineer ✦ game dev ✦ bunny rescuer ✦ dutch-australian ✦ gets stuff DONE ✦
+          </span>
+        ))}
+      </div>
+    </div>
+
+    <!-- ✦ Header -->
+    <nav class="max-w-3xl mx-auto w-full px-6 py-5 flex items-center justify-between">
+      <a href="/" class="no-underline hover:opacity-80 flex items-center gap-3">
+        <img src="/assets/pixel-art/decorative/star_grow.png" alt="" class="pixel-sprite w-6 h-6 animate-sparkle" />
+        <span class="font-display text-2xl text-white tracking-wide">Ian Hogers</span>
+      </a>
+      <div class="flex items-center gap-4 text-sm font-mono">
         <!-- Side toggle pill -->
         <a
           href={side === 'dev' ? '/personal' : '/dev'}
-          class="side-toggle no-underline flex items-center gap-0 rounded-full border border-gray-700 hover:border-gray-500 transition-colors p-0.5"
+          class="side-toggle no-underline flex items-center gap-0 rounded-full border-2 border-gray-700 hover:border-gray-500 transition-all p-0.5"
           title={side === 'dev' ? 'Switch to personal side' : 'Switch to dev side'}
         >
           <span class:list={[
-            "inline-flex items-center justify-center w-8 h-8 rounded-full text-xs transition-all",
-            side === 'personal' ? 'bg-amber-500/20 text-amber-400' : 'text-gray-500'
+            "inline-flex items-center justify-center w-9 h-9 rounded-full text-sm transition-all",
+            side === 'personal' ? 'bg-amber-500/25 text-amber-400 shadow-inner' : 'text-gray-500'
           ]}>😊</span>
           <span class:list={[
-            "inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold transition-all",
-            side === 'dev' ? 'bg-purple-500/20 text-purple-300' : 'text-gray-500'
+            "inline-flex items-center justify-center w-9 h-9 rounded-full text-xs font-bold transition-all",
+            side === 'dev' ? 'bg-purple-500/25 text-purple-300 shadow-inner' : 'text-gray-500'
           ]}>&lt;/&gt;</span>
         </a>
-        <a href="/about" class:list={["no-underline", Astro.url.pathname === '/about/' ? 'accent-text' : 'text-gray-400 accent-text-hover']}>about</a>
+        <a href="/about" class:list={["no-underline text-sm", currentPath.startsWith('/about') ? 'accent-text' : 'text-gray-400 accent-text-hover']}>about</a>
+        <a href="/shoutouts" class:list={["no-underline text-sm", currentPath.startsWith('/shoutouts') ? 'accent-text' : 'text-gray-400 accent-text-hover']}>shoutouts</a>
       </div>
     </nav>
-    <main class="max-w-2xl mx-auto w-full px-6 py-8 flex-1">
+
+    <!-- ✦ Content -->
+    <main class="max-w-3xl mx-auto w-full px-6 py-6 flex-1">
       <slot />
     </main>
-    <footer class="max-w-2xl mx-auto w-full px-6 py-8 text-sm text-gray-600 font-mono">
-      <p>&copy; {new Date().getFullYear()} Ian Hogers. Gets stuff done since forever.</p>
+
+    <!-- ✦ Footer -->
+    <footer class="max-w-3xl mx-auto w-full px-6 py-8">
+      <div class="pixel-divider mb-6" style="--divider-color: #2a2438;"></div>
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-600 font-mono">
+        <div class="flex items-center gap-2">
+          <img src="/assets/pixel-art/decorative/sample-bunny.png" alt="" class="pixel-sprite w-5 h-5 animate-bounce-slow" />
+          <p>&copy; {new Date().getFullYear()} Ian Hogers. Gets stuff done since forever.</p>
+        </div>
+        <div class="flex items-center gap-3 text-xs">
+          <a href="/credits" class="text-gray-500 hover:text-gray-300 no-underline">credits</a>
+          <span class="text-gray-700">·</span>
+          <a href="/dev/rss.xml" class="text-gray-500 hover:text-gray-300 no-underline">rss</a>
+        </div>
+      </div>
     </footer>
+
+    <!-- Floating decorative elements -->
+    {side === 'personal' && (
+      <div class="fixed bottom-4 right-4 opacity-30 pointer-events-none hidden lg:block">
+        <img src="/assets/pixel-art/decorative/carrot_grow.png" alt="" class="pixel-sprite w-10 h-10 animate-float" />
+      </div>
+    )}
+    {side === 'dev' && (
+      <div class="fixed bottom-4 right-4 opacity-20 pointer-events-none hidden lg:block">
+        <img src="/assets/pixel-art/game-assets/wow_blue.png" alt="" class="pixel-sprite w-10 h-10 animate-float-slow" />
+      </div>
+    )}
   </body>
 </html>
 
