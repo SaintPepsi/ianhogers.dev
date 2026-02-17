@@ -148,7 +148,7 @@ img[src*="pixel-art"] {
 .star-sprite {
   display: inline-block;
   background: url('/assets/pixel-art/decorative/star_grow.png') left center no-repeat;
-  background-size: auto 100%;
+  background-size: 500% 100%;
   image-rendering: pixelated;
   image-rendering: -moz-crisp-edges;
   image-rendering: crisp-edges;
