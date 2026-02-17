@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+
+@layer base {
+  body {
+    @apply bg-bg text-gray-200 font-sans antialiased;
+  }
+  h1, h2, h3, h4 {
+    @apply font-mono font-bold text-white;
+  }
+  a {
+    @apply transition-colors;
+  }
+  code {
+    @apply font-mono bg-surface px-1.5 py-0.5 rounded text-sm;
+  }
+  pre {
+    @apply bg-surface p-4 rounded-lg overflow-x-auto my-6;
+  }
+  pre code {
+    @apply bg-transparent p-0;
+  }
+}
+
+/* Side-specific accent colors */
+.side-dev {
+  --accent: #b388ff; /* lavender purple */
+  --accent-hover: #ce93d8;
+  --accent-secondary: #ef5350; /* crimson red */
+  --accent-secondary-hover: #e57373;
+}
+.side-personal {
+  --accent: #f59e0b; /* amber */
+  --accent-hover: #fbbf24;
+}
+.side-neutral {
+  --accent: #a78bfa; /* violet */
+  --accent-hover: #c4b5fd;
+}
+
+.accent-text { color: var(--accent); }
+.accent-text-hover:hover { color: var(--accent); }
+.accent-bg { background-color: var(--accent); }
+.accent-bg-hover:hover { background-color: var(--accent-hover); }
+.accent-border { border-color: var(--accent); }
+.accent-border-hover:hover { border-color: var(--accent); }
+
+.prose {
+  @apply text-gray-300 leading-relaxed;
+}
+.prose h2 {
+  @apply text-2xl mt-10 mb-4;
+}
+.prose h3 {
+  @apply text-xl mt-8 mb-3;
+}
+.prose p {
+  @apply mb-4;
+}
+.prose ul {
+  @apply list-disc pl-6 mb-4;
+}
+.prose ol {
+  @apply list-decimal pl-6 mb-4;
+}
+.prose blockquote {
+  @apply border-l-4 pl-4 italic text-gray-400 my-6;
+  border-color: var(--accent);
+}
+.prose a {
+  color: var(--accent-secondary, var(--accent));
+}
+.prose a:hover {
+  @apply underline;
+}

@@ -1,0 +1,56 @@
+---
+interface Props {
+  title: string;
+  description?: string;
+  side?: 'dev' | 'personal' | 'neutral';
+}
+
+const { title, description = 'Ian Hogers gets stuff DONE.', side = 'neutral' } = Astro.props;
+const sideClass = `side-${side}`;
+---
+
+<!doctype html>
+<html lang="en" class={sideClass}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <link rel="icon" href="/favicon.svg" />
+    <link rel="alternate" type="application/rss+xml" title="Ian Hogers — Dev" href="/dev/rss.xml" />
+    <link rel="alternate" type="application/rss+xml" title="Ian Hogers — Personal" href="/personal/rss.xml" />
+    <title>{title}</title>
+  </head>
+  <body class="min-h-screen flex flex-col">
+    <nav class="max-w-2xl mx-auto w-full px-6 py-6 flex items-center justify-between">
+      <a href="/" class="font-mono font-bold text-white text-lg no-underline hover:opacity-80">IH</a>
+      <div class="flex items-center gap-6 text-sm font-mono">
+        <!-- Side toggle pill -->
+        <a
+          href={side === 'dev' ? '/personal' : '/dev'}
+          class="side-toggle no-underline flex items-center gap-0 rounded-full border border-gray-700 hover:border-gray-500 transition-colors p-0.5"
+          title={side === 'dev' ? 'Switch to personal side' : 'Switch to dev side'}
+        >
+          <span class:list={[
+            "inline-flex items-center justify-center w-8 h-8 rounded-full text-xs transition-all",
+            side === 'personal' ? 'bg-amber-500/20 text-amber-400' : 'text-gray-500'
+          ]}>😊</span>
+          <span class:list={[
+            "inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold transition-all",
+            side === 'dev' ? 'bg-purple-500/20 text-purple-300' : 'text-gray-500'
+          ]}>&lt;/&gt;</span>
+        </a>
+        <a href="/about" class:list={["no-underline", Astro.url.pathname === '/about/' ? 'accent-text' : 'text-gray-400 accent-text-hover']}>about</a>
+      </div>
+    </nav>
+    <main class="max-w-2xl mx-auto w-full px-6 py-8 flex-1">
+      <slot />
+    </main>
+    <footer class="max-w-2xl mx-auto w-full px-6 py-8 text-sm text-gray-600 font-mono">
+      <p>&copy; {new Date().getFullYear()} Ian Hogers. Gets stuff done since forever.</p>
+    </footer>
+  </body>
+</html>
+
+<style is:global>
+  @import '../styles/global.css';
+</style>

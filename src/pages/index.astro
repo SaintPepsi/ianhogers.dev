@@ -1,0 +1,75 @@
+---
+import Base from '../layouts/Base.astro';
+import { getCollection } from 'astro:content';
+
+const devPosts = (await getCollection('dev'))
+  .filter((p) => !p.data.draft)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .slice(0, 3);
+
+const personalPosts = (await getCollection('personal'))
+  .filter((p) => !p.data.draft)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .slice(0, 3);
+---
+
+<Base title="Ian Hogers — Gets Stuff DONE">
+  <div class="py-12 md:py-20">
+    <h1 class="text-4xl md:text-5xl leading-tight mb-6">
+      Ian Hogers gets stuff <span class="text-violet-400">DONE.</span>
+    </h1>
+    <div class="font-mono text-lg text-gray-400 space-y-2 mb-10">
+      <p>Need a website? — <span class="text-white">Done.</span></p>
+      <p>Need a game built? — <span class="text-white">Done.</span></p>
+      <p>Need something baked or cooked? — <span class="text-white">Done.</span></p>
+      <p>Need some voice acting? — <span class="text-white">Done.</span></p>
+      <p>Need a bunny rescued? — <span class="text-white">Done.</span> 🐰</p>
+    </div>
+    <p class="text-gray-300 max-w-lg mb-12">
+      Software engineer. Game developer. Dutch-Australian. I build things, fix things, and occasionally rescue rabbits. No fluff, no corporate speak — just work that ships.
+    </p>
+
+    <!-- Two sides -->
+    <div class="grid md:grid-cols-2 gap-8 mb-10">
+      <!-- Dev side -->
+      <div class="border border-gray-800 rounded-lg p-6 hover:border-purple-400/40 transition-colors">
+        <h2 class="text-xl mb-1 text-purple-300">⚡ Dev</h2>
+        <p class="text-sm text-gray-500 font-mono mb-4">code · agents · AI · engineering</p>
+        {devPosts.length > 0 ? (
+          <ul class="space-y-3 mb-4">
+            {devPosts.map((post) => (
+              <li>
+                <a href={`/dev/${post.id}/`} class="text-sm text-gray-300 hover:text-purple-300 no-underline">
+                  {post.data.title}
+                </a>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p class="text-sm text-gray-600 mb-4">Posts incoming...</p>
+        )}
+        <a href="/dev" class="text-sm font-mono text-purple-300 no-underline hover:underline">all dev posts →</a>
+      </div>
+
+      <!-- Personal side -->
+      <div class="border border-gray-800 rounded-lg p-6 hover:border-amber-400/40 transition-colors">
+        <h2 class="text-xl mb-1 text-amber-400">🐰 Life</h2>
+        <p class="text-sm text-gray-500 font-mono mb-4">cooking · bunnies · crafts · everything else</p>
+        {personalPosts.length > 0 ? (
+          <ul class="space-y-3 mb-4">
+            {personalPosts.map((post) => (
+              <li>
+                <a href={`/personal/${post.id}/`} class="text-sm text-gray-300 hover:text-amber-400 no-underline">
+                  {post.data.title}
+                </a>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p class="text-sm text-gray-600 mb-4">Posts incoming...</p>
+        )}
+        <a href="/personal" class="text-sm font-mono text-amber-400 no-underline hover:underline">all life posts →</a>
+      </div>
+    </div>
+  </div>
+</Base>

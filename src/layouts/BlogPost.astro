@@ -1,0 +1,37 @@
+---
+import Base from './Base.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  date: Date;
+  tags: string[];
+  side: 'dev' | 'personal';
+}
+
+const { title, description, date, tags, side } = Astro.props;
+const formattedDate = date.toLocaleDateString('en-AU', { year: 'numeric', month: 'long', day: 'numeric' });
+---
+
+<Base title={`${title} — Ian Hogers`} description={description} side={side}>
+  <article>
+    <p class="font-mono text-sm mb-6">
+      <a href={`/${side}`} class="accent-text no-underline hover:underline">← back to {side === 'dev' ? 'dev' : 'life'}</a>
+    </p>
+    <header class="mb-10">
+      <p class="font-mono text-sm text-gray-500 mb-2">{formattedDate}</p>
+      <h1 class="text-3xl md:text-4xl mb-3">{title}</h1>
+      <p class="text-gray-400">{description}</p>
+      {tags.length > 0 && (
+        <div class="flex flex-wrap gap-2 mt-4">
+          {tags.map((tag) => (
+            <span class="text-xs font-mono bg-surface px-2 py-1 rounded accent-text">{tag}</span>
+          ))}
+        </div>
+      )}
+    </header>
+    <div class="prose">
+      <slot />
+    </div>
+  </article>
+</Base>
