@@ -25,6 +25,8 @@
     font-family: 'Weiholmir', cursive;
     @apply text-white;
     letter-spacing: 0.02em;
+    overflow-wrap: break-word;
+    word-break: break-word;
   }
   h4, h5, h6 {
     @apply font-mono font-bold text-white;
