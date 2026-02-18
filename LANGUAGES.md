@@ -44,8 +44,8 @@ Hours for level L = RS_XP(L) / 13,034,431 * 50,000
 
 | Language | Hours | Level | Notes |
 |----------|------:|------:|-------|
-| Dutch | TBD | TBD | Native, grew up in NL, reduced daily use after moving to AU |
-| English | TBD | TBD | Daily use in Australia, work language |
+| Dutch | 55,662 | 99 | Native, full time age 3-24 in NL, ~1.5h/day since moving to AU |
+| English | 37,595 | 96 | Some in NL growing up, full time since moving to AU age 24 |
 | Portuguese (BR) | TBD | TBD | |
 
 ### Programming Languages
@@ -85,4 +85,8 @@ Lordgenome will:
 - Pixel art style, fits the Neocities vibe
 - Maybe even the RS font for the numbers
 
-**Status: CONCEPT - not yet implemented. Waiting for Ian to fill in hour estimates.**
+## XP Beyond 99
+
+Just like RuneScape, level 99 is the display cap but hours keep accumulating. The site should show "Level 99" but also display total hours, so people can see the real number. Think of it like the 200M XP grind - the level stops but the dedication doesn't.
+
+**Status: CONCEPT - not yet implemented. Waiting for Ian to fill in remaining hour estimates.**
