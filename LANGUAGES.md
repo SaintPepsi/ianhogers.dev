@@ -59,7 +59,8 @@ Hours for level L = RS_XP(L) / 13,034,431 * 50,000
 | JavaScript | ~16,425 | 87 | ~9 years before switching to TS |
 | TypeScript | ~9,855 | 82 | 3 yrs part time + 3 yrs full time |
 | Svelte | ~450 | 51 | Multiple packages published |
-| PHP/Laravel | ~234 | 44 | Built Katana on this |
+| PHP | ~840 | 57 | 234 pure PHP + 606 from Laravel |
+| Laravel | ~606 | 54 | Built Katana on this |
 | Rust | ~90 | 35 | spiral-core project |
 | C# | ~30 | 25 | Dabbled |
 | SQL | ~25 | 23 | |
