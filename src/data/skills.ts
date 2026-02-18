@@ -54,6 +54,7 @@ export interface Skill {
   name: string;
   hours: number;
   level: number;
+  icon?: string;
 }
 
 export interface SkillCategory {
@@ -61,38 +62,38 @@ export interface SkillCategory {
   skills: Skill[];
 }
 
-function makeSkill(name: string, hours: number): Skill {
-  return { name, hours, level: levelFromHours(hours) };
+function makeSkill(name: string, hours: number, icon?: string): Skill {
+  return { name, hours, level: levelFromHours(hours), ...(icon ? { icon } : {}) };
 }
 
 export const spokenLanguages: SkillCategory = {
   title: "Spoken Languages",
   skills: [
-    makeSkill("Dutch", 55662),
-    makeSkill("English", 37595),
-    makeSkill("German", 255),
-    makeSkill("Russian", 40),
-    makeSkill("Japanese", 20),
-    makeSkill("Spanish", 15),
-    makeSkill("French", 5),
-    makeSkill("Korean", 2),
-    makeSkill("Portuguese (BR)", 0.25),
+    makeSkill("Dutch", 55662, "/assets/pixel-art/flags/netherlands.png"),
+    makeSkill("English", 37595, "/assets/pixel-art/flags/australia.png"),
+    makeSkill("German", 255, "/assets/pixel-art/flags/germany.png"),
+    makeSkill("Russian", 40, "/assets/pixel-art/flags/russia.png"),
+    makeSkill("Japanese", 20, "/assets/pixel-art/flags/japan.png"),
+    makeSkill("Spanish", 15, "/assets/pixel-art/flags/spain.png"),
+    makeSkill("French", 5, "/assets/pixel-art/flags/france.png"),
+    makeSkill("Korean", 2, "/assets/pixel-art/flags/korea.png"),
+    makeSkill("Portuguese (BR)", 0.25, "/assets/pixel-art/flags/brazil.png"),
   ],
 };
 
 export const programmingLanguages: SkillCategory = {
   title: "Programming Languages",
   skills: [
-    makeSkill("HTML", 23000),
-    makeSkill("CSS", 20000),
-    makeSkill("JavaScript", 16425),
+    makeSkill("HTML", 23000, "/assets/pixel-art/lang-icons/html.png"),
+    makeSkill("CSS", 20000, "/assets/pixel-art/lang-icons/css.png"),
+    makeSkill("JavaScript", 16425, "/assets/pixel-art/lang-icons/javascript.png"),
     makeSkill("TypeScript", 9855),
     makeSkill("Node.js", 840),
     makeSkill("PHP", 840),
     makeSkill("Laravel", 606),
     makeSkill("Svelte", 450),
     makeSkill("Rust", 90),
-    makeSkill("C#", 30),
+    makeSkill("C#", 30, "/assets/pixel-art/lang-icons/csharp.png"),
     makeSkill("SQL", 25),
   ],
 };

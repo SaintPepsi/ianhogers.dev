@@ -3,6 +3,16 @@ import Base from '../layouts/Base.astro';
 import { allCategories, progressToNextLevel, levelDescription } from '../data/skills';
 
 const totalLevel = allCategories.reduce((sum, cat) => sum + cat.skills.reduce((s, sk) => s + sk.level, 0), 0);
+
+const abbreviations: Record<string, string> = {
+  "TypeScript": "TS",
+  "Node.js": "Node",
+  "PHP": "PHP",
+  "Laravel": "Lara",
+  "Svelte": "Sve",
+  "Rust": "Rs",
+  "SQL": "SQL",
+};
 ---
 
 <Base title="Skills - Ian Hogers" description="RuneScape-style skills grid">
@@ -23,13 +33,20 @@ const totalLevel = allCategories.reduce((sum, cat) => sum + cat.skills.reduce((s
               const hoursDisplay = skill.hours >= 1 ? Math.round(skill.hours).toLocaleString() : skill.hours.toString();
               return (
                 <div class="skill-tile group relative bg-bg/60 border border-surface-light hover:border-amber-500/50 p-3 cursor-pointer transition-colors">
-                  <div class="flex items-baseline justify-between gap-1">
-                    <span class="text-xs sm:text-sm text-white truncate">{skill.name}</span>
+                  <div class="flex items-center justify-between gap-1">
+                    <div class="flex items-center gap-1.5 min-w-0">
+                      {skill.icon ? (
+                        <img src={skill.icon} alt="" width="20" height="20" class="shrink-0" style="image-rendering: pixelated; object-fit: contain;" />
+                      ) : (
+                        <span class="font-display text-gray-500 text-xs shrink-0">{abbreviations[skill.name] || skill.name}</span>
+                      )}
+                      <span class="text-xs sm:text-sm text-white truncate">{skill.name}</span>
+                    </div>
                     <span class="font-mono text-amber-400 font-bold text-sm sm:text-base shrink-0">{skill.level}</span>
                   </div>
                   {/* Tooltip */}
                   <div class="skill-tooltip hidden group-hover:block absolute z-20 left-0 right-0 top-full mt-1 bg-surface border border-surface-light p-3 shadow-lg" style="min-width: 200px;">
-                    <div class="text-xs text-gray-400 font-mono mb-1">{hoursDisplay} hours logged</div>
+                    <div class="text-xs text-gray-400 font-mono mb-1">{progress.isMax ? `${hoursDisplay} hrs` : `${hoursDisplay} / ${Math.round(progress.nextHours).toLocaleString()} hrs`}</div>
                     <div class="text-xs text-gray-500 mb-2">{desc}</div>
                     {/* XP Bar */}
                     <div class="h-3 bg-bg border border-surface-light overflow-hidden">
