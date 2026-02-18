@@ -87,6 +87,17 @@ Lordgenome will:
 - Pixel art style, fits the Neocities vibe
 - Maybe even the RS font for the numbers
 
+## Debug Mode
+
+A hidden debug button (maybe a small pixel art icon in the corner) that reveals:
+- The full XP curve chart (hours on X axis, level on Y axis) showing the exponential RS curve
+- All skills plotted on the curve as dots/markers
+- The exact hours and calculated level for each skill
+- The RS XP formula used
+- Maybe even a "Total Level" breakdown
+
+Think of it like the RS hiscores lookup but for Ian's skills. Dev tool vibes, fits the site personality.
+
 ## XP Beyond 99
 
 Just like RuneScape, level 99 is the display cap but hours keep accumulating. The site should show "Level 99" but also display total hours, so people can see the real number. Think of it like the 200M XP grind - the level stops but the dedication doesn't.
