@@ -30,7 +30,8 @@ const abbreviations: Record<string, string> = {
             {category.skills.map((skill) => {
               const progress = progressToNextLevel(skill.hours);
               const desc = levelDescription(skill.level);
-              const hoursDisplay = skill.hours >= 1 ? Math.round(skill.hours).toLocaleString() : skill.hours.toString();
+              const formatHours = (h: number) => h >= 100 ? Math.round(h).toLocaleString() : h < 1 ? h.toString() : h.toFixed(1);
+              const hoursDisplay = formatHours(skill.hours);
               return (
                 <div class="skill-tile group relative bg-bg/60 border border-surface-light hover:border-amber-500/50 p-3 cursor-pointer transition-colors">
                   <div class="flex items-center justify-between gap-1">
@@ -46,7 +47,7 @@ const abbreviations: Record<string, string> = {
                   </div>
                   {/* Tooltip */}
                   <div class="skill-tooltip hidden group-hover:block absolute z-20 left-0 right-0 top-full mt-1 bg-surface border border-surface-light p-3 shadow-lg" style="min-width: 200px;">
-                    <div class="text-xs text-gray-400 font-mono mb-1">{progress.isMax ? `${hoursDisplay} hrs` : `${hoursDisplay} / ${Math.round(progress.nextHours).toLocaleString()} hrs`}</div>
+                    <div class="text-xs text-gray-400 font-mono mb-1">{progress.isMax ? `${hoursDisplay} hrs` : `${hoursDisplay} / ${formatHours(progress.nextHours)} hrs`}</div>
                     <div class="text-xs text-gray-500 mb-2">{desc}</div>
                     {/* XP Bar */}
                     <div class="h-3 bg-bg border border-surface-light overflow-hidden">
