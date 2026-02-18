@@ -60,7 +60,7 @@ Hours for level L = RS_XP(L) / 13,034,431 * 50,000
 | C# | ~100 | 36 | Dabbled |
 | Rust | ~90 | 35 | spiral-core project |
 | GDScript | TBD | TBD | Glint Potential |
-| SQL | TBD | TBD | |
+| SQL | ~25 | 23 | |
 
 ## How to Update
 
