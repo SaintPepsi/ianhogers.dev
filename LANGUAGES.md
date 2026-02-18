@@ -46,20 +46,22 @@ Hours for level L = RS_XP(L) / 13,034,431 * 50,000
 |----------|------:|------:|-------|
 | Dutch | 55,662 | 99 | Native, full time age 3-24 in NL, ~1.5h/day since moving to AU |
 | English | 37,595 | 96 | Some in NL growing up, full time since moving to AU age 24 |
-| Portuguese (BR) | 0.67 | 2 | 40 minutes so far |
+| German | ~255 | 45 | |
+| Japanese | ~20 | 21 | |
+| Portuguese (BR) | 0.25 | 2 | 15 minutes so far |
 
 ### Programming Languages
 
 | Language | Hours | Level | Notes |
 |----------|------:|------:|-------|
 | HTML | ~23,000 | 91 | Same era as JS if not more |
-| JavaScript/TypeScript | ~22,000 | 90 | ~15 years, primary language |
 | CSS | ~20,000 | 89 | Paired with JS, slightly less |
+| JavaScript | ~16,425 | 87 | ~9 years before switching to TS |
+| TypeScript | ~9,855 | 82 | 3 yrs part time + 3 yrs full time |
 | Svelte | ~450 | 51 | Multiple packages published |
 | PHP/Laravel | ~450 | 51 | Built Katana on this |
-| C# | ~100 | 36 | Dabbled |
 | Rust | ~90 | 35 | spiral-core project |
-| GDScript | TBD | TBD | Glint Potential |
+| C# | ~30 | 25 | Dabbled |
 | SQL | ~25 | 23 | |
 
 ## How to Update
