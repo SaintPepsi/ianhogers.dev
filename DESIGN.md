@@ -96,6 +96,21 @@ assets/
 - **carrot_grow.png** (56x12): carrot grow animation spritesheet
 - All pixel art must be rendered with `image-rendering: pixelated` and aspect-ratio locked (no stretching/distortion)
 
+## Concept: RuneScape Language Skill Grid
+A section (probably on the About page) styled like the RuneScape skills tab. Grid of skill icons showing languages Ian speaks or has knowledge of, each with a "level" indicator. Think the RS skill panel with the icon, skill name, and level number.
+
+Languages to include (levels TBD by Ian):
+- English
+- Dutch
+- Portuguese (Brazilian)
+- Others?
+
+Visual style: pixel art skill icons, dark panel background, gold/yellow level numbers, grid layout like the actual RS skills interface. Could even have a "Total Level" at the bottom. Hover could show XP bar or proficiency description.
+
+This fits the Neocities/gaming vibe of the site perfectly.
+
+**Status: CONCEPT ONLY - do not implement yet. Waiting for Ian to decide levels and which languages to include.**
+
 ## TODO / Awaiting
 - [ ] Ian to provide link to pixel art drawing stream
 - [ ] More GIFs to be added
