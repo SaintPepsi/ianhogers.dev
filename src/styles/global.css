@@ -50,7 +50,7 @@
    ═══════════════════════════════════════ */
 .pixel-box {
   @apply bg-surface relative;
-  border: 3px solid;
+  border: 3px solid var(--box-color, #4a4458);
   border-image: repeating-linear-gradient(
     90deg,
     var(--box-color, #4a4458) 0px,
@@ -59,11 +59,7 @@
     transparent 8px
   ) 3;
   image-rendering: pixelated;
-}
-.pixel-box::before {
-  content: '';
-  @apply absolute -top-1 -left-1 -right-1 -bottom-1 pointer-events-none;
-  border: 1px solid rgba(255,255,255,0.05);
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.05);
 }
 
 .pixel-box-amber { --box-color: #f59e0b; }

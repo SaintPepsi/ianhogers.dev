@@ -1,0 +1,92 @@
+---
+import Base from '../layouts/Base.astro';
+import { allCategories, progressToNextLevel, levelDescription } from '../data/skills';
+
+const totalLevel = allCategories.reduce((sum, cat) => sum + cat.skills.reduce((s, sk) => s + sk.level, 0), 0);
+
+const abbreviations: Record<string, string> = {
+  "TypeScript": "TS",
+  "Node.js": "Node",
+  "PHP": "PHP",
+  "Laravel": "Lara",
+  "Svelte": "Sve",
+  "Rust": "Rs",
+  "SQL": "SQL",
+};
+---
+
+<Base title="Skills - Ian Hogers" description="RuneScape-style skills grid">
+  <div class="space-y-8">
+    <div class="text-center mb-8">
+      <h1 class="text-3xl sm:text-4xl mb-2">Skills</h1>
+      <p class="text-gray-500 font-mono text-sm">hours in, levels out</p>
+    </div>
+
+    {allCategories.map((category) => (
+      <section>
+        <h2 class="text-xl sm:text-2xl mb-4">{category.title}</h2>
+        <div class="pixel-box pixel-box-amber p-4 sm:p-6">
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
+            {category.skills.map((skill) => {
+              const progress = progressToNextLevel(skill.hours);
+              const desc = levelDescription(skill.level);
+              const formatHours = (h: number) => h >= 100 ? Math.round(h).toLocaleString() : h < 1 ? h.toString() : h.toFixed(1);
+              const hoursDisplay = formatHours(skill.hours);
+              return (
+                <div class="skill-tile group relative bg-bg/60 border border-surface-light hover:border-amber-500/50 p-3 cursor-pointer transition-colors">
+                  <div class="flex items-center justify-between gap-1">
+                    <div class="flex items-center gap-1.5 min-w-0">
+                      {skill.icon ? (
+                        <img src={skill.icon} alt="" width="20" height="20" class="shrink-0" style="image-rendering: pixelated; object-fit: contain;" />
+                      ) : (
+                        <span class="font-display text-gray-500 text-xs shrink-0">{abbreviations[skill.name] || skill.name}</span>
+                      )}
+                      <span class="text-xs sm:text-sm text-white truncate">{skill.name}</span>
+                    </div>
+                    <span class="font-mono text-amber-400 font-bold text-sm sm:text-base shrink-0">{skill.level}</span>
+                  </div>
+                  {/* Tooltip */}
+                  <div class="skill-tooltip hidden group-hover:block absolute z-20 left-0 right-0 top-full mt-1 bg-surface border border-surface-light p-3 shadow-lg" style="min-width: 200px;">
+                    <div class="text-xs text-gray-400 font-mono mb-1">{progress.isMax ? `${hoursDisplay} hrs` : `${hoursDisplay} / ${formatHours(progress.nextHours)} hrs`}</div>
+                    <div class="text-xs text-gray-500 mb-2">{desc}</div>
+                    {/* XP Bar */}
+                    <div class="h-3 bg-bg border border-surface-light overflow-hidden">
+                      <div
+                        class="h-full transition-all"
+                        style={`width: ${progress.percent}%; background-color: #f59e0b;`}
+                      />
+                    </div>
+                    <div class="text-xs font-mono mt-1 text-right" style="color: #f59e0b;">
+                      {progress.isMax ? "MAX" : `${progress.percent}% to level ${progress.current + 1}`}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+    ))}
+
+    {/* Total Level */}
+    <div class="pixel-box pixel-box-amber p-4 text-center">
+      <span class="text-gray-400 font-mono text-sm">Total Level: </span>
+      <span class="font-mono text-amber-400 font-bold text-2xl">{totalLevel}</span>
+    </div>
+  </div>
+</Base>
+
+<style>
+  .skill-tile {
+    image-rendering: pixelated;
+  }
+  .skill-tooltip {
+    image-rendering: auto;
+  }
+  /* Keep tooltips visible on the edges */
+  .grid > :nth-child(odd):last-child .skill-tooltip,
+  .grid > :nth-child(3n) .skill-tooltip {
+    left: auto;
+    right: 0;
+  }
+</style>
