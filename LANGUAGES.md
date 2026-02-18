@@ -47,7 +47,11 @@ Hours for level L = RS_XP(L) / 13,034,431 * 50,000
 | Dutch | 55,662 | 99 | Native, full time age 3-24 in NL, ~1.5h/day since moving to AU |
 | English | 37,595 | 96 | Some in NL growing up, full time since moving to AU age 24 |
 | German | ~255 | 45 | |
+| Russian | ~40 | 27 | |
 | Japanese | ~20 | 21 | |
+| Spanish | ~15 | 19 | |
+| French | ~5 | 11 | |
+| Korean | ~2 | 7 | |
 | Portuguese (BR) | 0.25 | 2 | 15 minutes so far |
 
 ### Programming Languages
