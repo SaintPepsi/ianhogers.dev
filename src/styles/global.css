@@ -12,6 +12,10 @@
   font-display: swap;
 }
 
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 @layer base {
   /* Custom cursor handled via JS spritesheet animation - see cursor.js */
 
@@ -49,17 +53,30 @@
    PIXEL ART BORDER BOX
    ═══════════════════════════════════════ */
 .pixel-box {
-  @apply bg-surface relative;
-  border: 3px solid var(--box-color, #4a4458);
-  border-image: repeating-linear-gradient(
-    90deg,
-    var(--box-color, #4a4458) 0px,
-    var(--box-color, #4a4458) 4px,
-    transparent 4px,
-    transparent 8px
-  ) 3;
+  @apply relative;
+  background-color: var(--tw-surface, #1e1a28);
+  border: none;
   image-rendering: pixelated;
   box-shadow: 0 0 0 1px rgba(255,255,255,0.05);
+  /* Pixel-dashed border using 4 background gradients (one per edge).
+     Unlike border-image, these don't clip or misalign. */
+  background-image:
+    repeating-linear-gradient(90deg, var(--box-color, #4a4458) 0px 4px, transparent 4px 8px),
+    repeating-linear-gradient(90deg, var(--box-color, #4a4458) 0px 4px, transparent 4px 8px),
+    linear-gradient(var(--box-color, #4a4458), var(--box-color, #4a4458)),
+    linear-gradient(var(--box-color, #4a4458), var(--box-color, #4a4458));
+  background-size:
+    100% 3px,
+    100% 3px,
+    3px 100%,
+    3px 100%;
+  background-position:
+    top left,
+    bottom left,
+    top left,
+    top right;
+  background-repeat: no-repeat;
+  background-color: #1e1a28;
 }
 
 .pixel-box-amber { --box-color: #f59e0b; }
