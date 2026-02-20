@@ -41,7 +41,7 @@ I want to be real. I'm not writing this from the other side. I'm writing this fr
 
 Some days I nail it. Thoughts flow, things get built, I barely think about the process. Other days I fall straight back into old habits. Too many tabs. Scoping too loosely. Watching an agent loop for fifteen minutes because I forgot to set a limit.
 
-I still burn through tokens running Opus when Sonnet would do the job. I still catch myself hovering over outputs when I should be doing literally anything else. I still feel guilty when I'm not watching.
+I still burn through tokens running Opus when Sonnet would do the job. I still catch myself hovering over outputs when I should be doing literally anything else.
 
 But I can feel the difference now. I know when I'm orchestrating and when I'm babysitting. That awareness didn't exist six months ago. Back then it was all babysitting and I didn't even know it.
 
