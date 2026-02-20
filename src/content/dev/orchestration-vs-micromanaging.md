@@ -1,50 +1,50 @@
 ---
 title: "Stop Micromanaging Your AI Agents"
-description: "You hired the AI to save time. So why are you spending all your time watching it work?"
+description: "Orchestration isn't about control. It's about dumping your thoughts somewhere and trusting that the right thing happens."
 date: 2026-02-20
 tags: ["ai", "agents", "orchestration", "workflow"]
 ---
 
-Three tabs open. One agent writing code. Another running tests. A third doing... something. You've lost track because you've been jumping between them for twenty minutes trying to figure out what each one decided.
+I used to have three tabs open. One agent writing code. Another running tests. A third doing... something. I'd lost track because I'd been jumping between them for twenty minutes trying to figure out what each one decided.
 
-You're not orchestrating. You're babysitting.
+That's not orchestrating. That's babysitting.
 
-## The bandwidth problem
+## What changed
 
-Human brains are terrible at multiplexing. We think we can manage four agents at once. What actually happens is we context-switch between them, lose track of decisions, and panic when something looks wrong.
+I stopped managing agents and started talking to an orchestrator. The difference is everything.
 
-Then the anxiety kicks in. You start hovering. Checking every output. Re-reading context you already read. The AI is supposed to save you time but now you're spending all your time watching the AI.
+Now I just say what I'm thinking. "Fix the border clipping on the website." "Add those library skills." "Write an article about this." I don't care which agent picks it up, which files need changing, or what order things happen in. I dump the thought, and it gets routed to wherever it needs to go.
 
-## Agents don't go wrong mid-task
+It's like having a conversation with someone who actually listens and then goes and does the work. I don't have to context-switch. I don't have to remember which tab has which task. I just keep talking.
 
-When an agent makes a bad call, it's almost always because you weren't explicit enough at the start. Not because you weren't watching closely enough during.
+## The relief is real
 
-That's it. That's the whole thing.
+The anxiety I had before came from bandwidth. My brain trying to be the router. Figuring out which project needs attention, which agent is stuck, which context window is bloated. All while trying to actually think about the work itself.
 
-"Implement the new feature" gives the agent room to guess. "Add a `currency` field to the `Order` model, update the serializer, add a test — here are the three files" gives it rails.
+That's gone now. I sit in one conversation. I throw thoughts at it as they come. Website needs a fix? Said it. Token usage feels high? Asked about it. New article idea? Mentioned it. Cursor behaving weird on mobile? Brought it up mid-conversation.
 
-The agent doesn't need you watching. It needs you to be precise before you walk away.
+All different projects. All different concerns. One stream of consciousness. The orchestrator figures out the rest.
 
-## The actual work is upfront
+## Why it works
 
-Scope tightly. Exact files, exact goals, exact constraints. Five minutes writing a clear task saves thirty minutes of cleanup.
+When you're the router, every task has overhead. Open the right project. Find the right file. Remember what you were doing last time. Frame the prompt correctly. That overhead kills momentum.
 
-Set limits. "You have 3 attempts to fix failing tests. Stop and report after that." Without this, agents loop forever and burn tokens doing it.
+When the orchestrator is the router, you just think out loud. The context is already there because you've been talking about it. The orchestrator knows which codebase you mean. It knows what you tried before. It picks up where things left off.
 
-Isolate. One agent, one task, one context. Don't shove three unrelated things into the same session.
+You stop managing and start thinking. That's the shift.
 
-Then trust the output. Review the result, not the process. You don't need to watch every step.
+## The old way was exhausting
 
-## The tab-switching trap
+Three tabs. Four terminals. Slack open. Docs open. Every context switch costs you minutes of re-loading your own mental state. And for what? To manually do what a good orchestrator does automatically.
 
-Every time you switch tabs to check on an agent mid-task, you're breaking your own focus, burning tokens reading partial context, and gaining nothing. It's not done yet. There's nothing actionable.
+The worst part was the guilt. If I wasn't actively checking on an agent, I felt like I was dropping the ball. So I'd hover. Check outputs. Re-read context. Burn tokens and burn myself out doing it.
 
-But it feels productive. That's the trap. It feels like you're managing things. You're not. You're just anxious.
+That's not productivity. That's anxiety wearing a productivity mask.
 
-## So stop
+## Just talk
 
-Write a clear task. Hand it off. Go do something else. Review when it's done.
+The best orchestration doesn't feel like orchestration. It feels like a conversation. You say what's on your mind, and things happen. You review results when they're ready. You course-correct when needed. But you're not juggling.
 
-That's orchestration. Everything else is anxiety wearing a productivity mask.
+I went from managing agents to just... talking. About my website, my tools, my ideas, whatever's on my mind. And somehow all of it gets done.
 
-Close the tab.
+That's what good orchestration actually is. Not control. Relief.
