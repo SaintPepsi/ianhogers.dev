@@ -87,15 +87,24 @@ export const programmingLanguages: SkillCategory = {
     makeSkill("HTML", 23000, "/assets/pixel-art/lang-icons/html.png"),
     makeSkill("CSS", 20000, "/assets/pixel-art/lang-icons/css.png"),
     makeSkill("JavaScript", 16425, "/assets/pixel-art/lang-icons/javascript.png"),
-    makeSkill("TypeScript", 9855),
-    makeSkill("Node.js", 840),
-    makeSkill("PHP", 840),
-    makeSkill("Laravel", 606),
-    makeSkill("Svelte", 450),
-    makeSkill("Rust", 90),
+    makeSkill("TypeScript", 9855, "/assets/pixel-art/lang-icons/typescript.png"),
+    makeSkill("Node.js", 840, "/assets/pixel-art/lang-icons/nodejs.png"),
+    makeSkill("PHP", 840, "/assets/pixel-art/lang-icons/php.png"),
+    makeSkill("Laravel", 606, "/assets/pixel-art/lang-icons/laravel.png"),
+    makeSkill("Svelte", 450, "/assets/pixel-art/lang-icons/svelte.png"),
+    makeSkill("Rust", 90, "/assets/pixel-art/lang-icons/rust.png"),
     makeSkill("C#", 30, "/assets/pixel-art/lang-icons/csharp.png"),
-    makeSkill("SQL", 25),
+    makeSkill("SQL", 25, "/assets/pixel-art/lang-icons/sql.png"),
   ],
 };
 
-export const allCategories = [spokenLanguages, programmingLanguages];
+export const libraryExperience: SkillCategory = {
+  title: "Library Experience",
+  skills: [
+    makeSkill("Redux Form (React)", 1500, "/assets/pixel-art/lang-icons/redux.png"),
+    makeSkill("UseForm (React)", 1000, "/assets/pixel-art/lang-icons/hookform.png"),
+    makeSkill("Tanstack Form (React)", 200, "/assets/pixel-art/lang-icons/tanstack.png"),
+  ],
+};
+
+export const allCategories = [spokenLanguages, programmingLanguages, libraryExperience];
