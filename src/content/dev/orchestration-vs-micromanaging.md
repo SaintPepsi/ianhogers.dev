@@ -27,7 +27,7 @@ All different projects. All different concerns. One stream of consciousness. I d
 
 The first time it clicked, the relief was physical. Like putting down a bag I didn't realise I was carrying.
 
-## A Tuesday that actually worked
+## Anyway here's Wonderwall
 
 This week I sat down and just started talking. Fixed a CSS border bug that had been annoying me. Got token usage data that explained why my bill felt wrong. Added skills to my website. Wrote this article. Fixed cursor behaviour on mobile. All in one sitting, one conversation, no tab-switching.
 
