@@ -1,11 +1,12 @@
 ---
-// Gallery.astro — full-bleed mosaic image gallery for MDX
-// Usage: <Gallery> ![alt](/path.webp) ![wide alt](/path2.webp) </Gallery>
-// Images with "wide" in alt text span 2 columns.
+// Gallery.astro — full-bleed masonry image gallery
+// Usage: <Gallery> ![alt](/path.webp) </Gallery>
+// Or with pixel-box wrappers: <Gallery><div class="pixel-box">...</div></Gallery>
+// Pure CSS masonry via columns — no cropping, aspect ratios preserved.
 ---
 
 <div class="gallery-breakout">
-  <div class="gallery-grid">
+  <div class="gallery-masonry">
     <slot />
   </div>
 </div>
@@ -17,38 +18,43 @@
     padding: 1.5rem 1rem;
   }
 
-  .gallery-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    grid-auto-flow: dense;
-    gap: 0.5rem;
+  .gallery-masonry {
+    columns: 2;
+    column-gap: 0.5rem;
     max-width: 90rem;
     margin: 0 auto;
   }
 
-  /* All images inside the gallery */
-  .gallery-grid :global(img) {
+  /* Prevent items from breaking across columns */
+  .gallery-masonry :global(> *) {
+    break-inside: avoid;
+    margin-bottom: 0.5rem;
+  }
+
+  /* Images: full width, natural aspect ratio */
+  .gallery-masonry :global(img) {
     width: 100%;
-    height: 100%;
-    object-fit: cover;
+    height: auto;
     border-radius: 0.5rem;
     margin: 0;
     display: block;
   }
 
-  /* Reset margins on gallery children (MDX wraps images in <p> tags) */
-  .gallery-grid :global(p) {
+  /* Reset MDX <p> wrappers */
+  .gallery-masonry :global(p) {
     margin: 0;
+    break-inside: avoid;
+    margin-bottom: 0.5rem;
   }
 
-  /* Direct children (pixel-box divs, etc.) fill their grid cell */
-  .gallery-grid :global(> div) {
+  /* Pixel-box children */
+  .gallery-masonry :global(> div) {
     min-width: 0;
   }
 
   @media (min-width: 768px) {
-    .gallery-grid {
-      grid-template-columns: repeat(3, 1fr);
+    .gallery-masonry {
+      columns: 3;
     }
   }
 
@@ -56,19 +62,8 @@
     .gallery-breakout {
       padding: 2rem 2rem;
     }
-    .gallery-grid {
-      grid-template-columns: repeat(4, 1fr);
+    .gallery-masonry {
+      columns: 4;
     }
   }
 </style>
-
-<script>
-  // Mark images with "wide" in alt as spanning 2 columns (no-JS fallback: they just fill 1 col)
-  document.querySelectorAll('.gallery-grid img').forEach(img => {
-    if (img.alt && img.alt.toLowerCase().includes('wide')) {
-      // Walk up to the direct grid child (could be <p>, <div>, etc.)
-      let gridChild = img.closest('.gallery-grid > *');
-      if (gridChild) gridChild.style.gridColumn = 'span 2';
-    }
-  });
-</script>
