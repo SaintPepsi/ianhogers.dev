@@ -51,10 +51,10 @@ const personalPosts = (await getCollection('personal'))
 
     <div class="grid md:grid-cols-2 gap-6">
       <!-- Dev side -->
-      <div class="pixel-box pixel-box-lavender p-6 hover:shadow-lg transition-all group glow-lavender">
+      <a href="/dev" class="pixel-box pixel-box-lavender p-6 hover:shadow-lg transition-all group glow-lavender no-underline block">
         <div class="flex items-center gap-3 mb-4">
           <img src="/assets/pixel-art/game-assets/wow_blue.png" alt="" class="pixel-sprite w-6 h-6" />
-          <a href="/dev" class="no-underline"><h2 class="text-2xl text-purple-300 mb-0 hover:opacity-80 transition-opacity">Dev</h2></a>
+          <h2 class="text-2xl text-purple-300 mb-0 group-hover:opacity-80 transition-opacity">Dev</h2>
         </div>
         <p class="text-xs text-gray-500 font-mono mb-4">code · agents · AI · engineering</p>
         {devPosts.length > 0 ? (
@@ -71,17 +71,17 @@ const personalPosts = (await getCollection('personal'))
         ) : (
           <p class="text-sm text-gray-600 mb-4 font-mono">Posts incoming...</p>
         )}
-        <a href="/dev" class="text-sm font-mono text-purple-300 no-underline hover:underline inline-flex items-center gap-1">
+        <span class="text-sm font-mono text-purple-300 inline-flex items-center gap-1">
           all dev posts
           <img src="/assets/pixel-art/ui/green_up_arrow_tiny.png" alt="" class="pixel-sprite w-3 h-3 rotate-90" />
-        </a>
-      </div>
+        </span>
+      </a>
 
       <!-- Personal side -->
-      <div class="pixel-box pixel-box-amber p-6 hover:shadow-lg transition-all group glow-amber">
+      <a href="/personal" class="pixel-box pixel-box-amber p-6 hover:shadow-lg transition-all group glow-amber no-underline block">
         <div class="flex items-center gap-3 mb-4">
           <img src="/assets/pixel-art/decorative/sample-bunny.png" alt="" class="pixel-sprite w-6 h-6" />
-          <a href="/personal" class="no-underline"><h2 class="text-2xl text-amber-400 mb-0 hover:opacity-80 transition-opacity">Life</h2></a>
+          <h2 class="text-2xl text-amber-400 mb-0 group-hover:opacity-80 transition-opacity">Life</h2>
         </div>
         <p class="text-xs text-gray-500 font-mono mb-4">cooking · bunnies · crafts · everything else</p>
         {personalPosts.length > 0 ? (
@@ -98,11 +98,11 @@ const personalPosts = (await getCollection('personal'))
         ) : (
           <p class="text-sm text-gray-600 mb-4 font-mono">Posts incoming...</p>
         )}
-        <a href="/personal" class="text-sm font-mono text-amber-400 no-underline hover:underline inline-flex items-center gap-1">
+        <span class="text-sm font-mono text-amber-400 inline-flex items-center gap-1">
           all life posts
           <img src="/assets/pixel-art/ui/green_up_arrow_tiny.png" alt="" class="pixel-sprite w-3 h-3 rotate-90" />
-        </a>
-      </div>
+        </span>
+      </a>
     </div>
   </section>
 

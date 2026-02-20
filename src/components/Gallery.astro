@@ -36,10 +36,14 @@
     display: block;
   }
 
-  /* Images with "wide" in alt text get 2-col span via JS-free CSS:
-     We use :global(p) because MDX wraps images in <p> tags */
+  /* Reset margins on gallery children (MDX wraps images in <p> tags) */
   .gallery-grid :global(p) {
     margin: 0;
+  }
+
+  /* Direct children (pixel-box divs, etc.) fill their grid cell */
+  .gallery-grid :global(> div) {
+    min-width: 0;
   }
 
   @media (min-width: 768px) {
@@ -62,8 +66,9 @@
   // Mark images with "wide" in alt as spanning 2 columns (no-JS fallback: they just fill 1 col)
   document.querySelectorAll('.gallery-grid img').forEach(img => {
     if (img.alt && img.alt.toLowerCase().includes('wide')) {
-      const parent = img.closest('p') || img.parentElement;
-      if (parent) parent.style.gridColumn = 'span 2';
+      // Walk up to the direct grid child (could be <p>, <div>, etc.)
+      let gridChild = img.closest('.gallery-grid > *');
+      if (gridChild) gridChild.style.gridColumn = 'span 2';
     }
   });
 </script>
