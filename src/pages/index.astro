@@ -51,7 +51,8 @@ const personalPosts = (await getCollection('personal'))
 
     <div class="grid md:grid-cols-2 gap-6">
       <!-- Dev side -->
-      <a href="/dev" class="no-underline block"><div class="pixel-box pixel-box-lavender p-6 hover:shadow-lg transition-all group glow-lavender relative cursor-pointer">
+      <div class="pixel-box pixel-box-lavender p-6 hover:shadow-lg transition-all group glow-lavender relative">
+        <a href="/dev" class="absolute inset-0 z-10" aria-label="Dev side"></a>
         <div class="flex items-center gap-3 mb-4">
           <img src="/assets/pixel-art/game-assets/wow_blue.png" alt="" class="pixel-sprite w-6 h-6" />
           <h2 class="text-2xl text-purple-300 mb-0 group-hover:opacity-80 transition-opacity">Dev</h2>
@@ -62,7 +63,7 @@ const personalPosts = (await getCollection('personal'))
             {devPosts.map((post) => (
               <li class="flex items-start gap-2">
                 <img src="/assets/pixel-art/ui/green_up_arrow_tiny.png" alt="" class="pixel-sprite w-3 h-3 mt-1.5 opacity-60" />
-                <a href={`/dev/${post.id}/`} class="text-sm text-gray-300 hover:text-purple-300 no-underline transition-colors">
+                <a href={`/dev/${post.id}/`} class="text-sm text-gray-300 hover:text-purple-300 no-underline transition-colors relative z-20">
                   {post.data.title}
                 </a>
               </li>
@@ -75,10 +76,11 @@ const personalPosts = (await getCollection('personal'))
           all dev posts
           <img src="/assets/pixel-art/ui/green_up_arrow_tiny.png" alt="" class="pixel-sprite w-3 h-3 rotate-90" />
         </span>
-      </div></a>
+      </div>
 
       <!-- Personal side -->
-      <a href="/personal" class="no-underline block"><div class="pixel-box pixel-box-amber p-6 hover:shadow-lg transition-all group glow-amber relative cursor-pointer">
+      <div class="pixel-box pixel-box-amber p-6 hover:shadow-lg transition-all group glow-amber relative">
+        <a href="/personal" class="absolute inset-0 z-10" aria-label="Life side"></a>
         <div class="flex items-center gap-3 mb-4">
           <img src="/assets/pixel-art/decorative/sample-bunny.png" alt="" class="pixel-sprite w-6 h-6" />
           <h2 class="text-2xl text-amber-400 mb-0 group-hover:opacity-80 transition-opacity">Life</h2>
@@ -89,7 +91,7 @@ const personalPosts = (await getCollection('personal'))
             {personalPosts.map((post) => (
               <li class="flex items-start gap-2">
                 <img src="/assets/pixel-art/decorative/carrot-small.png" alt="" class="pixel-sprite w-3 h-3 mt-1.5 opacity-60" />
-                <a href={`/personal/${post.id}/`} class="text-sm text-gray-300 hover:text-amber-400 no-underline transition-colors">
+                <a href={`/personal/${post.id}/`} class="text-sm text-gray-300 hover:text-amber-400 no-underline transition-colors relative z-20">
                   {post.data.title}
                 </a>
               </li>
@@ -102,7 +104,7 @@ const personalPosts = (await getCollection('personal'))
           all life posts
           <img src="/assets/pixel-art/ui/green_up_arrow_tiny.png" alt="" class="pixel-sprite w-3 h-3 rotate-90" />
         </span>
-      </div></a>
+      </div>
     </div>
   </section>
 

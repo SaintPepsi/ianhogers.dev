@@ -18,20 +18,22 @@ import Base from '../layouts/Base.astro';
     </div>
 
     <div class="grid md:grid-cols-2 gap-6 mb-8">
-      <a href="/dev" class="no-underline block"><div class="pixel-box pixel-box-lavender p-5 cursor-pointer">
+      <div class="pixel-box pixel-box-lavender p-5 relative">
+        <a href="/dev" class="absolute inset-0 z-10" aria-label="Dev side"></a>
         <div class="flex items-center gap-2 mb-3">
           <img src="/assets/pixel-art/game-assets/wow_blue.png" alt="" class="pixel-sprite w-5 h-5" />
           <h2 class="text-xl text-purple-300 mb-0">Dev Side</h2>
         </div>
         <p class="text-sm text-gray-400">Software engineering, AI agents, game development, technical deep-dives. Built Katana from the ground up. Always shipping.</p>
-      </div></a>
-      <a href="/personal" class="no-underline block"><div class="pixel-box pixel-box-amber p-5 cursor-pointer">
+      </div>
+      <div class="pixel-box pixel-box-amber p-5 relative">
+        <a href="/personal" class="absolute inset-0 z-10" aria-label="Life side"></a>
         <div class="flex items-center gap-2 mb-3">
           <img src="/assets/pixel-art/decorative/sample-bunny.png" alt="" class="pixel-sprite w-5 h-5" />
           <h2 class="text-xl text-amber-400 mb-0">Life Side</h2>
         </div>
         <p class="text-sm text-gray-400">Baking, bunny rescue, voice acting, crafts, and whatever else I'm into. The stuff that keeps me human.</p>
-      </div></a>
+      </div>
     </div>
 
     <div class="pixel-box p-5 mb-8">
