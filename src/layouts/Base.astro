@@ -1,4 +1,6 @@
 ---
+import { ViewTransitions } from 'astro:transitions';
+
 interface Props {
   title: string;
   description?: string;
@@ -20,6 +22,7 @@ const currentPath = Astro.url.pathname;
     <link rel="alternate" type="application/rss+xml" title="Ian Hogers - Dev" href="/dev/rss.xml" />
     <link rel="alternate" type="application/rss+xml" title="Ian Hogers - Personal" href="/personal/rss.xml" />
     <title>{title}</title>
+    <ViewTransitions />
   </head>
   <body class="min-h-screen flex flex-col">
     <!-- ✦ Marquee ticker -->
@@ -106,8 +109,8 @@ const currentPath = Astro.url.pathname;
         <img src="/assets/pixel-art/game-assets/wow_blue.png" alt="" class="pixel-sprite w-10 h-10 animate-float-slow" />
       </div>
     )}
-    <!-- Spritesheet cursor -->
-    <script src="/cursor.js" is:inline></script>
+    <!-- Spritesheet cursor (persists across View Transitions) -->
+    <script src="/cursor.js" is:inline data-astro-rerun></script>
   </body>
 </html>
 

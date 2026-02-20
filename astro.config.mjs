@@ -6,4 +6,8 @@ import tailwind from '@astrojs/tailwind';
 export default defineConfig({
   site: 'https://ianhogers.com',
   integrations: [mdx(), sitemap(), tailwind()],
+  prefetch: {
+    prefetchAll: true,
+    defaultStrategy: 'viewport',
+  },
 });
