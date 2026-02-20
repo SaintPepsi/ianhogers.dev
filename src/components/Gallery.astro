@@ -1,0 +1,69 @@
+---
+// Gallery.astro — full-bleed mosaic image gallery for MDX
+// Usage: <Gallery> ![alt](/path.webp) ![wide alt](/path2.webp) </Gallery>
+// Images with "wide" in alt text span 2 columns.
+---
+
+<div class="gallery-breakout">
+  <div class="gallery-grid">
+    <slot />
+  </div>
+</div>
+
+<style>
+  .gallery-breakout {
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
+    padding: 1.5rem 1rem;
+  }
+
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-auto-flow: dense;
+    gap: 0.5rem;
+    max-width: 90rem;
+    margin: 0 auto;
+  }
+
+  /* All images inside the gallery */
+  .gallery-grid :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 0.5rem;
+    margin: 0;
+    display: block;
+  }
+
+  /* Images with "wide" in alt text get 2-col span via JS-free CSS:
+     We use :global(p) because MDX wraps images in <p> tags */
+  .gallery-grid :global(p) {
+    margin: 0;
+  }
+
+  @media (min-width: 768px) {
+    .gallery-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .gallery-breakout {
+      padding: 2rem 2rem;
+    }
+    .gallery-grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+</style>
+
+<script>
+  // Mark images with "wide" in alt as spanning 2 columns (no-JS fallback: they just fill 1 col)
+  document.querySelectorAll('.gallery-grid img').forEach(img => {
+    if (img.alt && img.alt.toLowerCase().includes('wide')) {
+      const parent = img.closest('p') || img.parentElement;
+      if (parent) parent.style.gridColumn = 'span 2';
+    }
+  });
+</script>
