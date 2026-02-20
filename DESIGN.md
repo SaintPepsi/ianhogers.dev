@@ -112,7 +112,7 @@ This fits the Neocities/gaming vibe of the site perfectly.
 **Status: CONCEPT ONLY - do not implement yet. Waiting for Ian to decide levels and which languages to include.**
 
 ## TODO / Awaiting
-- [ ] Ian to provide link to pixel art drawing stream
+- [x] Ian to provide link to pixel art drawing stream
 - [ ] More GIFs to be added
 - [ ] More pixel art assets possible
 - [ ] Domain: ianhogers.com (already owned)
