@@ -41,6 +41,14 @@ The worst part was the guilt. If I wasn't actively checking on an agent, I felt 
 
 That's not productivity. That's anxiety wearing a productivity mask.
 
+## I'm still figuring this out
+
+I want to be honest here. I'm not some orchestration guru who's cracked the code. I'm still learning what works and what doesn't. Still burning through tokens on Opus when Sonnet would do. Still catching myself hovering over outputs when I should be doing something else.
+
+Some sessions I nail it. Thoughts flow, things get built, I barely have to think about the process. Other sessions I fall back into old habits. Open too many tabs. Scope too loosely. Forget to set limits and watch an agent loop for fifteen minutes.
+
+The difference is I can feel it now. I know when I'm orchestrating and I know when I'm babysitting. That awareness didn't exist six months ago. Back then it was all babysitting and I didn't even realise.
+
 ## Just talk
 
 The best orchestration doesn't feel like orchestration. It feels like a conversation. You say what's on your mind, and things happen. You review results when they're ready. You course-correct when needed. But you're not juggling.
@@ -48,3 +56,5 @@ The best orchestration doesn't feel like orchestration. It feels like a conversa
 I went from managing agents to just... talking. About my website, my tools, my ideas, whatever's on my mind. And somehow all of it gets done.
 
 That's what good orchestration actually is. Not control. Relief.
+
+I'm not there every day yet. But on the days it clicks, it really clicks.
