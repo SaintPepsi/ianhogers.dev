@@ -1,60 +1,54 @@
 ---
 title: "Stop Micromanaging Your AI Agents"
-description: "Orchestration isn't about control. It's about dumping your thoughts somewhere and trusting that the right thing happens."
+description: "I went from three Claude tabs and a headache to one conversation that just works. Here's what that looked like."
 date: 2026-02-20
 tags: ["ai", "agents", "orchestration", "workflow"]
 ---
 
-I used to have three tabs open. One agent writing code. Another running tests. A third doing... something. I'd lost track because I'd been jumping between them for twenty minutes trying to figure out what each one decided.
+Three separate Claude instances running on different projects. I'm tabbing between them. I think I'm keeping up. I slept poorly. My head is hurting. The insomnia has been bad this week and I'm running on coffee and stubbornness.
 
-That's not orchestrating. That's babysitting.
+One agent is rewriting a component. Another is fixing tests I broke yesterday. The third is... I alt-tab to it and I genuinely can't remember what I asked it to do. I re-read the context. Thirty seconds gone. I tab back to the first one and it's made a decision I disagree with. I correct it, tab to the second, and the tests are failing for a different reason now.
 
-## What changed
+This is me orchestrating. Except it's not orchestrating. It's just stress with extra screens.
 
-I stopped managing agents and started talking to an orchestrator. The difference is everything.
+## The part nobody talks about
 
-Now I just say what I'm thinking. "Fix the border clipping on the website." "Add those library skills." "Write an article about this." I don't care which agent picks it up, which files need changing, or what order things happen in. I dump the thought, and it gets routed to wherever it needs to go.
+Everyone writes about AI agents like they're magic. "Just prompt it and walk away." Cool. Except my brain won't let me walk away. ADHD means I need to check. Anxiety means I need to verify. And the combination means I'm context-switching every forty-five seconds, retaining nothing, and somehow ending the day exhausted despite the AI doing most of the actual work.
 
-It's like having a conversation with someone who actually listens and then goes and does the work. I don't have to context-switch. I don't have to remember which tab has which task. I just keep talking.
+The bandwidth isn't the AI's. It's mine. I'm the bottleneck. I'm the slow, anxious, sleep-deprived router trying to keep three fast machines pointed in the right direction.
 
-## The relief is real
+## What actually helped
 
-The anxiety I had before came from bandwidth. My brain trying to be the router. Figuring out which project needs attention, which agent is stuck, which context window is bloated. All while trying to actually think about the work itself.
+I stopped being the router.
 
-That's gone now. I sit in one conversation. I throw thoughts at it as they come. Website needs a fix? Said it. Token usage feels high? Asked about it. New article idea? Mentioned it. Cursor behaving weird on mobile? Brought it up mid-conversation.
+Instead of managing three separate agents, I started talking to one orchestrator. Just... talking. Like a conversation. "The border is clipping on the website." "Token usage feels high, look into it." "Write an article about this." "Oh and the cursor is broken on mobile."
 
-All different projects. All different concerns. One stream of consciousness. The orchestrator figures out the rest.
+All different projects. All different concerns. One stream of consciousness. I didn't open a new tab. I didn't frame a careful prompt. I just said what was on my mind and it got handled.
 
-## Why it works
+The first time it clicked, the relief was physical. Like putting down a bag I didn't realise I was carrying.
 
-When you're the router, every task has overhead. Open the right project. Find the right file. Remember what you were doing last time. Frame the prompt correctly. That overhead kills momentum.
+## A Tuesday that actually worked
 
-When the orchestrator is the router, you just think out loud. The context is already there because you've been talking about it. The orchestrator knows which codebase you mean. It knows what you tried before. It picks up where things left off.
+This week I sat down and just started talking. Fixed a CSS border bug that had been annoying me. Got token usage data that explained why my bill felt wrong. Added skills to my website. Wrote this article. Fixed cursor behaviour on mobile. All in one sitting, one conversation, no tab-switching.
 
-You stop managing and start thinking. That's the shift.
+I didn't plan that session. I didn't write a task list. I just brought up whatever was on my mind, and things happened. The orchestrator figured out which project, which files, which context. I just kept thinking out loud.
 
-## The old way was exhausting
+That's what it's supposed to feel like. Not managing. Just thinking.
 
-Three tabs. Four terminals. Slack open. Docs open. Every context switch costs you minutes of re-loading your own mental state. And for what? To manually do what a good orchestrator does automatically.
+## I'm still bad at this
 
-The worst part was the guilt. If I wasn't actively checking on an agent, I felt like I was dropping the ball. So I'd hover. Check outputs. Re-read context. Burn tokens and burn myself out doing it.
+I want to be real. I'm not writing this from the other side. I'm writing this from the middle.
 
-That's not productivity. That's anxiety wearing a productivity mask.
+Some days I nail it. Thoughts flow, things get built, I barely think about the process. Other days I fall straight back into old habits. Too many tabs. Scoping too loosely. Watching an agent loop for fifteen minutes because I forgot to set a limit.
 
-## I'm still figuring this out
+I still burn through tokens running Opus when Sonnet would do the job. I still catch myself hovering over outputs when I should be doing literally anything else. I still feel guilty when I'm not watching.
 
-I want to be honest here. I'm not some orchestration guru who's cracked the code. I'm still learning what works and what doesn't. Still burning through tokens on Opus when Sonnet would do. Still catching myself hovering over outputs when I should be doing something else.
+But I can feel the difference now. I know when I'm orchestrating and when I'm babysitting. That awareness didn't exist six months ago. Back then it was all babysitting and I didn't even know it.
 
-Some sessions I nail it. Thoughts flow, things get built, I barely have to think about the process. Other sessions I fall back into old habits. Open too many tabs. Scope too loosely. Forget to set limits and watch an agent loop for fifteen minutes.
+## The point
 
-The difference is I can feel it now. I know when I'm orchestrating and I know when I'm babysitting. That awareness didn't exist six months ago. Back then it was all babysitting and I didn't even realise.
+I'm not here to tell anyone how to use AI agents. I'm still figuring it out myself. But the shift from "I manage the agents" to "I talk and things happen" changed how my days feel. Less dread. Less tab-switching. Less of that specific headache you get from context-switching all day.
 
-## Just talk
-
-The best orchestration doesn't feel like orchestration. It feels like a conversation. You say what's on your mind, and things happen. You review results when they're ready. You course-correct when needed. But you're not juggling.
-
-I went from managing agents to just... talking. About my website, my tools, my ideas, whatever's on my mind. And somehow all of it gets done.
-
-That's what good orchestration actually is. Not control. Relief.
+On the days it clicks, I finish work and I'm not exhausted. That's new. That's worth writing about.
 
 I'm not there every day yet. But on the days it clicks, it really clicks.
