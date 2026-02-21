@@ -29,7 +29,7 @@ import CollageItem from '../../components/CollageItem.astro';
 
     <div class="prose mb-8">
       <p><strong class="text-pink-400">AsianFox</strong> was an incredible artist from another MapleStory private server. They created several art pieces - commissions that I still treasure.</p>
-      <p>I even made pixel art versions of their work and streamed the drawing process. That's how much their art meant to me.</p>
+      <p>I even made pixel art versions of their work and recorded a timelapse of the drawing process. That's how much their art meant to me.</p>
     </div>
 
     <Gallery>
@@ -79,11 +79,26 @@ import CollageItem from '../../components/CollageItem.astro';
               class="w-full pixel-sprite rounded"
             />
             <p class="text-xs font-mono text-gray-500 mt-2 text-center">My pixel art version</p>
-            <p class="text-xs text-gray-600 mt-1 text-center italic">I streamed the drawing process</p>
           </div>
         </CollageItem>
 
-        <CollageItem rotate={5} offsetY="2rem" width="240px">
+        <CollageItem rotate={3} offsetY="1.5rem" width="280px">
+          <div class="pixel-box pixel-box-lavender p-3">
+            <div class="relative w-full" style="padding-bottom: 56.25%;">
+              <iframe
+                class="absolute top-0 left-0 w-full h-full rounded"
+                src="https://www.youtube-nocookie.com/embed/kptqGocceG8"
+                title="SanCoca Icon pixel art timelapse"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+              ></iframe>
+            </div>
+            <p class="text-xs font-mono text-gray-500 mt-2 text-center">The pixel art timelapse</p>
+          </div>
+        </CollageItem>
+
+        <CollageItem rotate={5} offsetY="2.5rem" width="240px">
           <div class="pixel-box p-3" style="--box-color: #ec4899;">
             <img
               src="/assets/pixel-art/commissions/0f7b83e676294ada15dd7dce73383638.webp"
