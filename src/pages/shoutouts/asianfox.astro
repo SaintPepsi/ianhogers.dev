@@ -2,6 +2,7 @@
 import Base from '../../layouts/Base.astro';
 import Gallery from '../../components/Gallery.astro';
 import GalleryGroup from '../../components/GalleryGroup.astro';
+import CollageItem from '../../components/CollageItem.astro';
 ---
 
 <Base title="AsianFox - Shoutouts - Ian Hogers" side="neutral">
@@ -32,54 +33,66 @@ import GalleryGroup from '../../components/GalleryGroup.astro';
     </div>
 
     <Gallery>
-      <GalleryGroup title="The Art">
-        <div class="pixel-box p-3" style="--box-color: #ec4899;">
-          <img
-            src="/assets/pixel-art/commissions/pepsi_transparent_by_asianfox-datirzr.png"
-            alt="Pepsi Transparent by AsianFox"
-            class="w-full rounded"
-          />
-          <p class="text-xs font-mono text-gray-500 mt-2 text-center">Pepsi (Transparent)</p>
-        </div>
+      <!-- Left cluster: The Art — 2 top, 1 bottom center -->
+      <GalleryGroup title="The Art" align="center">
+        <CollageItem rotate={-4} offsetY="0rem" width="240px">
+          <div class="pixel-box p-3" style="--box-color: #ec4899;">
+            <img
+              src="/assets/pixel-art/commissions/pepsi_transparent_by_asianfox-datirzr.png"
+              alt="Pepsi Transparent by AsianFox"
+              class="w-full rounded"
+            />
+            <p class="text-xs font-mono text-gray-500 mt-2 text-center">Pepsi (Transparent)</p>
+          </div>
+        </CollageItem>
 
-        <div class="pixel-box p-3" style="--box-color: #ec4899;">
-          <img
-            src="/assets/pixel-art/commissions/screenshot__156__by_asianfox_datirvm_by_asianfox-datisbw.png"
-            alt="Screenshot commission by AsianFox"
-            class="w-full rounded"
-          />
-          <p class="text-xs font-mono text-gray-500 mt-2 text-center">Screenshot Commission</p>
-        </div>
+        <CollageItem rotate={3} offsetY="1.5rem" width="240px">
+          <div class="pixel-box p-3" style="--box-color: #ec4899;">
+            <img
+              src="/assets/pixel-art/commissions/screenshot__156__by_asianfox_datirvm_by_asianfox-datisbw.png"
+              alt="Screenshot commission by AsianFox"
+              class="w-full rounded"
+            />
+            <p class="text-xs font-mono text-gray-500 mt-2 text-center">Screenshot Commission</p>
+          </div>
+        </CollageItem>
 
-        <div class="pixel-box p-3" style="--box-color: #ec4899;">
-          <img
-            src="/assets/pixel-art/commissions/spoopy_woopy_by_asianfox-dau1zhy-50.png"
-            alt="Spoopy Woopy by AsianFox"
-            class="w-full rounded"
-          />
-          <p class="text-xs font-mono text-gray-500 mt-2 text-center">Spoopy Woopy</p>
-        </div>
-
-        <div class="pixel-box p-3" style="--box-color: #ec4899;">
-          <img
-            src="/assets/pixel-art/commissions/0f7b83e676294ada15dd7dce73383638.webp"
-            alt="Additional commission art"
-            class="w-full rounded"
-          />
-          <p class="text-xs font-mono text-gray-500 mt-2 text-center">Additional piece from the collection</p>
-        </div>
+        <CollageItem rotate={-1} offsetY="0.5rem" width="260px">
+          <div class="pixel-box p-3" style="--box-color: #ec4899;">
+            <img
+              src="/assets/pixel-art/commissions/spoopy_woopy_by_asianfox-dau1zhy-50.png"
+              alt="Spoopy Woopy by AsianFox"
+              class="w-full rounded"
+            />
+            <p class="text-xs font-mono text-gray-500 mt-2 text-center">Spoopy Woopy</p>
+          </div>
+        </CollageItem>
       </GalleryGroup>
 
-      <GalleryGroup title="My Pixel Art Version">
-        <div class="pixel-box pixel-box-lavender p-3">
-          <img
-            src="/assets/pixel-art/commissions/saint-pepsi-pixel-art-version-4up.png"
-            alt="Saint Pepsi - pixel art version by Ian"
-            class="w-full pixel-sprite rounded"
-          />
-          <p class="text-xs font-mono text-gray-500 mt-2 text-center">My pixel art version of the Saint Pepsi piece</p>
-          <p class="text-xs text-gray-600 mt-1 text-center italic">I streamed the drawing process - link TBD</p>
-        </div>
+      <!-- Right cluster: Pixel art — tilted, title on right side -->
+      <GalleryGroup title="My Pixel Art" titlePos="right" tilt={4}>
+        <CollageItem rotate={-2} offsetY="0rem" width="260px">
+          <div class="pixel-box pixel-box-lavender p-3">
+            <img
+              src="/assets/pixel-art/commissions/saint-pepsi-pixel-art-version-4up.png"
+              alt="Saint Pepsi - pixel art version by Ian"
+              class="w-full pixel-sprite rounded"
+            />
+            <p class="text-xs font-mono text-gray-500 mt-2 text-center">My pixel art version</p>
+            <p class="text-xs text-gray-600 mt-1 text-center italic">I streamed the drawing process</p>
+          </div>
+        </CollageItem>
+
+        <CollageItem rotate={5} offsetY="2rem" width="240px">
+          <div class="pixel-box p-3" style="--box-color: #ec4899;">
+            <img
+              src="/assets/pixel-art/commissions/0f7b83e676294ada15dd7dce73383638.webp"
+              alt="Additional commission art"
+              class="w-full rounded"
+            />
+            <p class="text-xs font-mono text-gray-500 mt-2 text-center">From the collection</p>
+          </div>
+        </CollageItem>
       </GalleryGroup>
     </Gallery>
 

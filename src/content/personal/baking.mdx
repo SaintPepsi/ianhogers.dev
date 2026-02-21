@@ -6,6 +6,7 @@ tags: ["baking", "cooking", "dutch"]
 ---
 import Gallery from '../../components/Gallery.astro';
 import GalleryGroup from '../../components/GalleryGroup.astro';
+import CollageItem from '../../components/CollageItem.astro';
 
 I bake. A lot. And people keep coming back for more, so I must be doing something right.
 
@@ -13,11 +14,23 @@ I bake. A lot. And people keep coming back for more, so I must be doing somethin
 
 <GalleryGroup title="The Goods">
 
+<CollageItem rotate={-3} offsetY="0rem">
+
 ![Chocolate cinnamon rolls fresh from the oven](/assets/from-old-site/baking-2.webp)
+
+</CollageItem>
+
+<CollageItem rotate={2} offsetY="1rem">
 
 ![Braided Dutch Danish pastry](/assets/from-old-site/baking-3.webp)
 
+</CollageItem>
+
+<CollageItem rotate={-1} offsetY="0.5rem">
+
 ![Fresh baking spread](/assets/from-old-site/baking-1.webp)
+
+</CollageItem>
 
 </GalleryGroup>
 

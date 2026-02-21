@@ -1,137 +1,150 @@
 ---
-// GalleryGroup.astro — a headed section within a collage gallery
-// Usage: <GalleryGroup title="Cinnamon Scrolls"> <img .../> </GalleryGroup>
-// Also supports div-wrapped items (pixel-box cards with captions).
+// GalleryGroup.astro — a titled cluster within a collage gallery
+// Contains CollageItem children. Groups flow horizontally within Gallery.
+// Props:
+//   title       — heading text
+//   titlePos    — "top" (default), "right", "left" — where title sits relative to photos
+//   tilt        — group-level rotation in degrees for diagonal feel
+//   align       — "start" | "center" | "end" for photo cluster alignment
 interface Props {
   title: string;
+  titlePos?: 'top' | 'right' | 'left';
+  tilt?: number;
+  align?: 'start' | 'center' | 'end';
+  class?: string;
 }
-const { title } = Astro.props;
+const { title, titlePos = 'top', tilt, align = 'start', class: className = '' } = Astro.props;
+
+const groupStyle = tilt ? `--gg-tilt: ${tilt}deg` : '';
+const isInline = titlePos === 'right' || titlePos === 'left';
 ---
 
-<section class="gallery-group">
-  <h3 class="gallery-group-title">{title}</h3>
-  <div class="gallery-group-photos">
-    <slot />
+<section
+  class:list={[
+    'gallery-group',
+    { 'gallery-group--inline': isInline },
+    { 'gallery-group--title-right': titlePos === 'right' },
+    { 'gallery-group--title-left': titlePos === 'left' },
+    { 'gallery-group--tilted': tilt },
+    className
+  ]}
+  style={groupStyle || undefined}
+>
+  {titlePos === 'left' && (
+    <h3 class="gallery-group-title gallery-group-title--side">{title}</h3>
+  )}
+
+  <div class:list={['gallery-group-photos', `gallery-group-photos--${align}`]}>
+    {titlePos === 'top' && (
+      <h3 class="gallery-group-title gallery-group-title--top">{title}</h3>
+    )}
+    <div class="gallery-group-items">
+      <slot />
+    </div>
   </div>
+
+  {titlePos === 'right' && (
+    <h3 class="gallery-group-title gallery-group-title--side">{title}</h3>
+  )}
 </section>
 
 <style>
   .gallery-group {
-    margin-bottom: 2.5rem;
+    flex: 0 1 auto;
+    min-width: 0;
+    padding: 0.5rem;
   }
 
+  .gallery-group--tilted {
+    transform: rotate(var(--gg-tilt, 0deg));
+    transform-origin: center center;
+  }
+
+  /* Inline title layout (left/right) */
+  .gallery-group--inline {
+    display: flex;
+    align-items: flex-start;
+    gap: 1.5rem;
+  }
+
+  .gallery-group--title-left {
+    flex-direction: row;
+  }
+
+  .gallery-group--title-right {
+    flex-direction: row;
+  }
+
+  /* Title styles */
   .gallery-group-title {
     font-family: 'Weiholmir', cursive;
     color: var(--accent, #f59e0b);
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
+    font-size: 1.4rem;
+    white-space: nowrap;
+    margin: 0;
+  }
+
+  .gallery-group-title--top {
+    margin-bottom: 0.75rem;
     padding-left: 0.5rem;
     border-left: 3px solid var(--accent, #f59e0b);
+    width: 100%;
   }
 
+  .gallery-group-title--side {
+    writing-mode: vertical-lr;
+    text-orientation: mixed;
+    padding-top: 0.5rem;
+    border-left: none;
+    border-top: 3px solid var(--accent, #f59e0b);
+    font-size: 1.2rem;
+    letter-spacing: 0.1em;
+    align-self: stretch;
+  }
+
+  /* Photos container */
   .gallery-group-photos {
     display: flex;
+    flex-direction: column;
+  }
+
+  .gallery-group-items {
+    display: flex;
     flex-wrap: wrap;
+    align-items: flex-start;
     gap: 0;
-    padding: 1rem 0.5rem;
-    position: relative;
+    padding: 0.5rem 0;
   }
 
-  /* ── Bare images (MDX ![alt](src) or <img>) ── */
-  .gallery-group-photos :global(img),
-  .gallery-group-photos :global(p > img) {
-    width: 220px;
-    height: auto;
-    border-radius: 0.5rem;
-    margin: -0.5rem;
-    box-shadow:
-      0 4px 16px rgba(0, 0, 0, 0.5),
-      0 0 0 3px #1e1a28,
-      0 0 0 4px rgba(255, 255, 255, 0.08);
-    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), z-index 0s, box-shadow 0.3s ease;
-    position: relative;
-    z-index: 1;
-    cursor: pointer;
-    object-fit: cover;
+  .gallery-group-photos--center .gallery-group-items {
+    justify-content: center;
+  }
+  .gallery-group-photos--end .gallery-group-items {
+    justify-content: flex-end;
   }
 
-  /* ── Div-wrapped items (pixel-box cards with captions) ── */
-  .gallery-group-photos :global(> div) {
-    width: 220px;
-    margin: -0.5rem;
-    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), z-index 0s, box-shadow 0.3s ease;
-    position: relative;
-    z-index: 1;
-    cursor: pointer;
-  }
-
-  /* Images inside div wrappers fill their container */
-  .gallery-group-photos :global(> div img) {
-    width: 100%;
-    height: auto;
-    margin: 0;
-    box-shadow: none;
-  }
-
-  /* ── Varied rotations for collage scatter ── */
-  .gallery-group-photos :global(:nth-child(4n+1)) {
-    transform: rotate(-3deg);
-  }
-  .gallery-group-photos :global(:nth-child(4n+2)) {
-    transform: rotate(2deg);
-  }
-  .gallery-group-photos :global(:nth-child(4n+3)) {
-    transform: rotate(-1.5deg);
-  }
-  .gallery-group-photos :global(:nth-child(4n)) {
-    transform: rotate(4deg);
-  }
-
-  /* ── Hover: lift to front, straighten, scale up ── */
-  .gallery-group-photos :global(img:hover),
-  .gallery-group-photos :global(p > img:hover) {
-    transform: rotate(0deg) scale(1.08) !important;
-    z-index: 10;
-    box-shadow:
-      0 12px 40px rgba(0, 0, 0, 0.7),
-      0 0 0 3px #1e1a28,
-      0 0 0 4px var(--accent, #f59e0b);
-  }
-
-  .gallery-group-photos :global(> div:hover) {
-    transform: rotate(0deg) scale(1.08) !important;
-    z-index: 10;
-  }
-
-  /* Reset MDX <p> wrappers */
-  .gallery-group-photos :global(p) {
+  /* Reset MDX <p> wrappers if used inside MDX */
+  .gallery-group-items :global(> p) {
     margin: 0;
     display: contents;
   }
 
-  /* ── Responsive sizing ── */
-  @media (min-width: 640px) {
-    .gallery-group-photos :global(img),
-    .gallery-group-photos :global(p > img),
-    .gallery-group-photos :global(> div) {
-      width: 260px;
+  /* Mobile: stack title back to top */
+  @media (max-width: 767px) {
+    .gallery-group--inline {
+      flex-direction: column;
+      gap: 0.5rem;
     }
-  }
-
-  @media (min-width: 768px) {
-    .gallery-group-photos :global(img),
-    .gallery-group-photos :global(p > img),
-    .gallery-group-photos :global(> div) {
-      width: 300px;
-      margin: -0.75rem;
+    .gallery-group-title--side {
+      writing-mode: horizontal-tb;
+      text-orientation: initial;
+      border-top: none;
+      border-left: 3px solid var(--accent, #f59e0b);
+      padding-top: 0;
+      padding-left: 0.5rem;
     }
-  }
-
-  @media (min-width: 1024px) {
-    .gallery-group-photos :global(img),
-    .gallery-group-photos :global(p > img),
-    .gallery-group-photos :global(> div) {
-      width: 340px;
+    .gallery-group--tilted {
+      transform: none;
     }
   }
 </style>

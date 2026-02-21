@@ -1,8 +1,7 @@
 ---
-// Gallery.astro — full-bleed collage photo gallery
-// Usage: <Gallery> <GalleryGroup title="Section"> ![alt](/path.webp) </GalleryGroup> </Gallery>
-// Photos get collage-style rotations, overlap, and hover-to-front behavior.
-// Pure CSS — no JS required.
+// Gallery.astro — full-bleed collage container
+// Groups flow horizontally, filling page width. Each group is a cluster.
+// Usage: <Gallery> <GalleryGroup title="..."> <CollageItem>...</CollageItem> </GalleryGroup> </Gallery>
 ---
 
 <div class="gallery-breakout">
@@ -19,11 +18,26 @@
     background:
       radial-gradient(ellipse at 30% 50%, rgba(245, 158, 11, 0.04) 0%, transparent 60%),
       radial-gradient(ellipse at 70% 30%, rgba(179, 136, 255, 0.03) 0%, transparent 50%);
+    overflow: visible;
   }
 
   .gallery-collage {
-    max-width: 72rem;
+    max-width: 80rem;
     margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  @media (max-width: 767px) {
+    .gallery-collage {
+      flex-direction: column;
+      align-items: center;
+    }
+    .gallery-breakout {
+      padding: 1.5rem 1rem;
+    }
   }
 
   @media (min-width: 1024px) {
