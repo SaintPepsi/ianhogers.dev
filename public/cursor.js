@@ -30,7 +30,6 @@
   let lastX = -100;
   let lastY = -100;
   let frameDataURLs = [];
-  let rafPending = false;
 
   // Hide the default cursor globally
   const style = document.createElement('style');
@@ -56,15 +55,7 @@
     will-change: transform;
   `;
 
-  function schedulePositionUpdate() {
-    if (!rafPending) {
-      rafPending = true;
-      requestAnimationFrame(function() {
-        cursorEl.style.transform = 'translate(' + lastX + 'px,' + lastY + 'px)';
-        rafPending = false;
-      });
-    }
-  }
+  // schedulePositionUpdate function removed - direct positioning now used
 
   function ensureCursorInDOM() {
     // Re-append if removed by View Transition swap
@@ -139,7 +130,7 @@
     lastX = e.clientX;
     lastY = e.clientY;
     ensureCursorInDOM();
-    schedulePositionUpdate();
+    cursorEl.style.transform = 'translate(' + lastX + 'px,' + lastY + 'px)';
 
     const el = document.elementFromPoint(e.clientX, e.clientY);
     const clickable = el && (
@@ -179,7 +170,7 @@
     lastX = t.clientX;
     lastY = t.clientY;
     ensureCursorInDOM();
-    schedulePositionUpdate();
+    cursorEl.style.transform = 'translate(' + lastX + 'px,' + lastY + 'px)';
     if (ready) cursorEl.style.display = 'block';
     isGrabbing = true;
     updateState();
@@ -190,7 +181,7 @@
     const t = e.touches[0];
     lastX = t.clientX;
     lastY = t.clientY;
-    schedulePositionUpdate();
+    cursorEl.style.transform = 'translate(' + lastX + 'px,' + lastY + 'px)';
     clearTimeout(touchHideTimeout);
   }, { passive: true });
 
