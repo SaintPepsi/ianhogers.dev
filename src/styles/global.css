@@ -285,7 +285,11 @@ html {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: opacity 0.15s, filter 0.15s;
+  transition: transform 0.15s, filter 0.15s;
+}
+
+.nav-icon-link:hover {
+  transform: scale(1.25);
 }
 
 .nav-icon {
@@ -294,17 +298,6 @@ html {
   object-fit: contain;
 }
 
-.nav-icon-inactive {
-  opacity: 0.5;
-  filter: grayscale(0.4);
-}
-
-.nav-icon-inactive:hover {
-  opacity: 0.85;
-  filter: grayscale(0);
-}
-
 .nav-icon-active {
-  opacity: 1;
   filter: drop-shadow(0 0 4px rgba(179, 136, 255, 0.5));
 }
