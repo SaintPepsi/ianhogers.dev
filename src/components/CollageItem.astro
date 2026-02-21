@@ -28,7 +28,8 @@ const style = [
 
 <style>
   .collage-item {
-    width: var(--ci-width, 220px);
+    width: 100%;
+    max-width: var(--ci-width, 220px);
     margin: -0.25rem;
     position: relative;
     z-index: 1;
@@ -107,12 +108,12 @@ const style = [
 
   /* ── Responsive sizing ── */
   @media (min-width: 640px) {
-    .collage-item { width: var(--ci-width, 240px); }
+    .collage-item { max-width: var(--ci-width, 240px); }
   }
   @media (min-width: 768px) {
-    .collage-item { width: var(--ci-width, 280px); margin: -0.5rem; }
+    .collage-item { max-width: var(--ci-width, 280px); margin: -0.5rem; }
   }
   @media (min-width: 1024px) {
-    .collage-item { width: var(--ci-width, 320px); }
+    .collage-item { max-width: var(--ci-width, 320px); }
   }
 </style>

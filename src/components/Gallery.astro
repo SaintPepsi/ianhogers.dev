@@ -31,11 +31,14 @@
     max-width: 72rem;
     margin: 0 auto;
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    grid-template-rows: auto auto;
+    grid-template-columns: repeat(6, 1fr);
+    grid-template-rows: repeat(5, auto);
     grid-template-areas:
-      "art   art   ."
-      ".     pixel pixel";
+      "art   art   art   .     .     ."
+      "art   art   art   pixel pixel pixel"
+      "art   art   art   pixel pixel pixel"
+      ".     .     .     pixel pixel pixel"
+      ".     .     .     pixel pixel pixel";
     gap: 0.5rem;
   }
 
