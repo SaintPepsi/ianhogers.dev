@@ -2,50 +2,28 @@
 // GalleryGroup.astro — a titled cluster within a collage gallery
 // Contains CollageItem children. Groups flow horizontally within Gallery.
 // Props:
-//   title       — heading text
-//   titlePos    — "top" (default), "right", "left" — where title sits relative to photos
-//   tilt        — group-level rotation in degrees for diagonal feel
-//   align       — "start" | "center" | "end" for photo cluster alignment
+//   title  — heading text (always displayed on top)
+//   tilt   — group-level rotation in degrees for diagonal feel
+//   align  — "start" | "center" | "end" for photo cluster alignment
 interface Props {
   title: string;
-  titlePos?: 'top' | 'right' | 'left';
   tilt?: number;
   align?: 'start' | 'center' | 'end';
   class?: string;
 }
-const { title, titlePos = 'top', tilt, align = 'start', class: className = '' } = Astro.props;
+const { title, tilt, align = 'start', class: className = '' } = Astro.props;
 
 const groupStyle = tilt ? `--gg-tilt: ${tilt}deg` : '';
-const isInline = titlePos === 'right' || titlePos === 'left';
 ---
 
 <section
-  class:list={[
-    'gallery-group',
-    { 'gallery-group--inline': isInline },
-    { 'gallery-group--title-right': titlePos === 'right' },
-    { 'gallery-group--title-left': titlePos === 'left' },
-    { 'gallery-group--tilted': tilt },
-    className
-  ]}
+  class:list={['gallery-group', { 'gallery-group--tilted': tilt }, className]}
   style={groupStyle || undefined}
 >
-  {titlePos === 'left' && (
-    <h3 class="gallery-group-title gallery-group-title--side">{title}</h3>
-  )}
-
-  <div class:list={['gallery-group-photos', `gallery-group-photos--${align}`]}>
-    {titlePos === 'top' && (
-      <h3 class="gallery-group-title gallery-group-title--top">{title}</h3>
-    )}
-    <div class="gallery-group-items">
-      <slot />
-    </div>
+  <h3 class="gallery-group-title">{title}</h3>
+  <div class:list={['gallery-group-items', `gallery-group-items--${align}`]}>
+    <slot />
   </div>
-
-  {titlePos === 'right' && (
-    <h3 class="gallery-group-title gallery-group-title--side">{title}</h3>
-  )}
 </section>
 
 <style>
@@ -60,52 +38,13 @@ const isInline = titlePos === 'right' || titlePos === 'left';
     transform-origin: center center;
   }
 
-  /* Inline title layout (left/right) */
-  .gallery-group--inline {
-    display: flex;
-    align-items: flex-start;
-    gap: 1.5rem;
-  }
-
-  .gallery-group--title-left {
-    flex-direction: row;
-  }
-
-  .gallery-group--title-right {
-    flex-direction: row;
-  }
-
-  /* Title styles */
   .gallery-group-title {
     font-family: 'Weiholmir', cursive;
     color: var(--accent, #f59e0b);
     font-size: 1.4rem;
-    white-space: nowrap;
-    margin: 0;
-  }
-
-  .gallery-group-title--top {
-    margin-bottom: 0.75rem;
+    margin: 0 0 0.75rem 0;
     padding-left: 0.5rem;
     border-left: 3px solid var(--accent, #f59e0b);
-    width: 100%;
-  }
-
-  .gallery-group-title--side {
-    writing-mode: vertical-lr;
-    text-orientation: mixed;
-    padding-top: 0.5rem;
-    border-left: none;
-    border-top: 3px solid var(--accent, #f59e0b);
-    font-size: 1.2rem;
-    letter-spacing: 0.1em;
-    align-self: stretch;
-  }
-
-  /* Photos container */
-  .gallery-group-photos {
-    display: flex;
-    flex-direction: column;
   }
 
   .gallery-group-items {
@@ -116,10 +55,10 @@ const isInline = titlePos === 'right' || titlePos === 'left';
     padding: 0.5rem 0;
   }
 
-  .gallery-group-photos--center .gallery-group-items {
+  .gallery-group-items--center {
     justify-content: center;
   }
-  .gallery-group-photos--end .gallery-group-items {
+  .gallery-group-items--end {
     justify-content: flex-end;
   }
 
@@ -129,20 +68,7 @@ const isInline = titlePos === 'right' || titlePos === 'left';
     display: contents;
   }
 
-  /* Mobile: stack title back to top */
   @media (max-width: 767px) {
-    .gallery-group--inline {
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-    .gallery-group-title--side {
-      writing-mode: horizontal-tb;
-      text-orientation: initial;
-      border-top: none;
-      border-left: 3px solid var(--accent, #f59e0b);
-      padding-top: 0;
-      padding-left: 0.5rem;
-    }
     .gallery-group--tilted {
       transform: none;
     }

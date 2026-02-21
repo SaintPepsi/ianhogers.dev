@@ -47,16 +47,22 @@ const style = [
     flex-shrink: 0;
   }
 
-  /* Auto-rotation via nth-child when no explicit rotate prop */
-  .collage-item:not(.collage-item--custom-rotate):nth-child(4n+1) { --ci-rotate: -3deg; }
-  .collage-item:not(.collage-item--custom-rotate):nth-child(4n+2) { --ci-rotate: 2.5deg; }
-  .collage-item:not(.collage-item--custom-rotate):nth-child(4n+3) { --ci-rotate: -1.5deg; }
-  .collage-item:not(.collage-item--custom-rotate):nth-child(4n)   { --ci-rotate: 4deg; }
+  /* Auto-rotation: alternating negative/positive with varied magnitude
+     Pattern over 6 items: -4, +2, -1, +5, -3, +1 — no two adjacent same sign */
+  .collage-item:not(.collage-item--custom-rotate):nth-child(6n+1) { --ci-rotate: -4deg; }
+  .collage-item:not(.collage-item--custom-rotate):nth-child(6n+2) { --ci-rotate: 2deg; }
+  .collage-item:not(.collage-item--custom-rotate):nth-child(6n+3) { --ci-rotate: -1deg; }
+  .collage-item:not(.collage-item--custom-rotate):nth-child(6n+4) { --ci-rotate: 5deg; }
+  .collage-item:not(.collage-item--custom-rotate):nth-child(6n+5) { --ci-rotate: -3deg; }
+  .collage-item:not(.collage-item--custom-rotate):nth-child(6n)   { --ci-rotate: 1.5deg; }
 
-  /* Auto vertical variation via nth-child */
-  .collage-item:nth-child(odd)  { --ci-offset-y: 0px; }
-  .collage-item:nth-child(even) { --ci-offset-y: 1rem; }
-  .collage-item:nth-child(3n)   { --ci-offset-y: 0.5rem; }
+  /* Auto vertical variation: staggered heights for cluster feel */
+  .collage-item:not([style*="--ci-offset-y"]):nth-child(6n+1) { --ci-offset-y: 0px; }
+  .collage-item:not([style*="--ci-offset-y"]):nth-child(6n+2) { --ci-offset-y: 1.2rem; }
+  .collage-item:not([style*="--ci-offset-y"]):nth-child(6n+3) { --ci-offset-y: 0.4rem; }
+  .collage-item:not([style*="--ci-offset-y"]):nth-child(6n+4) { --ci-offset-y: 0.8rem; }
+  .collage-item:not([style*="--ci-offset-y"]):nth-child(6n+5) { --ci-offset-y: 0.2rem; }
+  .collage-item:not([style*="--ci-offset-y"]):nth-child(6n)   { --ci-offset-y: 1rem; }
 
   /* Override auto-offset when explicit offsetY is set */
   .collage-item[style*="--ci-offset-y"] {
