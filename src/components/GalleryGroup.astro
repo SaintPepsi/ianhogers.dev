@@ -1,6 +1,7 @@
 ---
 // GalleryGroup.astro — a headed section within a collage gallery
 // Usage: <GalleryGroup title="Cinnamon Scrolls"> <img .../> </GalleryGroup>
+// Also supports div-wrapped items (pixel-box cards with captions).
 interface Props {
   title: string;
 }
@@ -36,7 +37,7 @@ const { title } = Astro.props;
     position: relative;
   }
 
-  /* Each photo: overlap + rotation */
+  /* ── Bare images (MDX ![alt](src) or <img>) ── */
   .gallery-group-photos :global(img),
   .gallery-group-photos :global(p > img) {
     width: 220px;
@@ -54,25 +55,39 @@ const { title } = Astro.props;
     object-fit: cover;
   }
 
-  /* Varied rotations for collage scatter */
-  .gallery-group-photos :global(:nth-child(4n+1) img),
-  .gallery-group-photos :global(:nth-child(4n+1) > img) {
+  /* ── Div-wrapped items (pixel-box cards with captions) ── */
+  .gallery-group-photos :global(> div) {
+    width: 220px;
+    margin: -0.5rem;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), z-index 0s, box-shadow 0.3s ease;
+    position: relative;
+    z-index: 1;
+    cursor: pointer;
+  }
+
+  /* Images inside div wrappers fill their container */
+  .gallery-group-photos :global(> div img) {
+    width: 100%;
+    height: auto;
+    margin: 0;
+    box-shadow: none;
+  }
+
+  /* ── Varied rotations for collage scatter ── */
+  .gallery-group-photos :global(:nth-child(4n+1)) {
     transform: rotate(-3deg);
   }
-  .gallery-group-photos :global(:nth-child(4n+2) img),
-  .gallery-group-photos :global(:nth-child(4n+2) > img) {
+  .gallery-group-photos :global(:nth-child(4n+2)) {
     transform: rotate(2deg);
   }
-  .gallery-group-photos :global(:nth-child(4n+3) img),
-  .gallery-group-photos :global(:nth-child(4n+3) > img) {
+  .gallery-group-photos :global(:nth-child(4n+3)) {
     transform: rotate(-1.5deg);
   }
-  .gallery-group-photos :global(:nth-child(4n) img),
-  .gallery-group-photos :global(:nth-child(4n) > img) {
+  .gallery-group-photos :global(:nth-child(4n)) {
     transform: rotate(4deg);
   }
 
-  /* Hover: lift to front, straighten, scale up */
+  /* ── Hover: lift to front, straighten, scale up ── */
   .gallery-group-photos :global(img:hover),
   .gallery-group-photos :global(p > img:hover) {
     transform: rotate(0deg) scale(1.08) !important;
@@ -83,23 +98,30 @@ const { title } = Astro.props;
       0 0 0 4px var(--accent, #f59e0b);
   }
 
+  .gallery-group-photos :global(> div:hover) {
+    transform: rotate(0deg) scale(1.08) !important;
+    z-index: 10;
+  }
+
   /* Reset MDX <p> wrappers */
   .gallery-group-photos :global(p) {
     margin: 0;
     display: contents;
   }
 
-  /* Responsive sizing */
+  /* ── Responsive sizing ── */
   @media (min-width: 640px) {
     .gallery-group-photos :global(img),
-    .gallery-group-photos :global(p > img) {
+    .gallery-group-photos :global(p > img),
+    .gallery-group-photos :global(> div) {
       width: 260px;
     }
   }
 
   @media (min-width: 768px) {
     .gallery-group-photos :global(img),
-    .gallery-group-photos :global(p > img) {
+    .gallery-group-photos :global(p > img),
+    .gallery-group-photos :global(> div) {
       width: 300px;
       margin: -0.75rem;
     }
@@ -107,7 +129,8 @@ const { title } = Astro.props;
 
   @media (min-width: 1024px) {
     .gallery-group-photos :global(img),
-    .gallery-group-photos :global(p > img) {
+    .gallery-group-photos :global(p > img),
+    .gallery-group-photos :global(> div) {
       width: 340px;
     }
   }
