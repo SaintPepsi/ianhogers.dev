@@ -9,15 +9,16 @@ interface Props {
   title: string;
   tilt?: number;
   align?: 'start' | 'center' | 'end';
+  position?: 'left' | 'right' | 'center';
   class?: string;
 }
-const { title, tilt, align = 'start', class: className = '' } = Astro.props;
+const { title, tilt, align = 'start', position = 'center', class: className = '' } = Astro.props;
 
 const groupStyle = tilt ? `--gg-tilt: ${tilt}deg` : '';
 ---
 
 <section
-  class:list={['gallery-group', { 'gallery-group--tilted': tilt }, className]}
+  class:list={['gallery-group', `gallery-group--pos-${position}`, { 'gallery-group--tilted': tilt }, className]}
   style={groupStyle || undefined}
 >
   <h3 class="gallery-group-title">{title}</h3>
@@ -31,6 +32,23 @@ const groupStyle = tilt ? `--gg-tilt: ${tilt}deg` : '';
     flex: 0 1 auto;
     min-width: 0;
     padding: 0.5rem;
+    max-width: 90%;
+  }
+
+  .gallery-group--pos-left {
+    align-self: flex-start;
+    margin-left: 2%;
+    margin-right: auto;
+  }
+
+  .gallery-group--pos-right {
+    align-self: flex-end;
+    margin-left: 50%;
+    margin-right: 2%;
+  }
+
+  .gallery-group--pos-center {
+    align-self: center;
   }
 
   .gallery-group--tilted {
@@ -71,6 +89,13 @@ const groupStyle = tilt ? `--gg-tilt: ${tilt}deg` : '';
   @media (max-width: 767px) {
     .gallery-group--tilted {
       transform: none;
+    }
+    .gallery-group--pos-left,
+    .gallery-group--pos-right {
+      margin-left: auto;
+      margin-right: auto;
+      align-self: center;
+      max-width: 100%;
     }
   }
 </style>

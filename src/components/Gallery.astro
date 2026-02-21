@@ -28,13 +28,12 @@
   }
 
   .gallery-collage {
-    max-width: 80rem;
+    max-width: 100%;
     margin: 0 auto;
     display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    justify-content: center;
-    gap: 2rem;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
   }
 
   /* ── Lightbox ── */
@@ -116,7 +115,6 @@
 
   @media (max-width: 767px) {
     .gallery-collage {
-      flex-direction: column;
       align-items: center;
     }
     .gallery-breakout {
