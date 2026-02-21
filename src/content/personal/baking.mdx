@@ -4,20 +4,39 @@ description: "Cinnamon scrolls, Dutch Danish, pepernoten, and more"
 date: 2026-01-01
 tags: ["baking", "cooking", "dutch"]
 ---
+import Gallery from '../../components/Gallery.astro';
+import GalleryGroup from '../../components/GalleryGroup.astro';
+import CollageItem from '../../components/CollageItem.astro';
 
 I bake. A lot. And people keep coming back for more, so I must be doing something right.
+
+<Gallery layout="centered">
+
+<GalleryGroup title="The Goods">
+
+<CollageItem rotate={2} offsetY="0rem">
+
+![Braided Dutch Danish pastry](/assets/from-old-site/baking-3.webp)
+
+</CollageItem>
+
+<CollageItem rotate={-3} offsetY="0.5rem">
+
+![Chocolate cinnamon rolls fresh from the oven](/assets/from-old-site/baking-2.webp)
+
+</CollageItem>
+
+</GalleryGroup>
+
+</Gallery>
 
 ## Cinnamon Scrolls
 
 Fresh, fluffy, absolutely loaded with icing. These are the kind that fill the whole house with that smell and make everyone suddenly appear in the kitchen. Soft on the inside, slightly golden on the outside. Perfect with coffee or just on their own.
 
-![Chocolate cinnamon rolls fresh from the oven](/assets/from-old-site/baking-2.webp)
-
 ## Dutch Danish
 
 This is the one. Apple, cinnamon, raisins, almond, topped with lemon icing. Braided, golden, and honestly dangerous. Once you start, you can't stop. It's a family thing - Dutch roots run deep in the pastry department.
-
-![Braided Dutch Danish pastry](/assets/from-old-site/baking-3.webp)
 
 ## Pepernoten
 

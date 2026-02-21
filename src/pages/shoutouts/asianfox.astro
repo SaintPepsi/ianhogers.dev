@@ -1,5 +1,8 @@
 ---
 import Base from '../../layouts/Base.astro';
+import Gallery from '../../components/Gallery.astro';
+import GalleryGroup from '../../components/GalleryGroup.astro';
+import CollageItem from '../../components/CollageItem.astro';
 ---
 
 <Base title="AsianFox - Shoutouts - Ian Hogers" side="neutral">
@@ -29,79 +32,84 @@ import Base from '../../layouts/Base.astro';
       <p>I even made pixel art versions of their work and recorded a timelapse of the drawing process. That's how much their art meant to me.</p>
     </div>
 
-    <!-- Art Gallery -->
-    <h2 class="text-2xl text-pink-400 mb-6 flex items-center gap-3">
-      <span class="star-sprite w-5 h-5 animate-sparkle" aria-hidden="true"></span>
-      The Art
-    </h2>
+    <Gallery>
+      <!-- Left cluster: The Art — 2 top, 1 bottom center -->
+      <GalleryGroup title="The Art" align="center" area="art">
+        <CollageItem rotate={-4} offsetY="0rem" width="240px">
+          <div class="pixel-box p-3" style="--box-color: #ec4899;">
+            <img
+              src="/assets/pixel-art/commissions/pepsi_transparent_by_asianfox-datirzr.png"
+              alt="Pepsi Transparent by AsianFox"
+              class="w-full rounded"
+            />
+            <p class="text-xs font-mono text-gray-500 mt-2 text-center">Pepsi (Transparent)</p>
+          </div>
+        </CollageItem>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
-      <div class="pixel-box p-3" style="--box-color: #ec4899;">
-        <img
-          src="/assets/pixel-art/commissions/pepsi_transparent_by_asianfox-datirzr.png"
-          alt="Pepsi Transparent by AsianFox"
-          class="w-full rounded"
-        />
-        <p class="text-xs font-mono text-gray-500 mt-2 text-center">Pepsi (Transparent)</p>
-      </div>
+        <CollageItem rotate={3} offsetY="1.5rem" width="240px">
+          <div class="pixel-box p-3" style="--box-color: #ec4899;">
+            <img
+              src="/assets/pixel-art/commissions/screenshot__156__by_asianfox_datirvm_by_asianfox-datisbw.png"
+              alt="Screenshot commission by AsianFox"
+              class="w-full rounded"
+            />
+            <p class="text-xs font-mono text-gray-500 mt-2 text-center">Screenshot Commission</p>
+          </div>
+        </CollageItem>
 
-      <div class="pixel-box p-3" style="--box-color: #ec4899;">
-        <img
-          src="/assets/pixel-art/commissions/screenshot__156__by_asianfox_datirvm_by_asianfox-datisbw.png"
-          alt="Screenshot commission by AsianFox"
-          class="w-full rounded"
-        />
-        <p class="text-xs font-mono text-gray-500 mt-2 text-center">Screenshot Commission</p>
-      </div>
+        <CollageItem rotate={-1} offsetY="0.5rem" width="260px">
+          <div class="pixel-box p-3" style="--box-color: #ec4899;">
+            <img
+              src="/assets/pixel-art/commissions/spoopy_woopy_by_asianfox-dau1zhy-50.png"
+              alt="Spoopy Woopy by AsianFox"
+              class="w-full rounded"
+            />
+            <p class="text-xs font-mono text-gray-500 mt-2 text-center">Spoopy Woopy</p>
+          </div>
+        </CollageItem>
+      </GalleryGroup>
 
-      <div class="pixel-box p-3" style="--box-color: #ec4899;">
-        <img
-          src="/assets/pixel-art/commissions/spoopy_woopy_by_asianfox-dau1zhy-50.png"
-          alt="Spoopy Woopy by AsianFox"
-          class="w-full rounded"
-        />
-        <p class="text-xs font-mono text-gray-500 mt-2 text-center">Spoopy Woopy</p>
-      </div>
-    </div>
+      <!-- Right cluster: Pixel art — tilted group -->
+      <GalleryGroup title="My Pixel Art" tilt={3} area="pixel">
+        <CollageItem rotate={2} offsetY="0rem" width="260px">
+          <div class="pixel-box pixel-box-lavender p-3">
+            <img
+              src="/assets/pixel-art/commissions/saint-pepsi-pixel-art-version-4up.png"
+              alt="Saint Pepsi - pixel art version by Ian"
+              class="w-full pixel-sprite rounded"
+            />
+            <p class="text-xs font-mono text-gray-500 mt-2 text-center">My pixel art version</p>
+          </div>
+        </CollageItem>
 
-    <!-- Pixel art version -->
-    <h2 class="text-2xl text-violet-400 mb-6 flex items-center gap-3">
-      <img src="/assets/pixel-art/game-assets/wow_red.png" alt="" class="pixel-sprite w-5 h-5" />
-      My Pixel Art Version
-    </h2>
+        <CollageItem rotate={-3} offsetY="1.5rem" width="280px">
+          <div class="pixel-box pixel-box-lavender p-3">
+            <div class="relative w-full" style="padding-bottom: 56.25%;">
+              <iframe
+                class="absolute top-0 left-0 w-full h-full rounded"
+                src="https://www.youtube-nocookie.com/embed/kptqGocceG8"
+                title="SanCoca Icon pixel art timelapse"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+              ></iframe>
+            </div>
+            <p class="text-xs font-mono text-gray-500 mt-2 text-center">The pixel art timelapse</p>
+          </div>
+        </CollageItem>
 
-    <div class="pixel-box pixel-box-lavender p-3 sm:p-4 mb-8 max-w-md mx-auto">
-      <img
-        src="/assets/pixel-art/commissions/saint-pepsi-pixel-art-version-4up.png"
-        alt="Saint Pepsi - pixel art version by Ian"
-        class="w-full pixel-sprite rounded"
-      />
-      <p class="text-xs font-mono text-gray-500 mt-2 text-center">My pixel art version of the Saint Pepsi piece</p>
-    </div>
-
-    <div class="pixel-box pixel-box-lavender p-3 sm:p-4 mb-8 max-w-lg mx-auto">
-      <div class="relative w-full" style="padding-bottom: 56.25%;">
-        <iframe
-          class="absolute top-0 left-0 w-full h-full rounded"
-          src="https://www.youtube-nocookie.com/embed/kptqGocceG8"
-          title="SanCoca Icon pixel art timelapse"
-          frameborder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowfullscreen
-        ></iframe>
-      </div>
-      <p class="text-xs font-mono text-gray-500 mt-2 text-center">The pixel art timelapse</p>
-    </div>
-
-    <!-- Other art -->
-    <div class="pixel-box p-4 mb-8">
-      <img
-        src="/assets/pixel-art/commissions/0f7b83e676294ada15dd7dce73383638.webp"
-        alt="Additional commission art"
-        class="w-full rounded"
-      />
-      <p class="text-xs font-mono text-gray-500 mt-2 text-center">Additional piece from the collection</p>
-    </div>
+        <CollageItem rotate={4} offsetY="0.5rem" width="240px">
+          <div class="pixel-box p-3" style="--box-color: #ec4899;">
+            <img
+              src="/assets/pixel-art/commissions/0f7b83e676294ada15dd7dce73383638.webp"
+              alt="Additional commission art"
+              class="w-full rounded"
+            />
+            <p class="text-xs font-mono text-gray-500 mt-2 text-center">From the collection</p>
+          </div>
+        </CollageItem>
+      </GalleryGroup>
+    </Gallery>
 
     <div class="pixel-divider mb-6" style="--divider-color: #ec4899;"></div>
     <p class="text-xs font-mono text-gray-600 text-center">
