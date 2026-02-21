@@ -66,18 +66,24 @@ const groupStyle = tilt ? `--gg-tilt: ${tilt}deg` : '';
   }
 
   .gallery-group-items {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    gap: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
     padding: 0.5rem 0;
+    justify-items: center;
+  }
+
+  /* Third item spans full width and centers — forms the triangle base */
+  .gallery-group-items :global(:nth-child(3)) {
+    grid-column: 1 / -1;
+    justify-self: center;
   }
 
   .gallery-group-items--center {
-    justify-content: center;
+    justify-items: center;
   }
   .gallery-group-items--end {
-    justify-content: flex-end;
+    justify-items: end;
   }
 
   /* Reset MDX <p> wrappers if used inside MDX */
@@ -96,6 +102,12 @@ const groupStyle = tilt ? `--gg-tilt: ${tilt}deg` : '';
       margin-right: auto;
       align-self: center;
       max-width: 100%;
+    }
+    .gallery-group-items {
+      grid-template-columns: 1fr;
+    }
+    .gallery-group-items :global(:nth-child(3)) {
+      grid-column: auto;
     }
   }
 </style>
