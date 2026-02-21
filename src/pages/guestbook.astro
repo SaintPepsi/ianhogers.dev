@@ -1,0 +1,21 @@
+---
+import Base from '../layouts/Base.astro';
+import GuestBook from '../components/guestbook/GuestBook.svelte';
+
+export const prerender = false;
+---
+
+<Base title="Guest Book - Ian Hogers" description="Sign Ian's guest book! Leave a note, doodle, or just say hi." side="personal">
+  <div class="guestbook-wrapper">
+    <GuestBook client:load />
+  </div>
+</Base>
+
+<style>
+  .guestbook-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 70vh;
+  }
+</style>

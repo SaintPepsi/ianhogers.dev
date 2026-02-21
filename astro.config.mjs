@@ -2,11 +2,14 @@ import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 import sitemap from '@astrojs/sitemap';
 import tailwind from '@astrojs/tailwind';
+import svelte from '@astrojs/svelte';
+import vercel from '@astrojs/vercel';
 import rehypeExternalLinks from 'rehype-external-links';
 
 export default defineConfig({
   site: 'https://ianhogers.com',
-  integrations: [mdx(), sitemap(), tailwind()],
+  adapter: vercel(),
+  integrations: [mdx(), sitemap(), tailwind(), svelte()],
   prefetch: {
     prefetchAll: true,
     defaultStrategy: 'viewport',

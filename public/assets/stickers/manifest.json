@@ -1,0 +1,7 @@
+{
+  "stickers": [
+    { "id": "bunny-sticker-01", "src": "/assets/stickers/bunny-sticker-01.png", "width": 23, "height": 24 },
+    { "id": "deer-sticker-01", "src": "/assets/stickers/deer-sticker-01.png", "width": 23, "height": 19 },
+    { "id": "fluffy-bunny-sticker-01", "src": "/assets/stickers/fluffy-bunny-sticker-01.png", "width": 27, "height": 28 }
+  ]
+}
