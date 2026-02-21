@@ -2,13 +2,16 @@ import { neon } from "@neondatabase/serverless";
 import type { GuestbookNote } from "./types";
 
 export function getDb() {
-  return neon(import.meta.env.DATABASE_URL);
+  const url = import.meta.env.DATABASE_URL;
+  if (!url) return null;
+  return neon(url);
 }
 
 export async function getNotesByPage(
   pageIndex: number,
 ): Promise<GuestbookNote[]> {
   const sql = getDb();
+  if (!sql) return [];
   const rows = await sql`
     SELECT * FROM guestbook_notes
     WHERE page_index = ${pageIndex}
@@ -19,6 +22,7 @@ export async function getNotesByPage(
 
 export async function getAllNotes(): Promise<GuestbookNote[]> {
   const sql = getDb();
+  if (!sql) return [];
   const rows = await sql`
     SELECT * FROM guestbook_notes
     ORDER BY page_index, created_at
@@ -30,6 +34,7 @@ export async function insertNote(
   note: Omit<GuestbookNote, "id" | "created_at">,
 ): Promise<GuestbookNote> {
   const sql = getDb();
+  if (!sql) throw new Error("Database not configured");
   const rows = await sql`
     INSERT INTO guestbook_notes (
       page_index, row_start, row_end, col_start, col_end,
@@ -53,6 +58,7 @@ export async function checkOverlap(
   colEnd: number,
 ): Promise<boolean> {
   const sql = getDb();
+  if (!sql) return false;
   const rows = await sql`
     SELECT 1 FROM guestbook_notes
     WHERE page_index = ${pageIndex}

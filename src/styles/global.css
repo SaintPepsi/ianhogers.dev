@@ -277,3 +277,34 @@ html {
     @apply text-lg mt-6 mb-2;
   }
 }
+
+/* ═══════════════════════════════════════
+   NAV ICONS
+   ═══════════════════════════════════════ */
+.nav-icon-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.15s, filter 0.15s;
+}
+
+.nav-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.nav-icon-inactive {
+  opacity: 0.5;
+  filter: grayscale(0.4);
+}
+
+.nav-icon-inactive:hover {
+  opacity: 0.85;
+  filter: grayscale(0);
+}
+
+.nav-icon-active {
+  opacity: 1;
+  filter: drop-shadow(0 0 4px rgba(179, 136, 255, 0.5));
+}
