@@ -34,7 +34,7 @@ import CollageItem from '../../components/CollageItem.astro';
 
     <Gallery>
       <!-- Left cluster: The Art — 2 top, 1 bottom center -->
-      <GalleryGroup title="The Art" align="center" position="left">
+      <GalleryGroup title="The Art" align="center" area="art">
         <CollageItem rotate={-4} offsetY="0rem" width="240px">
           <div class="pixel-box p-3" style="--box-color: #ec4899;">
             <img
@@ -70,7 +70,7 @@ import CollageItem from '../../components/CollageItem.astro';
       </GalleryGroup>
 
       <!-- Right cluster: Pixel art — tilted group -->
-      <GalleryGroup title="My Pixel Art" tilt={3} position="right">
+      <GalleryGroup title="My Pixel Art" tilt={3} area="pixel">
         <CollageItem rotate={2} offsetY="0rem" width="260px">
           <div class="pixel-box pixel-box-lavender p-3">
             <img
