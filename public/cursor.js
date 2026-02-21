@@ -29,6 +29,8 @@
   let ready = false;
   let lastX = -100;
   let lastY = -100;
+  let frameDataURLs = [];
+  let rafPending = false;
 
   // Hide the default cursor globally
   const style = document.createElement('style');
@@ -51,7 +53,18 @@
     image-rendering: pixelated;
     display: none;
     transform: translate(${lastX}px, ${lastY}px);
+    will-change: transform;
   `;
+
+  function schedulePositionUpdate() {
+    if (!rafPending) {
+      rafPending = true;
+      requestAnimationFrame(function() {
+        cursorEl.style.transform = 'translate(' + lastX + 'px,' + lastY + 'px)';
+        rafPending = false;
+      });
+    }
+  }
 
   function ensureCursorInDOM() {
     // Re-append if removed by View Transition swap
@@ -67,15 +80,21 @@
 
   sheet.onload = function() {
     ready = true;
+    // Pre-render all frames
+    for (let i = 0; i < 8; i++) {
+      ctx.clearRect(0, 0, FRAME_SIZE, FRAME_SIZE);
+      ctx.drawImage(sheet, i * FRAME_SIZE, 0, FRAME_SIZE, FRAME_SIZE, 0, 0, FRAME_SIZE, FRAME_SIZE);
+      frameDataURLs[i] = canvas.toDataURL();
+    }
     drawFrame(0);
     cursorEl.style.display = 'block';
   };
 
   function drawFrame(frameIdx) {
-    ctx.clearRect(0, 0, FRAME_SIZE, FRAME_SIZE);
-    ctx.drawImage(sheet, frameIdx * FRAME_SIZE, 0, FRAME_SIZE, FRAME_SIZE, 0, 0, FRAME_SIZE, FRAME_SIZE);
-    cursorEl.style.backgroundImage = `url(${canvas.toDataURL()})`;
-    cursorEl.style.backgroundSize = 'contain';
+    if (frameDataURLs[frameIdx]) {
+      cursorEl.style.backgroundImage = 'url(' + frameDataURLs[frameIdx] + ')';
+      cursorEl.style.backgroundSize = 'contain';
+    }
   }
 
   function startAnim(frames, loop, speed) {
@@ -120,7 +139,7 @@
     lastX = e.clientX;
     lastY = e.clientY;
     ensureCursorInDOM();
-    cursorEl.style.transform = `translate(${lastX}px, ${lastY}px)`;
+    schedulePositionUpdate();
 
     const el = document.elementFromPoint(e.clientX, e.clientY);
     const clickable = el && (
@@ -160,7 +179,7 @@
     lastX = t.clientX;
     lastY = t.clientY;
     ensureCursorInDOM();
-    cursorEl.style.transform = `translate(${lastX}px, ${lastY}px)`;
+    schedulePositionUpdate();
     if (ready) cursorEl.style.display = 'block';
     isGrabbing = true;
     updateState();
@@ -171,7 +190,7 @@
     const t = e.touches[0];
     lastX = t.clientX;
     lastY = t.clientY;
-    cursorEl.style.transform = `translate(${lastX}px, ${lastY}px)`;
+    schedulePositionUpdate();
     clearTimeout(touchHideTimeout);
   }, { passive: true });
 
