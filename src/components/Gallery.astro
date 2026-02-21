@@ -2,10 +2,16 @@
 // Gallery.astro — full-bleed collage container with lightbox
 // Groups flow horizontally, filling page width. Each group is a cluster.
 // Clicking a CollageItem opens it in a lightbox. Clicking outside closes + pauses video.
+// Props:
+//   layout — "diagonal" (6-col grid with named areas) | "centered" (simple centered)
+interface Props {
+  layout?: 'diagonal' | 'centered';
+}
+const { layout = 'diagonal' } = Astro.props;
 ---
 
 <div class="gallery-breakout">
-  <div class="gallery-collage">
+  <div class:list={['gallery-collage', `gallery-collage--${layout}`]}>
     <slot />
   </div>
 </div>
@@ -30,6 +36,10 @@
   .gallery-collage {
     max-width: 72rem;
     margin: 0 auto;
+    gap: 0.5rem;
+  }
+
+  .gallery-collage--diagonal {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
     grid-template-rows: repeat(5, auto);
@@ -39,7 +49,13 @@
       "art   art   art   pixel pixel pixel"
       ".     .     .     pixel pixel pixel"
       ".     .     .     pixel pixel pixel";
-    gap: 0.5rem;
+  }
+
+  .gallery-collage--centered {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
   }
 
   /* ── Lightbox ── */
@@ -120,7 +136,7 @@
   }
 
   @media (max-width: 767px) {
-    .gallery-collage {
+    .gallery-collage--diagonal {
       grid-template-columns: 1fr;
       grid-template-areas:
         "art"
