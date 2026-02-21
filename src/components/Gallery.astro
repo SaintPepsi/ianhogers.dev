@@ -1,13 +1,19 @@
 ---
-// Gallery.astro — full-bleed collage container
+// Gallery.astro — full-bleed collage container with lightbox
 // Groups flow horizontally, filling page width. Each group is a cluster.
-// Usage: <Gallery> <GalleryGroup title="..."> <CollageItem>...</CollageItem> </GalleryGroup> </Gallery>
+// Clicking a CollageItem opens it in a lightbox. Clicking outside closes + pauses video.
 ---
 
 <div class="gallery-breakout">
   <div class="gallery-collage">
     <slot />
   </div>
+</div>
+
+<!-- Lightbox overlay (hidden by default, populated by JS) -->
+<div class="gallery-lightbox" id="gallery-lightbox" aria-hidden="true">
+  <div class="gallery-lightbox-backdrop"></div>
+  <div class="gallery-lightbox-content" id="gallery-lightbox-content"></div>
 </div>
 
 <style>
@@ -31,6 +37,83 @@
     gap: 2rem;
   }
 
+  /* ── Lightbox ── */
+  .gallery-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+
+  .gallery-lightbox[aria-hidden="false"] {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .gallery-lightbox-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    cursor: pointer;
+  }
+
+  .gallery-lightbox-content {
+    position: relative;
+    z-index: 1;
+    max-width: min(90vw, 800px);
+    max-height: 85vh;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    box-shadow:
+      0 20px 60px rgba(0, 0, 0, 0.8),
+      0 0 0 3px #1e1a28,
+      0 0 0 4px var(--accent, #f59e0b);
+    background: #1e1a28;
+    transform: scale(0.95);
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .gallery-lightbox[aria-hidden="false"] .gallery-lightbox-content {
+    transform: scale(1);
+  }
+
+  /* Content inside lightbox */
+  .gallery-lightbox-content :global(img) {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .gallery-lightbox-content :global(.pixel-box) {
+    box-shadow: none;
+    background-color: #1e1a28;
+  }
+
+  .gallery-lightbox-content :global(p) {
+    margin: 0;
+    padding: 0.5rem 0.75rem;
+    text-align: center;
+  }
+
+  /* Iframe in lightbox: make it larger and playable */
+  .gallery-lightbox-content :global(iframe) {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    height: auto;
+    display: block;
+  }
+
+  .gallery-lightbox-content :global(.relative) {
+    position: relative;
+    width: 100%;
+    padding-bottom: 0;
+  }
+
   @media (max-width: 767px) {
     .gallery-collage {
       flex-direction: column;
@@ -38,6 +121,9 @@
     }
     .gallery-breakout {
       padding: 1.5rem 1rem;
+    }
+    .gallery-lightbox-content {
+      max-width: 95vw;
     }
   }
 
@@ -47,3 +133,96 @@
     }
   }
 </style>
+
+<script>
+  function initGalleryLightbox() {
+    const lightbox = document.getElementById('gallery-lightbox');
+    const contentEl = document.getElementById('gallery-lightbox-content');
+    if (!lightbox || !contentEl) return;
+
+    const backdrop = lightbox.querySelector('.gallery-lightbox-backdrop');
+
+    function openLightbox(item: Element) {
+      // Clone the inner content of the collage item
+      const clone = item.cloneNode(true) as HTMLElement;
+      // Remove collage-item wrapper classes/styles from clone
+      clone.classList.remove('collage-item', 'collage-item--custom-rotate');
+      clone.removeAttribute('style');
+      clone.style.transform = 'none';
+      clone.style.width = '100%';
+      clone.style.margin = '0';
+      clone.style.boxShadow = 'none';
+      clone.style.borderRadius = '0';
+      clone.style.overflow = 'visible';
+      clone.style.cursor = 'default';
+
+      // For iframes: enable autoplay on open
+      const iframes = clone.querySelectorAll('iframe');
+      iframes.forEach((iframe) => {
+        const src = iframe.getAttribute('src') || '';
+        if (src && !src.includes('autoplay=1')) {
+          iframe.setAttribute('src', src + (src.includes('?') ? '&' : '?') + 'autoplay=1');
+        }
+        // Make iframe responsive in lightbox
+        iframe.style.width = '100%';
+        iframe.style.height = 'auto';
+        iframe.style.aspectRatio = '16 / 9';
+        iframe.style.position = 'relative';
+
+        // Remove the padding-bottom aspect ratio hack from parent
+        const parent = iframe.parentElement;
+        if (parent && parent.style.paddingBottom) {
+          parent.style.paddingBottom = '0';
+          parent.style.position = 'relative';
+          iframe.style.position = 'relative';
+          iframe.classList.remove('absolute');
+        }
+      });
+
+      contentEl.innerHTML = '';
+      contentEl.appendChild(clone);
+      lightbox.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeLightbox() {
+      // Pause any iframes by clearing their src
+      const iframes = contentEl.querySelectorAll('iframe');
+      iframes.forEach((iframe) => {
+        iframe.setAttribute('src', '');
+      });
+
+      lightbox.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+
+      // Clean up after transition
+      setTimeout(() => {
+        contentEl.innerHTML = '';
+      }, 300);
+    }
+
+    // Click on any collage item opens lightbox
+    document.querySelectorAll('.collage-item').forEach((item) => {
+      item.addEventListener('click', (e) => {
+        // Don't open lightbox if user clicked a link inside
+        if ((e.target as HTMLElement).closest('a')) return;
+        e.preventDefault();
+        openLightbox(item);
+      });
+    });
+
+    // Close on backdrop click
+    backdrop?.addEventListener('click', closeLightbox);
+
+    // Close on Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && lightbox.getAttribute('aria-hidden') === 'false') {
+        closeLightbox();
+      }
+    });
+  }
+
+  // Run on page load and on Astro page transitions
+  initGalleryLightbox();
+  document.addEventListener('astro:page-load', initGalleryLightbox);
+</script>

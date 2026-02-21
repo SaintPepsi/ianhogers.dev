@@ -1,17 +1,19 @@
 ---
 // CollageItem.astro — photo-effect wrapper for any element
-// Applies rotation, shadow, hover-lift to whatever it wraps.
+// Applies rotation, shadow, hover-lift, and positional scatter.
 // Props override defaults; without props, nth-child provides auto-variation.
 interface Props {
   rotate?: number;    // degrees, e.g. -3, 5, 15
+  offsetX?: string;   // CSS value, e.g. "1rem", "-0.5rem"
   offsetY?: string;   // CSS value, e.g. "1rem", "-0.5rem"
   width?: string;     // CSS value, e.g. "280px", "100%"
   class?: string;     // additional classes
 }
-const { rotate, offsetY, width, class: className = '' } = Astro.props;
+const { rotate, offsetX, offsetY, width, class: className = '' } = Astro.props;
 
 const style = [
   rotate !== undefined ? `--ci-rotate: ${rotate}deg` : '',
+  offsetX ? `--ci-offset-x: ${offsetX}` : '',
   offsetY ? `--ci-offset-y: ${offsetY}` : '',
   width ? `--ci-width: ${width}` : '',
 ].filter(Boolean).join('; ');
@@ -33,7 +35,7 @@ const style = [
     cursor: pointer;
     transform:
       rotate(var(--ci-rotate, 0deg))
-      translateY(var(--ci-offset-y, 0px));
+      translate(var(--ci-offset-x, 0px), var(--ci-offset-y, 0px));
     transition:
       transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
       z-index 0s,
@@ -47,8 +49,7 @@ const style = [
     flex-shrink: 0;
   }
 
-  /* Auto-rotation: alternating negative/positive with varied magnitude
-     Pattern over 6 items: -4, +2, -1, +5, -3, +1 — no two adjacent same sign */
+  /* Auto-rotation: alternating neg/pos with varied magnitude */
   .collage-item:not(.collage-item--custom-rotate):nth-child(6n+1) { --ci-rotate: -4deg; }
   .collage-item:not(.collage-item--custom-rotate):nth-child(6n+2) { --ci-rotate: 2deg; }
   .collage-item:not(.collage-item--custom-rotate):nth-child(6n+3) { --ci-rotate: -1deg; }
@@ -56,7 +57,7 @@ const style = [
   .collage-item:not(.collage-item--custom-rotate):nth-child(6n+5) { --ci-rotate: -3deg; }
   .collage-item:not(.collage-item--custom-rotate):nth-child(6n)   { --ci-rotate: 1.5deg; }
 
-  /* Auto vertical variation: staggered heights for cluster feel */
+  /* Auto vertical scatter */
   .collage-item:not([style*="--ci-offset-y"]):nth-child(6n+1) { --ci-offset-y: 0px; }
   .collage-item:not([style*="--ci-offset-y"]):nth-child(6n+2) { --ci-offset-y: 1.2rem; }
   .collage-item:not([style*="--ci-offset-y"]):nth-child(6n+3) { --ci-offset-y: 0.4rem; }
@@ -64,14 +65,20 @@ const style = [
   .collage-item:not([style*="--ci-offset-y"]):nth-child(6n+5) { --ci-offset-y: 0.2rem; }
   .collage-item:not([style*="--ci-offset-y"]):nth-child(6n)   { --ci-offset-y: 1rem; }
 
-  /* Override auto-offset when explicit offsetY is set */
-  .collage-item[style*="--ci-offset-y"] {
-    /* explicit value wins via specificity of inline style */
-  }
+  /* Auto horizontal scatter — subtle jitter so items don't stack vertically */
+  .collage-item:not([style*="--ci-offset-x"]):nth-child(6n+1) { --ci-offset-x: 0px; }
+  .collage-item:not([style*="--ci-offset-x"]):nth-child(6n+2) { --ci-offset-x: 0.8rem; }
+  .collage-item:not([style*="--ci-offset-x"]):nth-child(6n+3) { --ci-offset-x: -0.5rem; }
+  .collage-item:not([style*="--ci-offset-x"]):nth-child(6n+4) { --ci-offset-x: 1.2rem; }
+  .collage-item:not([style*="--ci-offset-x"]):nth-child(6n+5) { --ci-offset-x: -0.3rem; }
+  .collage-item:not([style*="--ci-offset-x"]):nth-child(6n)   { --ci-offset-x: 0.5rem; }
 
-  /* Hover: lift to front, straighten, scale */
+  /* Hover: lift to front, straighten, keep position */
   .collage-item:hover {
-    transform: rotate(0deg) translateY(var(--ci-offset-y, 0px)) scale(1.06);
+    transform:
+      rotate(0deg)
+      translate(var(--ci-offset-x, 0px), var(--ci-offset-y, 0px))
+      scale(1.06);
     z-index: 10;
     box-shadow:
       0 12px 40px rgba(0, 0, 0, 0.7),
