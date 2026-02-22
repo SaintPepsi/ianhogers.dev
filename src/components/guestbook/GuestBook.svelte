@@ -494,14 +494,7 @@
     flex: 1;
     overflow: hidden;
     position: relative;
-  }
-
-  .left-page {
-    padding: 0;
-  }
-
-  .right-page {
-    padding: 0;
+    padding: 15px;
   }
 
   /* Keyframes matching reference */

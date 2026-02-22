@@ -14,43 +14,33 @@
 
   let text = '';
   let author = '';
-  let showNameInput = false;
   let textareaEl: HTMLTextAreaElement;
-  let nameInputEl: HTMLInputElement;
+  let authorInputEl: HTMLInputElement;
   let showConfirmDiscard = false;
 
   $: charCount = text.length;
   $: charRemaining = MAX_CHARS - charCount;
+  $: hasAuthor = author.trim().length > 0;
 
   onMount(() => {
     const savedAuthor = localStorage.getItem('guestbook-author');
     if (savedAuthor) {
       author = savedAuthor;
-      showNameInput = false;
-      // Focus textarea after tick
       setTimeout(() => textareaEl?.focus(), 0);
     } else {
-      showNameInput = true;
-      setTimeout(() => nameInputEl?.focus(), 0);
+      setTimeout(() => authorInputEl?.focus(), 0);
     }
   });
 
-  function handleNameSubmit() {
-    if (!author.trim()) return;
-    localStorage.setItem('guestbook-author', author.trim());
-    showNameInput = false;
-    setTimeout(() => textareaEl?.focus(), 0);
-  }
-
-  function handleNameKeydown(e: KeyboardEvent) {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleNameSubmit();
+  function saveAuthor() {
+    if (author.trim()) {
+      localStorage.setItem('guestbook-author', author.trim());
     }
   }
 
   function handleSubmit() {
     if (!text.trim() || !author.trim()) return;
+    saveAuthor();
     dispatch('submit', {
       text: text.trim(),
       author: author.trim(),
@@ -80,6 +70,14 @@
       handleCancel();
     }
   }
+
+  function handleAuthorKeydown(e: KeyboardEvent) {
+    if (e.key === 'Enter' || e.key === 'Tab') {
+      e.preventDefault();
+      saveAuthor();
+      textareaEl?.focus();
+    }
+  }
 </script>
 
 <div
@@ -91,7 +89,6 @@
   on:keydown={handleKeydown}
 >
   {#if showConfirmDiscard}
-    <!-- Discard confirmation dialog -->
     <div class="confirm-overlay">
       <div class="confirm-dialog">
         <p class="confirm-text">Discard this note?</p>
@@ -105,29 +102,22 @@
         </div>
       </div>
     </div>
-  {:else if showNameInput}
-    <!-- Name input step -->
-    <div class="name-step">
-      <label class="name-label" for="guestbook-name">Your name</label>
+  {:else}
+    <!-- Author handle (top-left) — mirrors final note layout -->
+    <div class="author-row">
+      <span class="author-dash">-</span>
       <input
-        id="guestbook-name"
-        class="name-input"
+        class="author-input"
         type="text"
-        placeholder="Enter your name..."
+        placeholder="name"
         maxlength="40"
         bind:value={author}
-        bind:this={nameInputEl}
-        on:keydown={handleNameKeydown}
+        bind:this={authorInputEl}
+        on:keydown={handleAuthorKeydown}
+        on:blur={saveAuthor}
       />
-      <button
-        class="name-submit"
-        on:click={handleNameSubmit}
-        disabled={!author.trim()}
-      >
-        Continue
-      </button>
     </div>
-  {:else}
+
     <!-- Close button (top-right) -->
     <button class="close-btn" on:click={handleCancel} title="Close">
       <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
@@ -141,7 +131,7 @@
       </svg>
     </button>
 
-    <!-- Textarea -->
+    <!-- Content textarea (center) -->
     <textarea
       class="note-textarea"
       bind:value={text}
@@ -150,28 +140,27 @@
       placeholder="Write your note..."
     ></textarea>
 
-    <!-- Character count (bottom-right) -->
-    <span class="char-count" class:warning={charRemaining < 30}>
-      {charRemaining}
-    </span>
-
-    <!-- Submit button (bottom-left) -->
-    <button
-      class="submit-btn"
-      on:click={handleSubmit}
-      disabled={!text.trim()}
-      title="Sign your note"
-    >
-      <!-- Pixel quill/pen icon -->
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-        <rect x="2" y="10" width="2" height="2" fill="currentColor"/>
-        <rect x="4" y="8" width="2" height="2" fill="currentColor"/>
-        <rect x="6" y="6" width="2" height="2" fill="currentColor"/>
-        <rect x="8" y="4" width="2" height="2" fill="currentColor"/>
-        <rect x="10" y="2" width="2" height="2" fill="currentColor"/>
-        <rect x="0" y="12" width="4" height="2" fill="currentColor"/>
-      </svg>
-    </button>
+    <!-- Bottom bar: submit left, char count right -->
+    <div class="bottom-bar">
+      <button
+        class="submit-btn"
+        on:click={handleSubmit}
+        disabled={!text.trim() || !hasAuthor}
+        title="Sign your note"
+      >
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <rect x="2" y="10" width="2" height="2" fill="currentColor"/>
+          <rect x="4" y="8" width="2" height="2" fill="currentColor"/>
+          <rect x="6" y="6" width="2" height="2" fill="currentColor"/>
+          <rect x="8" y="4" width="2" height="2" fill="currentColor"/>
+          <rect x="10" y="2" width="2" height="2" fill="currentColor"/>
+          <rect x="0" y="12" width="4" height="2" fill="currentColor"/>
+        </svg>
+      </button>
+      <span class="char-count" class:warning={charRemaining < 30}>
+        {charRemaining}
+      </span>
+    </div>
   {/if}
 </div>
 
@@ -180,11 +169,47 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    background: rgba(245, 240, 232, 0.6);
-    border: 1px dashed hsl(45.71deg 69.23% 30%);
+    border: 2px dashed #3b82f6;
+    background: rgba(59, 130, 246, 0.06);
     z-index: 20;
     padding: 4px;
     overflow: hidden;
+  }
+
+  /* Author handle — top-left, mirrors final note appearance */
+  .author-row {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+
+  .author-dash {
+    font-family: 'Grand9KPixel', monospace;
+    font-size: 0.6em;
+    color: hsl(45.71deg 69.23% 30%);
+    image-rendering: pixelated;
+  }
+
+  .author-input {
+    border: none;
+    border-bottom: 1px dashed hsl(45.71deg 69.23% 50%);
+    background: transparent;
+    font-family: 'Grand9KPixel', monospace;
+    font-size: 0.6em;
+    color: hsl(45.71deg 69.23% 30%);
+    padding: 1px 2px;
+    outline: none;
+    width: 60%;
+    image-rendering: pixelated;
+  }
+
+  .author-input::placeholder {
+    color: #b0a898;
+  }
+
+  .author-input:focus {
+    border-bottom-color: #3b82f6;
   }
 
   .close-btn {
@@ -216,37 +241,27 @@
     background: transparent;
     font-family: 'Grand9KPixel', monospace;
     font-size: 0.9rem;
-    color: #2c2420;
+    color: #333;
     text-align: center;
     resize: none;
     outline: none;
-    padding: 16px 4px 20px 4px;
-    line-height: 1.3;
+    padding: 4px;
+    line-height: 1.4;
+    image-rendering: pixelated;
   }
 
   .note-textarea::placeholder {
     color: #b0a898;
-    font-style: italic;
   }
 
-  .char-count {
-    position: absolute;
-    bottom: 3px;
-    right: 6px;
-    font-size: 0.6rem;
-    color: #b0a898;
-    font-family: 'Inter', system-ui, sans-serif;
-    pointer-events: none;
-  }
-
-  .char-count.warning {
-    color: #ef4444;
+  .bottom-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
   }
 
   .submit-btn {
-    position: absolute;
-    bottom: 2px;
-    left: 2px;
     width: 22px;
     height: 22px;
     display: flex;
@@ -257,7 +272,6 @@
     color: #6b8e5a;
     cursor: pointer;
     padding: 0;
-    z-index: 5;
     image-rendering: pixelated;
     transition: color 0.15s;
   }
@@ -271,60 +285,15 @@
     cursor: not-allowed;
   }
 
-  /* Name input step */
-  .name-step {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    height: 100%;
-    padding: 8px;
-  }
-
-  .name-label {
+  .char-count {
+    font-size: 0.5rem;
+    color: #b0a898;
     font-family: 'Grand9KPixel', monospace;
-    font-size: 0.9rem;
-    color: #6b5e50;
+    image-rendering: pixelated;
   }
 
-  .name-input {
-    width: 100%;
-    max-width: 160px;
-    border: 1px solid #d4ccc0;
-    border-radius: 2px;
-    background: #f5f0e8;
-    font-family: 'Grand9KPixel', monospace;
-    font-size: 0.85rem;
-    color: #2c2420;
-    text-align: center;
-    padding: 4px 8px;
-    outline: none;
-  }
-
-  .name-input:focus {
-    border-color: #3b82f6;
-  }
-
-  .name-submit {
-    font-family: 'Grand9KPixel', monospace;
-    font-size: 0.8rem;
-    color: #f5f0e8;
-    background: #6b8e5a;
-    border: none;
-    border-radius: 2px;
-    padding: 3px 12px;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-
-  .name-submit:hover:not(:disabled) {
-    background: #4a7a3a;
-  }
-
-  .name-submit:disabled {
-    background: #c8c0b4;
-    cursor: not-allowed;
+  .char-count.warning {
+    color: #ef4444;
   }
 
   /* Confirm discard dialog */
@@ -334,9 +303,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(237, 231, 219, 0.95);
+    background: rgba(245, 240, 232, 0.9);
     z-index: 30;
-    border-radius: 2px;
   }
 
   .confirm-dialog {
@@ -345,9 +313,10 @@
 
   .confirm-text {
     font-family: 'Grand9KPixel', monospace;
-    font-size: 0.85rem;
-    color: #2c2420;
+    font-size: 0.7rem;
+    color: #333;
     margin-bottom: 8px;
+    image-rendering: pixelated;
   }
 
   .confirm-actions {
@@ -358,12 +327,12 @@
 
   .confirm-btn {
     font-family: 'Grand9KPixel', monospace;
-    font-size: 0.75rem;
+    font-size: 0.6rem;
     border: none;
-    border-radius: 2px;
     padding: 2px 12px;
     cursor: pointer;
     transition: background 0.15s;
+    image-rendering: pixelated;
   }
 
   .confirm-yes {
@@ -377,7 +346,7 @@
 
   .confirm-no {
     background: #d4ccc0;
-    color: #2c2420;
+    color: #333;
   }
 
   .confirm-no:hover {
