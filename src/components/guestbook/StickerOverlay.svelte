@@ -20,7 +20,7 @@
   let wrapperEl: HTMLSpanElement;
   let placements: StickerPlacement[] = [];
 
-  const AVG_STICKER_WIDTH = 24;
+  const AVG_STICKER_WIDTH = 14;
 
   onMount(() => {
     if (!wrapperEl || flag.stickerPool.length === 0) return;

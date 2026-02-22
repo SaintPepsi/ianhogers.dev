@@ -49,7 +49,7 @@
 
   function computeFontSize(rowSpan: number): string {
     // Scale font based on how many rows the note occupies
-    const base = Math.max(0.45, Math.min(0.85, rowSpan * 0.2));
+    const base = Math.max(0.65, Math.min(0.85, rowSpan * 0.2));
     return `${base}rem`;
   }
 </script>
@@ -93,7 +93,7 @@
     justify-content: center;
     padding: 4px 6px;
     z-index: 1;
-    overflow: hidden;
+    overflow: visible;
     pointer-events: none;
   }
 

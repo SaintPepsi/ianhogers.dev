@@ -1,44 +1,64 @@
 <script lang="ts">
-  import { createEventDispatcher, onMount } from 'svelte';
+  import { onMount } from 'svelte';
 
-  export let selection: {
-    rowStart: number;
-    rowEnd: number;
-    colStart: number;
-    colEnd: number;
-  };
-  export let pageIndex: number;
+  interface Props {
+    selection: {
+      rowStart: number;
+      rowEnd: number;
+      colStart: number;
+      colEnd: number;
+    };
+    pageIndex: number;
+    text?: string;
+    onsubmit?: (detail: { text: string; author: string }) => void;
+    oncancel?: () => void;
+  }
 
-  const dispatch = createEventDispatcher();
+  let {
+    selection,
+    pageIndex,
+    text = $bindable(''),
+    onsubmit,
+    oncancel,
+  }: Props = $props();
 
-  // Dynamic char limit: tiles minus 1 row (for name/handle), times ~3 chars per tile
-  $: contentRows = (selection.rowEnd - selection.rowStart) - 1;
-  $: contentCols = selection.colEnd - selection.colStart;
-  $: contentTiles = contentRows * contentCols;
-  $: maxChars = Math.max(12, contentTiles * 3);
+  // Hard ceiling — generous safety net
+  let contentRows = $derived((selection.rowEnd - selection.rowStart) - 1);
+  let contentCols = $derived(selection.colEnd - selection.colStart);
+  let contentTiles = $derived(contentRows * contentCols);
+  let hardLimit = $derived(Math.max(20, contentTiles * 10));
 
   // Font size matching NoteRenderer: scale by row span
-  $: rowSpan = selection.rowEnd - selection.rowStart;
-  $: fontSize = `${Math.max(0.45, Math.min(0.85, rowSpan * 0.2))}rem`;
+  let rowSpan = $derived(selection.rowEnd - selection.rowStart);
+  let fontSize = $derived(`${Math.max(0.65, Math.min(0.85, rowSpan * 0.2))}rem`);
+  let author = $state('');
+  let textareaEl = $state<HTMLTextAreaElement | undefined>(undefined);
+  let authorInputEl = $state<HTMLInputElement | undefined>(undefined);
+  let showConfirmDiscard = $state(false);
+  let showConfirmPost = $state(false);
+  let lastGoodText = $state('');
+  let isOverflowing = $state(false);
 
-  let text = '';
-  let author = '';
-  let textareaEl: HTMLTextAreaElement;
-  let authorInputEl: HTMLInputElement;
-  let showConfirmDiscard = false;
-  let showConfirmPost = false;
+  let hasAuthor = $derived(author.trim().length > 0);
 
-  $: charCount = text.length;
-  $: charRemaining = maxChars - charCount;
-  $: hasAuthor = author.trim().length > 0;
+  function handleTextInput() {
+    if (!textareaEl) return;
+    if (textareaEl.scrollHeight > textareaEl.clientHeight + 2) {
+      text = lastGoodText;
+      isOverflowing = true;
+    } else {
+      lastGoodText = text;
+      isOverflowing = false;
+    }
+  }
 
   onMount(() => {
     const savedAuthor = localStorage.getItem('guestbook-author');
     if (savedAuthor) {
       author = savedAuthor;
-      setTimeout(() => textareaEl?.focus(), 0);
+      setTimeout(() => textareaEl?.focus({ preventScroll: true }), 0);
     } else {
-      setTimeout(() => authorInputEl?.focus(), 0);
+      setTimeout(() => authorInputEl?.focus({ preventScroll: true }), 0);
     }
   });
 
@@ -55,34 +75,31 @@
 
   function confirmPost() {
     saveAuthor();
-    dispatch('submit', {
-      text: text.trim(),
-      author: author.trim(),
-    });
+    onsubmit?.({ text: text.trim(), author: author.trim() });
     showConfirmPost = false;
   }
 
   function cancelPost() {
     showConfirmPost = false;
-    textareaEl?.focus();
+    textareaEl?.focus({ preventScroll: true });
   }
 
   function handleCancel() {
     if (text.trim()) {
       showConfirmDiscard = true;
     } else {
-      dispatch('cancel');
+      oncancel?.();
     }
   }
 
   function confirmDiscard() {
     showConfirmDiscard = false;
-    dispatch('cancel');
+    oncancel?.();
   }
 
   function cancelDiscard() {
     showConfirmDiscard = false;
-    textareaEl?.focus();
+    textareaEl?.focus({ preventScroll: true });
   }
 
   function handleKeydown(e: KeyboardEvent) {
@@ -95,11 +112,12 @@
     if (e.key === 'Enter' || e.key === 'Tab') {
       e.preventDefault();
       saveAuthor();
-      textareaEl?.focus();
+      textareaEl?.focus({ preventScroll: true });
     }
   }
 </script>
 
+<!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
   class="write-mode"
   style="
@@ -107,27 +125,33 @@
     grid-column: {selection.colStart} / {selection.colEnd};
     font-size: {fontSize};
   "
-  on:keydown={handleKeydown}
+  onkeydown={handleKeydown}
 >
   {#if showConfirmDiscard}
     <div class="confirm-overlay">
       <div class="confirm-dialog">
-        <img src="/assets/pixel-art/ui/btn-discard.png" alt="" class="confirm-icon pixel-sprite" />
-        <p class="confirm-text">Discard this note?</p>
+        <p class="confirm-text">Discard?</p>
         <div class="confirm-actions">
-          <button class="confirm-btn confirm-yes" on:click={confirmDiscard}>Yes</button>
-          <button class="confirm-btn confirm-no" on:click={cancelDiscard}>No</button>
+          <button class="icon-btn" onclick={cancelDiscard} title="Cancel">
+            <img src="/assets/pixel-art/ui/cancel.png" alt="Cancel" class="btn-icon pixel-sprite" />
+          </button>
+          <button class="icon-btn" onclick={confirmDiscard} title="Discard">
+            <img src="/assets/pixel-art/ui/confirm.png" alt="Discard" class="btn-icon pixel-sprite" />
+          </button>
         </div>
       </div>
     </div>
   {:else if showConfirmPost}
     <div class="confirm-overlay">
       <div class="confirm-dialog">
-        <img src="/assets/pixel-art/ui/btn-seal.png" alt="" class="confirm-icon pixel-sprite" />
-        <p class="confirm-text">Post guest note?</p>
+        <p class="confirm-text">Post?</p>
         <div class="confirm-actions">
-          <button class="confirm-btn confirm-post" on:click={confirmPost}>Post</button>
-          <button class="confirm-btn confirm-no" on:click={cancelPost}>Back</button>
+          <button class="icon-btn" onclick={cancelPost} title="Cancel">
+            <img src="/assets/pixel-art/ui/cancel.png" alt="Cancel" class="btn-icon pixel-sprite" />
+          </button>
+          <button class="icon-btn confirm-post" onclick={confirmPost} title="Post">
+            <img src="/assets/pixel-art/ui/confirm.png" alt="Post" class="btn-icon pixel-sprite" />
+          </button>
         </div>
       </div>
     </div>
@@ -138,43 +162,48 @@
       <input
         class="author-input"
         type="text"
+        id="guestbook-author"
+        name="guestbook-author"
         placeholder="name/handle"
         maxlength="40"
         bind:value={author}
         bind:this={authorInputEl}
-        on:keydown={handleAuthorKeydown}
-        on:blur={saveAuthor}
+        onkeydown={handleAuthorKeydown}
+        onblur={saveAuthor}
       />
     </div>
 
-    <!-- Discard button (top-right) -->
-    <button class="discard-btn" on:click={handleCancel} title="Discard note">
+    <!-- Close button — pinned top-right corner -->
+    <button class="discard-btn" onclick={handleCancel} title="Discard note">
       <img src="/assets/pixel-art/ui/btn-discard.png" alt="Discard" class="btn-icon pixel-sprite" />
     </button>
 
     <!-- Content textarea (center) -->
     <textarea
       class="note-textarea"
+      id="guestbook-note"
+      name="guestbook-note"
       bind:value={text}
       bind:this={textareaEl}
-      maxlength={maxChars}
+      maxlength={hardLimit}
       placeholder="Write your note..."
+      oninput={handleTextInput}
     ></textarea>
 
-    <!-- Bottom bar: seal button left, char count corner-right -->
-    <div class="bottom-bar">
-      <button
-        class="seal-btn"
-        on:click={handleSubmit}
-        disabled={!text.trim() || !hasAuthor}
-        title="Seal Guest Note"
-      >
-        <img src="/assets/pixel-art/ui/btn-seal.png" alt="Seal" class="btn-icon pixel-sprite" />
-      </button>
-      <span class="char-count" class:warning={charRemaining < 10}>
-        {charRemaining}
-      </span>
-    </div>
+    <!-- Post button — pinned bottom-right, half overlapping out -->
+    <button
+      class="seal-btn"
+      onclick={handleSubmit}
+      disabled={!text.trim() || !hasAuthor}
+      title="Seal Guest Note"
+    >
+      <img src="/assets/pixel-art/ui/btn-seal.png" alt="Seal" class="btn-icon pixel-sprite" />
+    </button>
+
+    <!-- Char count — bottom-left corner -->
+    <span class="char-count" class:warning={isOverflowing}>
+      {isOverflowing ? 'full' : text.length}
+    </span>
   {/if}
 </div>
 
@@ -187,7 +216,9 @@
     background: rgba(59, 130, 246, 0.06);
     z-index: 20;
     padding: 3px;
-    overflow: hidden;
+    overflow: visible;
+    min-height: 0;
+    max-height: 100%;
   }
 
   /* Author handle — top-left, mirrors final note appearance */
@@ -226,20 +257,21 @@
     border-bottom-color: #3b82f6;
   }
 
-  /* Discard button (top-right) */
+  /* Close button — pinned to top-right corner */
   .discard-btn {
     position: absolute;
-    top: 2px;
-    right: 2px;
+    top: 0;
+    right: 0;
+    transform: translate(50%, -50%);
     display: flex;
     align-items: center;
     justify-content: center;
-    background: none;
+    background: #ef4444;
     border: none;
-    cursor: pointer;
-    padding: 0;
+    border-radius: 50%;
+    padding: 3px;
     z-index: 5;
-    opacity: 0.7;
+    opacity: 0.85;
     transition: opacity 0.15s;
   }
 
@@ -256,6 +288,7 @@
   /* Content textarea (center) — font matches final note rendering */
   .note-textarea {
     flex: 1;
+    min-height: 0;
     width: 100%;
     border: none;
     background: transparent;
@@ -268,29 +301,28 @@
     padding: 2px;
     line-height: 1.4;
     image-rendering: pixelated;
+    overflow: hidden;
   }
 
   .note-textarea::placeholder {
     color: #b0a898;
   }
 
-  /* Bottom bar */
-  .bottom-bar {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    flex-shrink: 0;
-  }
-
+  /* Post button — pinned bottom-right, overlapping 50% out */
   .seal-btn {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    transform: translate(50%, 50%);
     display: flex;
     align-items: center;
     justify-content: center;
-    background: none;
+    background: #6b8e5a;
     border: none;
-    cursor: pointer;
-    padding: 0;
-    opacity: 0.7;
+    border-radius: 50%;
+    padding: 3px;
+    z-index: 5;
+    opacity: 0.85;
     transition: opacity 0.15s;
   }
 
@@ -300,15 +332,19 @@
 
   .seal-btn:disabled {
     opacity: 0.3;
-    cursor: not-allowed;
   }
 
+  /* Char count — bottom-left corner */
   .char-count {
+    position: absolute;
+    bottom: 1px;
+    left: 3px;
     font-size: 0.45rem;
     color: #b0a898;
     font-family: 'Grand9KPixel', monospace;
     image-rendering: pixelated;
     line-height: 1;
+    z-index: 5;
   }
 
   .char-count.warning {
@@ -324,6 +360,7 @@
     justify-content: center;
     background: rgba(245, 240, 232, 0.92);
     z-index: 30;
+    overflow: visible;
   }
 
   .confirm-dialog {
@@ -334,59 +371,30 @@
     gap: 4px;
   }
 
-  .confirm-icon {
-    width: 24px;
-    height: 24px;
-    image-rendering: pixelated;
-  }
-
   .confirm-text {
     font-family: 'Grand9KPixel', monospace;
     font-size: 0.55rem;
     color: #333;
     image-rendering: pixelated;
+    white-space: nowrap;
   }
 
   .confirm-actions {
     display: flex;
     gap: 6px;
     justify-content: center;
+    flex-shrink: 0;
   }
 
-  .confirm-btn {
-    font-family: 'Grand9KPixel', monospace;
-    font-size: 0.5rem;
+  .icon-btn {
+    background: none;
     border: none;
-    padding: 2px 10px;
+    padding: 2px;
     cursor: pointer;
-    transition: background 0.15s;
-    image-rendering: pixelated;
+    transition: transform 0.1s;
   }
 
-  .confirm-yes {
-    background: #ef4444;
-    color: #fff;
-  }
-
-  .confirm-yes:hover {
-    background: #dc2626;
-  }
-
-  .confirm-post {
-    background: #6b8e5a;
-    color: #fff;
-  }
-
-  .confirm-post:hover {
-    background: #4a7a3a;
-  }
-
-  .confirm-no {
-    background: #d4ccc0;
-    color: #333;
-  }
-
-  .confirm-no:hover {
-    background: #c8c0b4;
+  .icon-btn:hover {
+    transform: translateY(-1px);
   }
 </style>

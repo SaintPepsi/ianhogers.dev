@@ -68,7 +68,6 @@
     // Don't start selection on an occupied cell
     if (!occupancyMap.isRegionFree(cell.row, cell.row + 1, cell.col, cell.col + 1)) return;
 
-    e.preventDefault();
     isSelecting = true;
     isDragging.set(true);
     startCell = cell;
@@ -82,7 +81,6 @@
 
   function handleWindowPointerMove(e: PointerEvent) {
     if (!isSelecting) return;
-    e.preventDefault();
     const cell = getCellFromPoint(e.clientX, e.clientY);
     if (!cell) return;
     currentCell = cell;
@@ -90,7 +88,6 @@
 
   function handleWindowPointerUp(e: PointerEvent) {
     if (!isSelecting) return;
-    e.preventDefault();
 
     if (selection && isValid) {
       dispatch('select', {
@@ -115,7 +112,6 @@
   }
 
   onDestroy(() => {
-    // Clean up window listeners if component unmounts mid-drag
     window.removeEventListener('pointermove', handleWindowPointerMove);
     window.removeEventListener('pointerup', handleWindowPointerUp);
     window.removeEventListener('pointercancel', handleWindowPointerCancel);
@@ -124,6 +120,7 @@
 
 <div
   class="drag-overlay"
+  data-drag-cursor
   bind:this={overlayEl}
   on:pointerdown={handlePointerDown}
   style="--grid-cols: {gridCols}; --grid-rows: {gridRows};"
@@ -150,7 +147,6 @@
     grid-template-columns: repeat(var(--grid-cols, 9), minmax(0, 1fr));
     grid-template-rows: repeat(var(--grid-rows, 16), minmax(0, 1fr));
     z-index: 10;
-    cursor: crosshair;
     touch-action: none;
   }
 

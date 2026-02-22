@@ -2,8 +2,9 @@ export const prerender = false;
 
 import type { APIRoute } from "astro";
 import { kv } from "@vercel/kv";
-import { getNotesByPage, getAllNotes, insertNote, checkOverlap } from "../../../components/guestbook/lib/db";
+import { getNotesByPage, getAllNotes, insertNoteIfNoOverlap, clearMemoryStore } from "../../../components/guestbook/lib/db";
 import { detectProfanity } from "../../../components/guestbook/lib/profanity";
+import { shrinkBounds } from "../../../components/guestbook/lib/shrinkBounds";
 import type { StickerManifest } from "../../../components/guestbook/lib/types";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -29,11 +30,27 @@ export const GET: APIRoute = async ({ url }) => {
   }
 };
 
+export const DELETE: APIRoute = async () => {
+  if (import.meta.env.PROD) {
+    return new Response(JSON.stringify({ error: "Not allowed in production" }), {
+      status: 403,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+  clearMemoryStore();
+  return new Response(JSON.stringify({ cleared: true }), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
+};
+
 export const POST: APIRoute = async ({ request, clientAddress }) => {
   try {
     // 1. Check IP cooldown (skip when KV not configured, e.g. local dev)
-    const forwarded = request.headers.get("x-forwarded-for");
-    const ip = forwarded?.split(",")[0]?.trim() || clientAddress;
+    // Prefer Vercel's platform-set header (not spoofable), fall back to clientAddress
+    const ip =
+      request.headers.get("x-vercel-forwarded-for")?.split(",")[0]?.trim() ||
+      clientAddress;
     const cooldownKey = `guestbook:cooldown:${ip}`;
 
     try {
@@ -86,12 +103,14 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     if (
       typeof col_start !== "number" ||
       typeof col_end !== "number" ||
+      !Number.isInteger(col_start) ||
+      !Number.isInteger(col_end) ||
       col_start < 1 ||
-      col_end > 9 ||
+      col_end > 10 ||
       col_end <= col_start
     ) {
       return new Response(
-        JSON.stringify({ error: "Invalid column bounds (1-9, end > start)" }),
+        JSON.stringify({ error: "Invalid column bounds (integers 1-10, end > start)" }),
         { status: 400, headers: { "Content-Type": "application/json" } },
       );
     }
@@ -99,37 +118,36 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     if (
       typeof row_start !== "number" ||
       typeof row_end !== "number" ||
+      !Number.isInteger(row_start) ||
+      !Number.isInteger(row_end) ||
       row_start < 1 ||
-      row_end > 16 ||
+      row_end > 17 ||
       row_end <= row_start
     ) {
       return new Response(
-        JSON.stringify({ error: "Invalid row bounds (1-16, end > start)" }),
+        JSON.stringify({ error: "Invalid row bounds (integers 1-17, end > start)" }),
         { status: 400, headers: { "Content-Type": "application/json" } },
       );
     }
 
-    if (typeof page_index !== "number") {
+    if (
+      typeof page_index !== "number" ||
+      !Number.isInteger(page_index) ||
+      page_index < 0
+    ) {
       return new Response(
-        JSON.stringify({ error: "page_index is required" }),
+        JSON.stringify({ error: "page_index must be a non-negative integer" }),
         { status: 400, headers: { "Content-Type": "application/json" } },
       );
     }
 
-    // 3. Check overlap
-    const overlapping = await checkOverlap(
-      page_index,
+    // 3. Shrink bounds to minimum area that fits the text
+    const shrunk = shrinkBounds(text, author, {
       row_start,
       row_end,
       col_start,
       col_end,
-    );
-    if (overlapping) {
-      return new Response(
-        JSON.stringify({ error: "This area overlaps with an existing note" }),
-        { status: 409, headers: { "Content-Type": "application/json" } },
-      );
-    }
+    });
 
     // 4. Load sticker manifest and detect profanity
     const manifestPath = join(
@@ -150,19 +168,26 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
 
     const profanityFlags = detectProfanity(text, stickerIds);
 
-    // 5. Insert note
-    const note = await insertNote({
+    // 5. Atomic overlap check + insert (prevents TOCTOU race)
+    const note = await insertNoteIfNoOverlap({
       page_index,
-      row_start,
-      row_end,
-      col_start,
-      col_end,
+      row_start: shrunk.row_start,
+      row_end: shrunk.row_end,
+      col_start: shrunk.col_start,
+      col_end: shrunk.col_end,
       text,
       author,
       profanity_flags: profanityFlags,
     });
 
-    // 6. Set cooldown (5 minutes) — skip when KV not configured
+    if (!note) {
+      return new Response(
+        JSON.stringify({ error: "This area overlaps with an existing note" }),
+        { status: 409, headers: { "Content-Type": "application/json" } },
+      );
+    }
+
+    // 7. Set cooldown (5 minutes) — skip when KV not configured
     try {
       await kv.set(cooldownKey, Date.now(), { ex: 300 });
     } catch {

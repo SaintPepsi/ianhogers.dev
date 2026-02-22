@@ -4,6 +4,9 @@ export default defineConfig({
   testDir: './tests/e2e',
   timeout: 30_000,
   retries: 0,
+  expect: {
+    toHaveScreenshot: { maxDiffPixelRatio: 0.02 },
+  },
   use: {
     baseURL: 'http://localhost:4321',
     headless: true,

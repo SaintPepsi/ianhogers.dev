@@ -13,8 +13,18 @@
   let isWriteMode: boolean = false;
   let selection: { rowStart: number; rowEnd: number; colStart: number; colEnd: number } | null = null;
   let activePageIndex: number = -1;
+  let writeText: string = '';
   let isLoading: boolean = true;
   let error: string = '';
+  let activeSpread: number = 0;
+  let carouselEl: HTMLDivElement;
+
+  function handleCarouselScroll() {
+    if (!carouselEl) return;
+    const itemWidth = carouselEl.clientWidth;
+    if (itemWidth === 0) return;
+    activeSpread = Math.round(carouselEl.scrollLeft / itemWidth);
+  }
 
   // Derived: organize notes by page_index
   $: notesByPage = notes.reduce<Record<number, GuestbookNote[]>>((acc, note) => {
@@ -42,29 +52,27 @@
     return [spreadIndex * 2, spreadIndex * 2 + 1];
   }
 
-  function getPageNotes(pageIndex: number): GuestbookNote[] {
-    return notesByPage[pageIndex] || [];
-  }
-
-  function getOccupancyMap(pageIndex: number): OccupancyMap {
-    return new OccupancyMap(getPageNotes(pageIndex));
-  }
 
   // Write mode
   function handleSelect(e: CustomEvent, pageIndex: number) {
+    // If write mode is active with content, ignore new selections
+    if (isWriteMode && writeText.trim()) return;
+
     selection = e.detail;
     activePageIndex = pageIndex;
     isWriteMode = true;
+    writeText = '';
   }
 
   function exitWriteMode() {
     isWriteMode = false;
     selection = null;
     activePageIndex = -1;
+    writeText = '';
   }
 
-  async function handleSubmit(e: CustomEvent) {
-    const { text, author } = e.detail;
+  async function handleSubmit(detail: { text: string; author: string }) {
+    const { text, author } = detail;
     if (!selection || activePageIndex < 0) return;
 
     try {
@@ -135,7 +143,7 @@
     <div class="sprite-wrapper">
       <div class="book">
         <!-- Scroll-timeline carousel -->
-        <div class="carousel" class:no-scroll={$isDragging} style="--slides: {spreadCount};">
+        <div class="carousel" class:no-scroll={$isDragging || isWriteMode} style="--slides: {spreadCount};" bind:this={carouselEl} on:scroll={handleCarouselScroll}>
           <!-- Sprite sheet for page-flip animation -->
           <div class="sprite"></div>
 
@@ -143,33 +151,30 @@
           {#each Array(spreadCount) as _, si}
             {@const [leftIdx, rightIdx] = getSpreadPages(si)}
             <div class="carousel-item">
-              <div class="page-container">
+              <div class="page-container" style="{si !== activeSpread ? 'pointer-events: none;' : ''}">
                 <!-- LEFT PAGE -->
                 {#if si === 0}
                   <div class="left-page cover-page">
-                    <div class="cover-inner">
-                      <img
-                        src="/assets/pixel-art/decorative/sample-bunny.png"
-                        alt="Pixel bunny"
-                        class="cover-bunny pixel-sprite"
-                      />
-                      <h1 class="cover-title">Guest Book</h1>
-                    </div>
-                  </div>
-                {:else}
-                  <div class="left-page">
                     <Page
                       pageIndex={leftIdx}
-                      notes={getPageNotes(leftIdx)}
+                      notes={notesByPage[leftIdx] || []}
                       isWritable={!isWriteMode}
                     >
+                      <div class="cover-inner" style="grid-column: 1 / -1; grid-row: 1 / -1; pointer-events: none;">
+                        <img
+                          src="/assets/pixel-art/decorative/sample-bunny.png"
+                          alt="Pixel bunny"
+                          class="cover-bunny pixel-sprite"
+                        />
+                        <h1 class="cover-title">Guest Book</h1>
+                      </div>
                       <NoteRenderer
-                        notes={getPageNotes(leftIdx)}
+                        notes={notesByPage[leftIdx] || []}
                         pageIndex={leftIdx}
                       />
-                      {#if !isWriteMode}
+                      {#if si === activeSpread}
                         <DragSelector
-                          occupancyMap={getOccupancyMap(leftIdx)}
+                          occupancyMap={new OccupancyMap(notesByPage[leftIdx] || [])}
                           on:select={(e) => handleSelect(e, leftIdx)}
                         />
                       {/if}
@@ -177,8 +182,37 @@
                         <WriteMode
                           {selection}
                           pageIndex={leftIdx}
-                          on:submit={handleSubmit}
-                          on:cancel={handleCancel}
+                          bind:text={writeText}
+                          onsubmit={handleSubmit}
+                          oncancel={handleCancel}
+                        />
+                      {/if}
+                    </Page>
+                  </div>
+                {:else}
+                  <div class="left-page">
+                    <Page
+                      pageIndex={leftIdx}
+                      notes={notesByPage[leftIdx] || []}
+                      isWritable={!isWriteMode}
+                    >
+                      <NoteRenderer
+                        notes={notesByPage[leftIdx] || []}
+                        pageIndex={leftIdx}
+                      />
+                      {#if si === activeSpread}
+                        <DragSelector
+                          occupancyMap={new OccupancyMap(notesByPage[leftIdx] || [])}
+                          on:select={(e) => handleSelect(e, leftIdx)}
+                        />
+                      {/if}
+                      {#if isWriteMode && activePageIndex === leftIdx && selection}
+                        <WriteMode
+                          {selection}
+                          pageIndex={leftIdx}
+                          bind:text={writeText}
+                          onsubmit={handleSubmit}
+                          oncancel={handleCancel}
                         />
                       {/if}
                     </Page>
@@ -190,39 +224,24 @@
                   <div class="right-page title-page">
                     <Page
                       pageIndex={rightIdx}
-                      notes={getPageNotes(rightIdx)}
+                      notes={notesByPage[rightIdx] || []}
                       isWritable={!isWriteMode}
                       gridConfig={{ cols: 9, rows: 16 }}
                     >
-                      <div class="title-header" style="grid-row: 1 / 7; grid-column: 1 / -1;">
+                      <div class="title-header" style="grid-row: 1 / 7; grid-column: 1 / -1; pointer-events: none;">
                         <h1 class="title-main">Guest Book</h1>
                         <p class="title-subtitle">by Ian Hogers</p>
                         <p class="title-credit">
                           Thank you for visiting my corner of the web, I would love for you to leave your mark in this book! thank you
                         </p>
                       </div>
-                      <div class="title-notes-area" style="grid-row: 13 / 17; grid-column: 1 / -1;">
-                        <NoteRenderer
-                          notes={getPageNotes(rightIdx)}
-                          pageIndex={rightIdx}
-                        />
-                      </div>
-                    </Page>
-                  </div>
-                {:else}
-                  <div class="right-page">
-                    <Page
-                      pageIndex={rightIdx}
-                      notes={getPageNotes(rightIdx)}
-                      isWritable={!isWriteMode}
-                    >
                       <NoteRenderer
-                        notes={getPageNotes(rightIdx)}
+                        notes={notesByPage[rightIdx] || []}
                         pageIndex={rightIdx}
                       />
-                      {#if !isWriteMode}
+                      {#if si === activeSpread}
                         <DragSelector
-                          occupancyMap={getOccupancyMap(rightIdx)}
+                          occupancyMap={(() => { const m = new OccupancyMap(notesByPage[rightIdx] || []); m.addNote({ row_start: 1, row_end: 4, col_start: 4, col_end: 7 }); m.addNote({ row_start: 4, row_end: 5, col_start: 1, col_end: 10 }); return m; })()}
                           on:select={(e) => handleSelect(e, rightIdx)}
                         />
                       {/if}
@@ -230,8 +249,37 @@
                         <WriteMode
                           {selection}
                           pageIndex={rightIdx}
-                          on:submit={handleSubmit}
-                          on:cancel={handleCancel}
+                          bind:text={writeText}
+                          onsubmit={handleSubmit}
+                          oncancel={handleCancel}
+                        />
+                      {/if}
+                    </Page>
+                  </div>
+                {:else}
+                  <div class="right-page">
+                    <Page
+                      pageIndex={rightIdx}
+                      notes={notesByPage[rightIdx] || []}
+                      isWritable={!isWriteMode}
+                    >
+                      <NoteRenderer
+                        notes={notesByPage[rightIdx] || []}
+                        pageIndex={rightIdx}
+                      />
+                      {#if si === activeSpread}
+                        <DragSelector
+                          occupancyMap={new OccupancyMap(notesByPage[rightIdx] || [])}
+                          on:select={(e) => handleSelect(e, rightIdx)}
+                        />
+                      {/if}
+                      {#if isWriteMode && activePageIndex === rightIdx && selection}
+                        <WriteMode
+                          {selection}
+                          pageIndex={rightIdx}
+                          bind:text={writeText}
+                          onsubmit={handleSubmit}
+                          oncancel={handleCancel}
                         />
                       {/if}
                     </Page>
@@ -309,7 +357,6 @@
     border: 1px solid #4a4458;
     border-radius: 2px;
     padding: 4px 16px;
-    cursor: pointer;
     transition: background 0.15s;
   }
 
@@ -417,7 +464,7 @@
     border-radius: 0;
     border: 0;
     background-color: transparent;
-    cursor: default;
+    cursor: none;
   }
 
   .carousel::scroll-button(*):disabled {
@@ -457,6 +504,7 @@
     place-self: center;
     overflow: hidden;
     border: 1px solid #4a4458;
+    cursor: none;
     background: linear-gradient(90deg, #f1e2b2 0%) no-repeat left center;
     --_progress: calc(calc(100 / var(--slides)) * 1%);
     background-size: var(--_progress, 20%) 100%;
@@ -481,6 +529,7 @@
     display: block;
     box-sizing: border-box;
     box-shadow: 2px 0 0 #4a4458;
+    cursor: none;
   }
 
   .carousel-item:last-of-type::scroll-marker {
@@ -498,7 +547,7 @@
 
   .left-page, .right-page {
     flex: 1;
-    overflow: hidden;
+    overflow: visible;
     position: relative;
     padding: 15px;
   }
