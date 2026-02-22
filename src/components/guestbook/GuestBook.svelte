@@ -9,7 +9,6 @@
 
   // State
   let notes: GuestbookNote[] = [];
-  let currentSpread: number = 0;
   let isWriteMode: boolean = false;
   let selection: { rowStart: number; rowEnd: number; colStart: number; colEnd: number } | null = null;
   let activePageIndex: number = -1;
@@ -23,26 +22,19 @@
     return acc;
   }, {});
 
-  // Determine total page count (at minimum 4 pages: cover, title, page 2, page 3)
+  // Determine total spread count (minimum 2: cover+title, first content spread)
   $: {
     const maxPageIndex = notes.reduce((max, n) => Math.max(max, n.page_index), 1);
-    // Ensure we always have at least enough pages, and check occupancy for expansion
     let neededPages = Math.max(4, maxPageIndex + 2);
-    // Check if the last content page is >70% full
     const lastPageNotes = notesByPage[neededPages - 1] || [];
     const lastPageOccupancy = new OccupancyMap(lastPageNotes);
     if (lastPageOccupancy.getOccupancy() > 0.7) {
-      neededPages += 2; // Add another spread
+      neededPages += 2;
     }
     totalPages = neededPages;
   }
 
   let totalPages = 4;
-
-  // Spreads: pairs of pages [left, right]
-  // Spread 0: [0 (cover), 1 (title)]
-  // Spread 1: [2, 3]
-  // Spread 2: [4, 5] ...
   $: spreadCount = Math.ceil(totalPages / 2);
 
   function getSpreadPages(spreadIndex: number): [number, number] {
@@ -55,21 +47,6 @@
 
   function getOccupancyMap(pageIndex: number): OccupancyMap {
     return new OccupancyMap(getPageNotes(pageIndex));
-  }
-
-  // Navigation
-  function prevSpread() {
-    if (currentSpread > 0) {
-      currentSpread--;
-      exitWriteMode();
-    }
-  }
-
-  function nextSpread() {
-    if (currentSpread < spreadCount - 1) {
-      currentSpread++;
-      exitWriteMode();
-    }
   }
 
   // Write mode
@@ -114,7 +91,6 @@
       exitWriteMode();
     } catch (err) {
       console.error('Failed to submit note:', err);
-      // Could show a toast here; for now log it
     }
   }
 
@@ -155,147 +131,116 @@
       </button>
     </div>
   {:else}
-    <div class="book-wrapper">
-      <!-- Navigation: left arrow -->
-      <button
-        class="nav-btn nav-left"
-        on:click={prevSpread}
-        disabled={currentSpread === 0}
-        aria-label="Previous page"
-      >
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-          <rect x="8" y="2" width="2" height="2"/>
-          <rect x="6" y="4" width="2" height="2"/>
-          <rect x="4" y="6" width="2" height="2"/>
-          <rect x="6" y="8" width="2" height="2"/>
-          <rect x="8" y="10" width="2" height="2"/>
-          <rect x="4" y="6" width="8" height="2"/>
-        </svg>
-      </button>
+    <div class="sprite-wrapper">
+      <div class="book">
+        <!-- Scroll-timeline carousel -->
+        <div class="carousel" style="--slides: {spreadCount};">
+          <!-- Sprite sheet for page-flip animation -->
+          <div class="sprite"></div>
 
-      <!-- Book spread -->
-      <div class="spread" style="transform: translateX({-currentSpread * 100}%);">
-        {#each Array(spreadCount) as _, si}
-          {@const [leftIdx, rightIdx] = getSpreadPages(si)}
-          <div class="spread-pair" style="left: {si * 100}%;">
-            <!-- LEFT PAGE -->
-            {#if si === 0}
-              <!-- Cover page -->
-              <div class="page-slot cover-page">
-                <div class="cover-inner pixel-box">
-                  <img
-                    src="/assets/pixel-art/decorative/sample-bunny.png"
-                    alt="Pixel bunny"
-                    class="cover-bunny pixel-sprite"
-                  />
-                  <h1 class="cover-title">Guest Book</h1>
-                </div>
-              </div>
-            {:else}
-              <div class="page-slot">
-                <Page
-                  pageIndex={leftIdx}
-                  notes={getPageNotes(leftIdx)}
-                  isWritable={!isWriteMode}
-                >
-                  <NoteRenderer
-                    notes={getPageNotes(leftIdx)}
-                    pageIndex={leftIdx}
-                  />
-                  {#if !isWriteMode}
-                    <DragSelector
-                      occupancyMap={getOccupancyMap(leftIdx)}
-                      on:select={(e) => handleSelect(e, leftIdx)}
-                    />
-                  {/if}
-                  {#if isWriteMode && activePageIndex === leftIdx && selection}
-                    <WriteMode
-                      {selection}
+          <!-- Carousel items (one per spread) -->
+          {#each Array(spreadCount) as _, si}
+            {@const [leftIdx, rightIdx] = getSpreadPages(si)}
+            <div class="carousel-item">
+              <div class="page-container">
+                <!-- LEFT PAGE -->
+                {#if si === 0}
+                  <div class="left-page cover-page">
+                    <div class="cover-inner">
+                      <img
+                        src="/assets/pixel-art/decorative/sample-bunny.png"
+                        alt="Pixel bunny"
+                        class="cover-bunny pixel-sprite"
+                      />
+                      <h1 class="cover-title">Guest Book</h1>
+                    </div>
+                  </div>
+                {:else}
+                  <div class="left-page">
+                    <Page
                       pageIndex={leftIdx}
-                      on:submit={handleSubmit}
-                      on:cancel={handleCancel}
-                    />
-                  {/if}
-                </Page>
-              </div>
-            {/if}
-
-            <!-- RIGHT PAGE -->
-            {#if si === 0}
-              <!-- Title page -->
-              <div class="page-slot title-page-slot">
-                <Page
-                  pageIndex={rightIdx}
-                  notes={getPageNotes(rightIdx)}
-                  isWritable={!isWriteMode}
-                  gridConfig={{ cols: 9, rows: 16 }}
-                >
-                  <!-- Title content (rows 1-12) -->
-                  <div class="title-header" style="grid-row: 1 / 7; grid-column: 1 / -1;">
-                    <h1 class="title-main">Guest Book</h1>
-                    <p class="title-subtitle">by Ian Hogers</p>
-                    <p class="title-credit">
-                      Book animation inspired by Maseone (@troshkin_pavel)
-                    </p>
+                      notes={getPageNotes(leftIdx)}
+                      isWritable={!isWriteMode}
+                    >
+                      <NoteRenderer
+                        notes={getPageNotes(leftIdx)}
+                        pageIndex={leftIdx}
+                      />
+                      {#if !isWriteMode}
+                        <DragSelector
+                          occupancyMap={getOccupancyMap(leftIdx)}
+                          on:select={(e) => handleSelect(e, leftIdx)}
+                        />
+                      {/if}
+                      {#if isWriteMode && activePageIndex === leftIdx && selection}
+                        <WriteMode
+                          {selection}
+                          pageIndex={leftIdx}
+                          on:submit={handleSubmit}
+                          on:cancel={handleCancel}
+                        />
+                      {/if}
+                    </Page>
                   </div>
+                {/if}
 
-                  <!-- Inaugural note area (rows 13-16) -->
-                  <div class="title-notes-area" style="grid-row: 13 / 17; grid-column: 1 / -1;">
-                    <NoteRenderer
+                <!-- RIGHT PAGE -->
+                {#if si === 0}
+                  <div class="right-page title-page">
+                    <Page
+                      pageIndex={rightIdx}
                       notes={getPageNotes(rightIdx)}
-                      pageIndex={rightIdx}
-                    />
+                      isWritable={!isWriteMode}
+                      gridConfig={{ cols: 9, rows: 16 }}
+                    >
+                      <div class="title-header" style="grid-row: 1 / 7; grid-column: 1 / -1;">
+                        <h1 class="title-main">Guest Book</h1>
+                        <p class="title-subtitle">by Ian Hogers</p>
+                        <p class="title-credit">
+                          Book animation inspired by Maseone (@troshkin_pavel)
+                        </p>
+                      </div>
+                      <div class="title-notes-area" style="grid-row: 13 / 17; grid-column: 1 / -1;">
+                        <NoteRenderer
+                          notes={getPageNotes(rightIdx)}
+                          pageIndex={rightIdx}
+                        />
+                      </div>
+                    </Page>
                   </div>
-                </Page>
-              </div>
-            {:else}
-              <div class="page-slot">
-                <Page
-                  pageIndex={rightIdx}
-                  notes={getPageNotes(rightIdx)}
-                  isWritable={!isWriteMode}
-                >
-                  <NoteRenderer
-                    notes={getPageNotes(rightIdx)}
-                    pageIndex={rightIdx}
-                  />
-                  {#if !isWriteMode}
-                    <DragSelector
-                      occupancyMap={getOccupancyMap(rightIdx)}
-                      on:select={(e) => handleSelect(e, rightIdx)}
-                    />
-                  {/if}
-                  {#if isWriteMode && activePageIndex === rightIdx && selection}
-                    <WriteMode
-                      {selection}
+                {:else}
+                  <div class="right-page">
+                    <Page
                       pageIndex={rightIdx}
-                      on:submit={handleSubmit}
-                      on:cancel={handleCancel}
-                    />
-                  {/if}
-                </Page>
+                      notes={getPageNotes(rightIdx)}
+                      isWritable={!isWriteMode}
+                    >
+                      <NoteRenderer
+                        notes={getPageNotes(rightIdx)}
+                        pageIndex={rightIdx}
+                      />
+                      {#if !isWriteMode}
+                        <DragSelector
+                          occupancyMap={getOccupancyMap(rightIdx)}
+                          on:select={(e) => handleSelect(e, rightIdx)}
+                        />
+                      {/if}
+                      {#if isWriteMode && activePageIndex === rightIdx && selection}
+                        <WriteMode
+                          {selection}
+                          pageIndex={rightIdx}
+                          on:submit={handleSubmit}
+                          on:cancel={handleCancel}
+                        />
+                      {/if}
+                    </Page>
+                  </div>
+                {/if}
               </div>
-            {/if}
-          </div>
-        {/each}
+            </div>
+          {/each}
+        </div>
       </div>
-
-      <!-- Navigation: right arrow -->
-      <button
-        class="nav-btn nav-right"
-        on:click={nextSpread}
-        disabled={currentSpread >= spreadCount - 1}
-        aria-label="Next page"
-      >
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-          <rect x="6" y="2" width="2" height="2"/>
-          <rect x="8" y="4" width="2" height="2"/>
-          <rect x="10" y="6" width="2" height="2"/>
-          <rect x="8" y="8" width="2" height="2"/>
-          <rect x="6" y="10" width="2" height="2"/>
-          <rect x="4" y="6" width="8" height="2"/>
-        </svg>
-      </button>
     </div>
   {/if}
 </div>
@@ -305,7 +250,7 @@
 
   .guestbook-container {
     width: 100%;
-    max-width: 800px;
+    max-width: 900px;
     margin: 0 auto;
     padding: 1rem;
   }
@@ -369,63 +314,245 @@
     background: #2a2438;
   }
 
-  /* Book wrapper */
-  .book-wrapper {
+  /* ═══════════════════════════════════════
+     SPRITE-BASED BOOK (Maseone architecture)
+     ═══════════════════════════════════════ */
+
+  .sprite-wrapper {
     position: relative;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    width: 100%;
+    margin: 0 auto;
   }
 
-  /* Navigation buttons */
-  .nav-btn {
-    flex-shrink: 0;
-    width: 32px;
-    height: 48px;
+  .book {
+    --sprite-image: url('/assets/guestbook/book-sprite.webp');
+
+    /* Sprite sheet dimensions and frame config */
+    --sprite-c: 5;       /* sprite columns */
+    --sprite-h: 3000;    /* sprite image height (px) */
+    --sprite-w: 9600;    /* sprite image width (px) */
+    --sprite-f: 7;       /* total sprite frames */
+    --sprite-fr: 12;     /* frame rate */
+    --sprite-as: calc(var(--sprite-f) / var(--sprite-fr) * 1s);
+
+    /* Derived calculations */
+    --sprite-r: round(up, calc(var(--sprite-f) / var(--sprite-c)), 1);
+    --sprite-sh: calc(var(--sprite-h) / var(--sprite-r));
+    --sprite-th: calc(var(--sprite-sh) / 2);
+    --sprite-ar: calc(var(--sprite-th) / var(--sprite-sh));
+    --sprite-uh: calc(var(--sprite-h) * var(--sprite-ar));
+    --sprite-uw: calc(var(--sprite-w) * var(--sprite-ar));
+    --sprite-tw: calc(var(--sprite-uw) / var(--sprite-c));
+
+    position: relative;
+    display: grid;
+    grid-template-areas:
+      "scroll scroll scroll"
+      "left markers right";
+    gap: 1rem;
+  }
+
+  /* Sprite animation element */
+  .sprite {
+    position: absolute;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #1e1a28;
-    border: 1px solid #4a4458;
-    border-radius: 2px;
-    color: #b0a898;
-    cursor: pointer;
-    transition: color 0.15s, border-color 0.15s;
+    height: calc(1px * var(--sprite-th));
+    width: calc(1px * var(--sprite-tw));
+    margin: calc(-1px * calc((var(--sprite-th) - (var(--sprite-th) * 0.6107)) / 2))
+            calc(-1px * calc((var(--sprite-tw) - (var(--sprite-tw) * 0.7042)) / 2));
+    background-image: var(--sprite-image);
+    transform-origin: center center;
+    background-repeat: no-repeat;
+    background-size: calc(1px * var(--sprite-uw)) calc(1px * var(--sprite-uh));
+    z-index: -1;
     image-rendering: pixelated;
-    z-index: 30;
+
+    --sprite-fe: calc(var(--sprite-f) * (var(--slides) - 1));
+    --sprite-fs-n: mod(var(--sprite-fs), var(--sprite-f));
+    --row: calc(round(down, calc(calc(var(--sprite-tw) * var(--sprite-fs-n)) / var(--sprite-uw)), 1) * var(--sprite-th));
+    --col: mod(calc(var(--sprite-tw) * var(--sprite-fs-n)), var(--sprite-uw));
+
+    background-position: calc(-1px * var(--col)) calc(-1px * var(--row));
+    animation: frame var(--sprite-as) linear 0s normal none running;
+    animation-timeline: --carousel-timeline;
   }
 
-  .nav-btn:hover:not(:disabled) {
-    color: #f5f0e8;
-    border-color: #b388ff;
+  /* Carousel: scroll-snap + scroll-timeline */
+  .carousel {
+    grid-area: scroll;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+
+    display: grid;
+    margin: 0 auto;
+    width: calc(1px * (var(--sprite-tw) * 0.7042));
+    height: calc(1px * (var(--sprite-th) * 0.6107));
+    grid: 1fr / auto-flow 100%;
+    scroll-timeline: --carousel-timeline x;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    scroll-marker-group: after;
   }
 
-  .nav-btn:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
+  /* Hide scrollbar */
+  .carousel::-webkit-scrollbar {
+    display: none;
   }
 
-  /* Spread carousel */
-  .spread {
-    position: relative;
-    flex: 1;
-    overflow: hidden;
-    aspect-ratio: 18 / 16;
-    transition: transform 0.4s ease;
+  /* Native scroll buttons (Chrome 134+) */
+  .carousel::scroll-button(*) {
+    inline-size: 48px;
+    aspect-ratio: 1;
+    border-radius: 0;
+    border: 0;
+    background-color: transparent;
+    cursor: pointer;
   }
 
-  .spread-pair {
+  .carousel::scroll-button(*):disabled {
+    filter: invert(1);
+    opacity: 0.5;
+  }
+
+  .carousel::scroll-button(*):not(:disabled):is(:hover, :active) {
+    filter: drop-shadow(2px 4px 6px black);
+  }
+
+  .carousel::scroll-button(*):not(:disabled):active {
+    scale: 90%;
+  }
+
+  .carousel::scroll-button(left) {
+    content: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZlcnNpb249IjEuMSIgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4IiB2aWV3Qm94PSIwIDAgMjMyLjAwMDAwMCAyNTYuMDAwMDAwIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJ4TWlkWU1pZCBtZWV0IiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgdHJhbnNmb3JtPSJtYXRyaXgoLTEsMCwwLDEsMCwwKSI+Cgo8ZyB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwLjAwMDAwMCwyNTYuMDAwMDAwKSBzY2FsZSgwLjEwMDAwMCwtMC4xMDAwMDApIiBmaWxsPSIjZmZmIiBzdHJva2U9Im5vbmUiPgo8cGF0aCBkPSJNMTE4MCAyMTEwIGwwIC0xODAgLTU0MCAwIC01NDAgMCAwIC03MjUgMCAtNzI1IDU0MCAwIDU0MCAwIDAgLTE4MCAwIC0xODAgMTIwIDAgMTIwIDAgMCA2MCAwIDYwIDYwIDAgNjAgMCAwIDYwIDAgNjAgNjAgMCA2MCAwIDAgNjAgMCA2MCA2MCAwIDYwIDAgMCA2MCAwIDYwIDYwIDAgNjAgMCAwIDYwIDAgNjAgNjAgMCA2MCAwIDAgNjAgMCA2MCA2MCAwIDYwIDAgMCA1MyBjMCAyOSA1IDU4IDEyIDY1IDcgNyAzNCAxMiA2MCAxMiBsNDggMCAwIDIzNSAwIDIzNSAtNjAgMCAtNjAgMCAwIDY1IDAgNjUgLTQ3IDAgYy02OCAwIC03NSAtNyAtNzEgLTcxIGwzIC01NCA1OCAtMyA1NyAtMyAwIC0xMTkgMCAtMTIwIC01NSAwIC01NCAwIC0zIC01NyAtMyAtNTggLTYwIC01IC02MCAtNSAtMyAtNTcgLTMgLTU3IC01NyAtMyAtNTcgLTMgLTMgLTU3IC0zIC01NyAtNTcgLTMgLTU3IC0zIC0zIC01NyAtMyAtNTcgLTU3IC0zIC01NyAtMyAtMyAtNTcgLTMgLTU3IC01NyAtMyAtNTcgLTMgLTMgLTU4IC0zIC01OCAtNTcgMyAtNTcgMyAtMyAxNzggLTIgMTc3IC01NDAgMCAtNTQwIDAgMiA0ODMgMyA0ODIgNTM3IDMgNTM2IDIgNyAzMiBjNCAxNyA2IDk3IDQgMTc3IGwtNCAxNDYgNTggMyA1NyAzIDAgLTYxIDAgLTYwIDYwIDAgNjAgMCAwIC02MCAwIC02MCA2MCAwIDYwIDAgMCAtNjAgMCAtNjAgNjAgMCA2MCAwIDAgLTYwIDAgLTYwIDYwIDAgNjAgMCAwIC02MCAwIC02MCA2MCAwIDYwIDAgMCA2MCAwIDYwIC02MCAwIC02MCAwIDAgNjAgMCA2MCAtNjAgMCAtNjAgMCAwIDYwIDAgNjAgLTYwIDAgLTYwIDAgMCA2MCAwIDYwIC02MCAwIC02MCAwIDAgNjAgMCA2MCAtNjAgMCAtNjAgMCAwIDYwIDAgNjAgLTEyMCAwIC0xMjAgMCAwIC0xODB6Ij48L3BhdGg+CjwvZz4KPC9zdmc+") / "Scroll Left";
+    grid-area: left;
+  }
+
+  .carousel::scroll-button(right) {
+    content: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZlcnNpb249IjEuMCIgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4IiB2aWV3Qm94PSIwIDAgMjMyLjAwMDAwMCAyNTYuMDAwMDAwIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJ4TWlkWU1pZCBtZWV0Ij4KCjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAuMDAwMDAwLDI1Ni4wMDAwMDApIHNjYWxlKDAuMTAwMDAwLC0wLjEwMDAwMCkiIGZpbGw9IiNmZmYiIHN0cm9rZT0ibm9uZSI+CjxwYXRoIGQ9Ik0xMTgwIDIxMTAgbDAgLTE4MCAtNTQwIDAgLTU0MCAwIDAgLTcyNSAwIC03MjUgNTQwIDAgNTQwIDAgMCAtMTgwIDAgLTE4MCAxMjAgMCAxMjAgMCAwIDYwIDAgNjAgNjAgMCA2MCAwIDAgNjAgMCA2MCA2MCAwIDYwIDAgMCA2MCAwIDYwIDYwIDAgNjAgMCAwIDYwIDAgNjAgNjAgMCA2MCAwIDAgNjAgMCA2MCA2MCAwIDYwIDAgMCA2MCAwIDYwIDYwIDAgNjAgMCAwIDUzIGMwIDI5IDUgNTggMTIgNjUgNyA3IDM0IDEyIDYwIDEyIGw0OCAwIDAgMjM1IDAgMjM1IC02MCAwIC02MCAwIDAgNjUgMCA2NSAtNDcgMCBjLTY4IDAgLTc1IC03IC03MSAtNzEgbDMgLTU0IDU4IC0zIDU3IC0zIDAgLTExOSAwIC0xMjAgLTU1IDAgLTU0IDAgLTMgLTU3IC0zIC01OCAtNjAgLTUgLTYwIC01IC0zIC01NyAtMyAtNTcgLTU3IC0zIC01NyAtMyAtMyAtNTcgLTMgLTU3IC01NyAtMyAtNTcgLTMgLTMgLTU3IC0zIC01NyAtNTcgLTMgLTU3IC0zIC0zIC01NyAtMyAtNTcgLTU3IC0zIC01NyAtMyAtMyAtNTggLTMgLTU4IC01NyAzIC01NyAzIC0zIDE3OCAtMiAxNzcgLTU0MCAwIC01NDAgMCAyIDQ4MyAzIDQ4MiA1MzcgMyA1MzYgMiA3IDMyIGM0IDE3IDYgOTcgNCAxNzcgbC00IDE0NiA1OCAzIDU3IDMgMCAtNjEgMCAtNjAgNjAgMCA2MCAwIDAgLTYwIDAgLTYwIDYwIDAgNjAgMCAwIC02MCAwIC02MCA2MCAwIDYwIDAgMCAtNjAgMCAtNjAgNjAgMCA2MCAwIDAgLTYwIDAgLTYwIDYwIDAgNjAgMCAwIDYwIDAgNjAgLTYwIDAgLTYwIDAgMCA2MCAwIDYwIC02MCAwIC02MCAwIDAgNjAgMCA2MCAtNjAgMCAtNjAgMCAwIDYwIDAgNjAgLTYwIDAgLTYwIDAgMCA2MCAwIDYwIC02MCAwIC02MCAwIDAgNjAgMCA2MCAtMTIwIDAgLTEyMCAwIDAgLTE4MHoiLz4KPC9nPgo8L3N2Zz4=") / "Scroll Right";
+    grid-area: right;
+    justify-self: flex-end;
+  }
+
+  /* Scroll marker progress bar */
+  .carousel::scroll-marker-group {
+    content: "";
+    width: 100%;
+    height: 8px;
+    padding: 2px 0;
+    display: grid;
     position: absolute;
-    top: 0;
+    grid-area: markers;
+    grid-auto-flow: column;
+    place-self: center;
+    overflow: hidden;
+    border: 1px solid #4a4458;
+    background: linear-gradient(90deg, #f1e2b2 0%) no-repeat left center;
+    --_progress: calc(calc(100 / var(--slides)) * 1%);
+    background-size: var(--_progress, 20%) 100%;
+    animation: progress linear both;
+    animation-timeline: --carousel-timeline;
+  }
+
+  /* Carousel items */
+  .carousel-item {
+    scroll-snap-stop: always;
+    scroll-snap-align: start;
+    position: relative;
+    box-sizing: border-box;
+  }
+
+  .carousel-item::scroll-marker {
+    content: '';
+    position: relative;
+    left: -1px;
     width: 100%;
     height: 100%;
-    display: flex;
-    gap: 2px;
+    display: block;
+    box-sizing: border-box;
+    box-shadow: 2px 0 0 #4a4458;
   }
 
-  .page-slot {
+  .carousel-item:last-of-type::scroll-marker {
+    box-shadow: none;
+  }
+
+  /* Page container inside each carousel item */
+  .page-container {
+    display: flex;
+    gap: 0;
+    height: 100%;
+    animation: stay-centered linear both;
+    animation-timeline: view(x);
+  }
+
+  .left-page, .right-page {
     flex: 1;
+    overflow: hidden;
     position: relative;
+  }
+
+  .left-page {
+    padding: 0;
+  }
+
+  .right-page {
+    padding: 0;
+  }
+
+  /* Keyframes matching reference */
+  @keyframes stay-centered {
+    entry 0% {
+      opacity: 0;
+      translate: -100%;
+    }
+    entry 75% {
+      opacity: 0;
+      translate: -25%;
+    }
+    entry 100% {
+      opacity: 1;
+      translate: 0%;
+    }
+    exit 0% {
+      opacity: 1;
+      translate: 0%;
+    }
+    exit 50% {
+      opacity: 0;
+      translate: 50%;
+    }
+    exit 100% {
+      opacity: 0;
+      translate: 100%;
+    }
+  }
+
+  @keyframes progress {
+    100% {
+      --_progress: 100%;
+    }
+  }
+
+  @keyframes frame {
+    to {
+      --sprite-fs: var(--sprite-fe);
+    }
+  }
+
+  /* Responsive sizing */
+  @media (width < 748px) {
+    .book {
+      --sprite-th: calc(var(--sprite-sh) / 2.5);
+    }
+  }
+
+  @media (width < 560px) {
+    .book {
+      --sprite-th: calc(var(--sprite-sh) / 4);
+    }
   }
 
   /* Cover page */
@@ -433,71 +560,67 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    background-color: #1e1a28;
+    height: 100%;
   }
 
   .cover-inner {
-    width: 100%;
-    height: 100%;
-    aspect-ratio: 9 / 16;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 1rem;
-    background-color: #1e1a28;
+    gap: 0.75rem;
     padding: 1rem;
   }
 
   .cover-bunny {
-    width: 64px;
-    height: 64px;
+    width: 48px;
+    height: 48px;
   }
 
   .cover-title {
     font-family: 'Weiholmir', cursive;
-    font-size: 1.6rem;
+    font-size: 1.2rem;
     color: #f5f0e8;
     text-align: center;
     letter-spacing: 0.05em;
+    margin: 0;
   }
 
   /* Title page */
-  .title-page-slot :global(.page) {
-    /* No special override needed - page already has cream background */
-  }
-
   .title-header {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 1rem 0.5rem;
+    padding: 0.5rem;
     z-index: 1;
   }
 
   .title-main {
     font-family: 'Weiholmir', cursive;
-    font-size: 1.4rem;
+    font-size: 1.1rem;
     color: #2c2420;
     text-align: center;
-    margin-bottom: 0.25rem;
+    margin: 0 0 0.15rem 0;
   }
 
   .title-subtitle {
     font-family: 'Caveat', cursive;
-    font-size: 0.9rem;
+    font-size: 0.75rem;
     color: #6b5e50;
     text-align: center;
-    margin-bottom: 0.75rem;
+    margin: 0 0 0.5rem 0;
   }
 
   .title-credit {
-    font-size: 0.55rem;
+    font-size: 0.45rem;
     color: #b0a898;
     text-align: center;
     font-family: 'Inter', system-ui, sans-serif;
     max-width: 80%;
-    line-height: 1.4;
+    line-height: 1.3;
+    margin: 0;
   }
 
   .title-notes-area {

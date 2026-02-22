@@ -4,6 +4,21 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ═══════════════════════════════════════
+   CSS @property for scroll-timeline sprite animation (Chrome 134+)
+   Required for animatable custom properties in the guestbook book carousel.
+   ═══════════════════════════════════════ */
+@property --sprite-fs {
+  syntax: "<integer>";
+  initial-value: 0;
+  inherits: true;
+}
+@property --_progress {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+
 @font-face {
   font-family: 'Weiholmir';
   src: url('/assets/fonts/Weiholmir_regular.ttf') format('truetype');
