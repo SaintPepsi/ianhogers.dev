@@ -49,7 +49,7 @@
 
   function computeFontSize(rowSpan: number): string {
     // Scale font based on how many rows the note occupies
-    const base = Math.max(0.6, Math.min(1.2, rowSpan * 0.25));
+    const base = Math.max(0.45, Math.min(0.85, rowSpan * 0.2));
     return `${base}rem`;
   }
 </script>

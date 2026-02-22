@@ -31,23 +31,27 @@ export const GET: APIRoute = async ({ url }) => {
 
 export const POST: APIRoute = async ({ request, clientAddress }) => {
   try {
-    // 1. Check IP cooldown
+    // 1. Check IP cooldown (skip when KV not configured, e.g. local dev)
     const forwarded = request.headers.get("x-forwarded-for");
     const ip = forwarded?.split(",")[0]?.trim() || clientAddress;
     const cooldownKey = `guestbook:cooldown:${ip}`;
 
-    const cooldown = await kv.get(cooldownKey);
-    if (cooldown) {
-      return new Response(
-        JSON.stringify({
-          error:
-            "Thank you for writing in my guest book, come back again later to write more!",
-        }),
-        {
-          status: 429,
-          headers: { "Content-Type": "application/json" },
-        },
-      );
+    try {
+      const cooldown = await kv.get(cooldownKey);
+      if (cooldown) {
+        return new Response(
+          JSON.stringify({
+            error:
+              "Thank you for writing in my guest book, come back again later to write more!",
+          }),
+          {
+            status: 429,
+            headers: { "Content-Type": "application/json" },
+          },
+        );
+      }
+    } catch {
+      // KV not available (local dev) — skip cooldown
     }
 
     // 2. Parse and validate body
@@ -158,8 +162,12 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
       profanity_flags: profanityFlags,
     });
 
-    // 6. Set cooldown (5 minutes)
-    await kv.set(cooldownKey, Date.now(), { ex: 300 });
+    // 6. Set cooldown (5 minutes) — skip when KV not configured
+    try {
+      await kv.set(cooldownKey, Date.now(), { ex: 300 });
+    } catch {
+      // KV not available (local dev) — skip cooldown
+    }
 
     return new Response(JSON.stringify(note), {
       status: 201,
@@ -167,8 +175,11 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     });
   } catch (error) {
     console.error("Failed to create guestbook note:", error);
+    const message = (error as Error)?.message === "Database not configured"
+      ? "Database not configured — set DATABASE_URL"
+      : "Failed to create note";
     return new Response(
-      JSON.stringify({ error: "Failed to create note" }),
+      JSON.stringify({ error: message }),
       { status: 500, headers: { "Content-Type": "application/json" } },
     );
   }

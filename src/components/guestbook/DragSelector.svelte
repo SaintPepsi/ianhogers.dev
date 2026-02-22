@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte';
+  import { createEventDispatcher, onDestroy } from 'svelte';
   import { OccupancyMap } from './lib/occupancy';
+  import { isDragging } from './lib/dragState';
 
   export let occupancyMap: OccupancyMap;
   export let gridCols: number = 9;
@@ -8,6 +9,7 @@
 
   const dispatch = createEventDispatcher();
 
+  let overlayEl: HTMLDivElement;
   let isSelecting = false;
   let startCell: { row: number; col: number } | null = null;
   let currentCell: { row: number; col: number } | null = null;
@@ -38,47 +40,57 @@
     };
   }
 
-  function getCellFromEvent(e: PointerEvent): { row: number; col: number } | null {
-    const target = e.currentTarget as HTMLElement;
-    if (!target) return null;
-    const rect = target.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+  function getCellFromPoint(clientX: number, clientY: number): { row: number; col: number } | null {
+    if (!overlayEl) return null;
+    const rect = overlayEl.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
     const col = Math.floor((x / rect.width) * gridCols) + 1;
     const row = Math.floor((y / rect.height) * gridRows) + 1;
     if (col < 1 || col > gridCols || row < 1 || row > gridRows) return null;
     return { row, col };
   }
 
+  function endDrag() {
+    isSelecting = false;
+    isDragging.set(false);
+    startCell = null;
+    currentCell = null;
+    window.removeEventListener('pointermove', handleWindowPointerMove);
+    window.removeEventListener('pointerup', handleWindowPointerUp);
+    window.removeEventListener('pointercancel', handleWindowPointerCancel);
+  }
+
   function handlePointerDown(e: PointerEvent) {
-    const cell = getCellFromEvent(e);
+    const cell = getCellFromPoint(e.clientX, e.clientY);
     if (!cell) return;
 
     // Don't start selection on an occupied cell
     if (!occupancyMap.isRegionFree(cell.row, cell.row + 1, cell.col, cell.col + 1)) return;
 
     e.preventDefault();
-    e.stopPropagation();
     isSelecting = true;
+    isDragging.set(true);
     startCell = cell;
     currentCell = cell;
-    (e.currentTarget as HTMLElement)?.setPointerCapture(e.pointerId);
+
+    // Use window-level listeners so cursor isn't affected by pointer capture
+    window.addEventListener('pointermove', handleWindowPointerMove);
+    window.addEventListener('pointerup', handleWindowPointerUp);
+    window.addEventListener('pointercancel', handleWindowPointerCancel);
   }
 
-  function handlePointerMove(e: PointerEvent) {
+  function handleWindowPointerMove(e: PointerEvent) {
     if (!isSelecting) return;
     e.preventDefault();
-    e.stopPropagation();
-    const cell = getCellFromEvent(e);
+    const cell = getCellFromPoint(e.clientX, e.clientY);
     if (!cell) return;
     currentCell = cell;
   }
 
-  function handlePointerUp(e: PointerEvent) {
+  function handleWindowPointerUp(e: PointerEvent) {
     if (!isSelecting) return;
     e.preventDefault();
-    e.stopPropagation();
-    isSelecting = false;
 
     if (selection && isValid) {
       dispatch('select', {
@@ -88,23 +100,32 @@
         colEnd: selection.colEnd,
       });
     } else if (selection) {
-      // Flash red on invalid
       showFlash = true;
       setTimeout(() => {
         showFlash = false;
       }, 300);
     }
 
-    startCell = null;
-    currentCell = null;
+    endDrag();
   }
+
+  function handleWindowPointerCancel() {
+    if (!isSelecting) return;
+    endDrag();
+  }
+
+  onDestroy(() => {
+    // Clean up window listeners if component unmounts mid-drag
+    window.removeEventListener('pointermove', handleWindowPointerMove);
+    window.removeEventListener('pointerup', handleWindowPointerUp);
+    window.removeEventListener('pointercancel', handleWindowPointerCancel);
+  });
 </script>
 
 <div
   class="drag-overlay"
+  bind:this={overlayEl}
   on:pointerdown={handlePointerDown}
-  on:pointermove={handlePointerMove}
-  on:pointerup={handlePointerUp}
   style="--grid-cols: {gridCols}; --grid-rows: {gridRows};"
 >
   {#if selection}

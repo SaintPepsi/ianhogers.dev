@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import type { GuestbookNote } from './lib/types';
   import { OccupancyMap } from './lib/occupancy';
+  import { isDragging } from './lib/dragState';
   import Page from './Page.svelte';
   import NoteRenderer from './NoteRenderer.svelte';
   import DragSelector from './DragSelector.svelte';
@@ -134,7 +135,7 @@
     <div class="sprite-wrapper">
       <div class="book">
         <!-- Scroll-timeline carousel -->
-        <div class="carousel" style="--slides: {spreadCount};">
+        <div class="carousel" class:no-scroll={$isDragging} style="--slides: {spreadCount};">
           <!-- Sprite sheet for page-flip animation -->
           <div class="sprite"></div>
 
@@ -399,6 +400,11 @@
     scroll-marker-group: after;
   }
 
+  /* Lock scroll during drag selection */
+  .carousel.no-scroll {
+    overflow: hidden;
+  }
+
   /* Hide scrollbar */
   .carousel::-webkit-scrollbar {
     display: none;
@@ -411,7 +417,7 @@
     border-radius: 0;
     border: 0;
     background-color: transparent;
-    cursor: pointer;
+    cursor: default;
   }
 
   .carousel::scroll-button(*):disabled {
