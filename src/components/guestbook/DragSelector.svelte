@@ -120,8 +120,8 @@
     position: absolute;
     inset: 0;
     display: grid;
-    grid-template-columns: repeat(var(--grid-cols, 9), 1fr);
-    grid-template-rows: repeat(var(--grid-rows, 16), 1fr);
+    grid-template-columns: repeat(var(--grid-cols, 9), minmax(0, 1fr));
+    grid-template-rows: repeat(var(--grid-rows, 16), minmax(0, 1fr));
     z-index: 10;
     cursor: crosshair;
     touch-action: none;
