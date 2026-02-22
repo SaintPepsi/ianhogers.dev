@@ -1,5 +1,5 @@
 ---
-title: "Math.random()"
+title: "AI Agents = Math.random()"
 description: "A conversation about determinism changed how I think about AI coding. Then I found PAI."
 date: 2026-02-22
 tags: ["ai", "agents", "pai", "workflow", "claude-code"]
