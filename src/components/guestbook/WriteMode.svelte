@@ -10,16 +10,26 @@
   export let pageIndex: number;
 
   const dispatch = createEventDispatcher();
-  const MAX_CHARS = 280;
+
+  // Dynamic char limit: tiles minus 1 row (for name/handle), times ~3 chars per tile
+  $: contentRows = (selection.rowEnd - selection.rowStart) - 1;
+  $: contentCols = selection.colEnd - selection.colStart;
+  $: contentTiles = contentRows * contentCols;
+  $: maxChars = Math.max(12, contentTiles * 3);
+
+  // Font size matching NoteRenderer: scale by row span
+  $: rowSpan = selection.rowEnd - selection.rowStart;
+  $: fontSize = `${Math.max(0.6, Math.min(1.2, rowSpan * 0.25))}rem`;
 
   let text = '';
   let author = '';
   let textareaEl: HTMLTextAreaElement;
   let authorInputEl: HTMLInputElement;
   let showConfirmDiscard = false;
+  let showConfirmPost = false;
 
   $: charCount = text.length;
-  $: charRemaining = MAX_CHARS - charCount;
+  $: charRemaining = maxChars - charCount;
   $: hasAuthor = author.trim().length > 0;
 
   onMount(() => {
@@ -40,11 +50,21 @@
 
   function handleSubmit() {
     if (!text.trim() || !author.trim()) return;
+    showConfirmPost = true;
+  }
+
+  function confirmPost() {
     saveAuthor();
     dispatch('submit', {
       text: text.trim(),
       author: author.trim(),
     });
+    showConfirmPost = false;
+  }
+
+  function cancelPost() {
+    showConfirmPost = false;
+    textareaEl?.focus();
   }
 
   function handleCancel() {
@@ -85,20 +105,29 @@
   style="
     grid-row: {selection.rowStart} / {selection.rowEnd};
     grid-column: {selection.colStart} / {selection.colEnd};
+    font-size: {fontSize};
   "
   on:keydown={handleKeydown}
 >
   {#if showConfirmDiscard}
     <div class="confirm-overlay">
       <div class="confirm-dialog">
+        <img src="/assets/pixel-art/ui/btn-discard.png" alt="" class="confirm-icon pixel-sprite" />
         <p class="confirm-text">Discard this note?</p>
         <div class="confirm-actions">
-          <button class="confirm-btn confirm-yes" on:click={confirmDiscard}>
-            Yes
-          </button>
-          <button class="confirm-btn confirm-no" on:click={cancelDiscard}>
-            No
-          </button>
+          <button class="confirm-btn confirm-yes" on:click={confirmDiscard}>Yes</button>
+          <button class="confirm-btn confirm-no" on:click={cancelDiscard}>No</button>
+        </div>
+      </div>
+    </div>
+  {:else if showConfirmPost}
+    <div class="confirm-overlay">
+      <div class="confirm-dialog">
+        <img src="/assets/pixel-art/ui/btn-seal.png" alt="" class="confirm-icon pixel-sprite" />
+        <p class="confirm-text">Post guest note?</p>
+        <div class="confirm-actions">
+          <button class="confirm-btn confirm-post" on:click={confirmPost}>Post</button>
+          <button class="confirm-btn confirm-no" on:click={cancelPost}>Back</button>
         </div>
       </div>
     </div>
@@ -109,7 +138,7 @@
       <input
         class="author-input"
         type="text"
-        placeholder="name"
+        placeholder="name/handle"
         maxlength="40"
         bind:value={author}
         bind:this={authorInputEl}
@@ -118,17 +147,9 @@
       />
     </div>
 
-    <!-- Close button (top-right) -->
-    <button class="close-btn" on:click={handleCancel} title="Close">
-      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-        <rect x="2" y="4" width="2" height="2" fill="currentColor"/>
-        <rect x="4" y="6" width="2" height="2" fill="currentColor"/>
-        <rect x="6" y="4" width="2" height="2" fill="currentColor"/>
-        <rect x="4" y="2" width="2" height="2" fill="currentColor"/>
-        <rect x="8" y="2" width="2" height="2" fill="currentColor"/>
-        <rect x="2" y="8" width="2" height="2" fill="currentColor"/>
-        <rect x="8" y="8" width="2" height="2" fill="currentColor"/>
-      </svg>
+    <!-- Discard button (top-right) -->
+    <button class="discard-btn" on:click={handleCancel} title="Discard note">
+      <img src="/assets/pixel-art/ui/btn-discard.png" alt="Discard" class="btn-icon pixel-sprite" />
     </button>
 
     <!-- Content textarea (center) -->
@@ -136,28 +157,21 @@
       class="note-textarea"
       bind:value={text}
       bind:this={textareaEl}
-      maxlength={MAX_CHARS}
+      maxlength={maxChars}
       placeholder="Write your note..."
     ></textarea>
 
-    <!-- Bottom bar: submit left, char count right -->
+    <!-- Bottom bar: seal button left, char count corner-right -->
     <div class="bottom-bar">
       <button
-        class="submit-btn"
+        class="seal-btn"
         on:click={handleSubmit}
         disabled={!text.trim() || !hasAuthor}
-        title="Sign your note"
+        title="Seal Guest Note"
       >
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <rect x="2" y="10" width="2" height="2" fill="currentColor"/>
-          <rect x="4" y="8" width="2" height="2" fill="currentColor"/>
-          <rect x="6" y="6" width="2" height="2" fill="currentColor"/>
-          <rect x="8" y="4" width="2" height="2" fill="currentColor"/>
-          <rect x="10" y="2" width="2" height="2" fill="currentColor"/>
-          <rect x="0" y="12" width="4" height="2" fill="currentColor"/>
-        </svg>
+        <img src="/assets/pixel-art/ui/btn-seal.png" alt="Seal" class="btn-icon pixel-sprite" />
       </button>
-      <span class="char-count" class:warning={charRemaining < 30}>
+      <span class="char-count" class:warning={charRemaining < 10}>
         {charRemaining}
       </span>
     </div>
@@ -172,7 +186,7 @@
     border: 2px dashed #3b82f6;
     background: rgba(59, 130, 246, 0.06);
     z-index: 20;
-    padding: 4px;
+    padding: 3px;
     overflow: hidden;
   }
 
@@ -212,40 +226,46 @@
     border-bottom-color: #3b82f6;
   }
 
-  .close-btn {
+  /* Discard button (top-right) */
+  .discard-btn {
     position: absolute;
     top: 2px;
     right: 2px;
-    width: 18px;
-    height: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
     background: none;
     border: none;
-    color: #8a7e72;
     cursor: pointer;
     padding: 0;
     z-index: 5;
+    opacity: 0.7;
+    transition: opacity 0.15s;
+  }
+
+  .discard-btn:hover {
+    opacity: 1;
+  }
+
+  .btn-icon {
+    width: 16px;
+    height: 16px;
     image-rendering: pixelated;
   }
 
-  .close-btn:hover {
-    color: #ef4444;
-  }
-
+  /* Content textarea (center) — font matches final note rendering */
   .note-textarea {
     flex: 1;
     width: 100%;
     border: none;
     background: transparent;
     font-family: 'Grand9KPixel', monospace;
-    font-size: 0.9rem;
+    font-size: 1em;
     color: #333;
     text-align: center;
     resize: none;
     outline: none;
-    padding: 4px;
+    padding: 2px;
     line-height: 1.4;
     image-rendering: pixelated;
   }
@@ -254,82 +274,90 @@
     color: #b0a898;
   }
 
+  /* Bottom bar */
   .bottom-bar {
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: space-between;
     flex-shrink: 0;
   }
 
-  .submit-btn {
-    width: 22px;
-    height: 22px;
+  .seal-btn {
     display: flex;
     align-items: center;
     justify-content: center;
     background: none;
     border: none;
-    color: #6b8e5a;
     cursor: pointer;
     padding: 0;
-    image-rendering: pixelated;
-    transition: color 0.15s;
+    opacity: 0.7;
+    transition: opacity 0.15s;
   }
 
-  .submit-btn:hover:not(:disabled) {
-    color: #4a7a3a;
+  .seal-btn:hover:not(:disabled) {
+    opacity: 1;
   }
 
-  .submit-btn:disabled {
-    color: #c8c0b4;
+  .seal-btn:disabled {
+    opacity: 0.3;
     cursor: not-allowed;
   }
 
   .char-count {
-    font-size: 0.5rem;
+    font-size: 0.45rem;
     color: #b0a898;
     font-family: 'Grand9KPixel', monospace;
     image-rendering: pixelated;
+    line-height: 1;
   }
 
   .char-count.warning {
     color: #ef4444;
   }
 
-  /* Confirm discard dialog */
+  /* Confirm overlay (shared by discard and post) */
   .confirm-overlay {
     position: absolute;
     inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(245, 240, 232, 0.9);
+    background: rgba(245, 240, 232, 0.92);
     z-index: 30;
   }
 
   .confirm-dialog {
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .confirm-icon {
+    width: 24px;
+    height: 24px;
+    image-rendering: pixelated;
   }
 
   .confirm-text {
     font-family: 'Grand9KPixel', monospace;
-    font-size: 0.7rem;
+    font-size: 0.55rem;
     color: #333;
-    margin-bottom: 8px;
     image-rendering: pixelated;
   }
 
   .confirm-actions {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     justify-content: center;
   }
 
   .confirm-btn {
     font-family: 'Grand9KPixel', monospace;
-    font-size: 0.6rem;
+    font-size: 0.5rem;
     border: none;
-    padding: 2px 12px;
+    padding: 2px 10px;
     cursor: pointer;
     transition: background 0.15s;
     image-rendering: pixelated;
@@ -342,6 +370,15 @@
 
   .confirm-yes:hover {
     background: #dc2626;
+  }
+
+  .confirm-post {
+    background: #6b8e5a;
+    color: #fff;
+  }
+
+  .confirm-post:hover {
+    background: #4a7a3a;
   }
 
   .confirm-no {
