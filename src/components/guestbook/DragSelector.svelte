@@ -57,6 +57,8 @@
     // Don't start selection on an occupied cell
     if (!occupancyMap.isRegionFree(cell.row, cell.row + 1, cell.col, cell.col + 1)) return;
 
+    e.preventDefault();
+    e.stopPropagation();
     isSelecting = true;
     startCell = cell;
     currentCell = cell;
@@ -65,6 +67,8 @@
 
   function handlePointerMove(e: PointerEvent) {
     if (!isSelecting) return;
+    e.preventDefault();
+    e.stopPropagation();
     const cell = getCellFromEvent(e);
     if (!cell) return;
     currentCell = cell;
@@ -72,6 +76,8 @@
 
   function handlePointerUp(e: PointerEvent) {
     if (!isSelecting) return;
+    e.preventDefault();
+    e.stopPropagation();
     isSelecting = false;
 
     if (selection && isValid) {
