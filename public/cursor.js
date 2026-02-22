@@ -1,5 +1,5 @@
 // Spritesheet cursor: interaction_hand.png (128x16, 8 frames of 16x16)
-// Frames 0-3: pointer wiggle (hover on clickable), Frames 4-7: grab animation
+// Frames 0-2: click animation, Frames 0-3: pointer wiggle, Frames 4-6: grab/drag
 // Persists across Astro View Transitions
 (function() {
   // Prevent double-init (View Transitions re-run inline scripts)
@@ -8,9 +8,12 @@
 
   const FRAME_SIZE = 16;
   const POINTER_FRAMES = [0, 1, 2, 3];
-  const GRAB_FRAMES = [4, 5, 6];
+  const CLICK_DOWN_FRAMES = [0, 1, 2];
+  const CLICK_UP_FRAMES = [2, 1, 0];
+  const GRAB_DOWN_FRAMES = [4, 5, 6];
+  const GRAB_UP_FRAMES = [6, 5, 4];
   const ANIM_SPEED = 150;
-  const GRAB_SPEED = 75;
+  const CLICK_SPEED = 75;
 
   const canvas = document.createElement('canvas');
   canvas.width = FRAME_SIZE;
@@ -25,7 +28,10 @@
   let animating = false;
   let animInterval = null;
   let isOverClickable = false;
+  let isOverDraggable = false;
   let isGrabbing = false;
+  let isReleasingClick = false;
+  let releaseIsDrag = false;
   let ready = false;
   let lastX = -100;
   let lastY = -100;
@@ -34,7 +40,7 @@
   // Hide the default cursor globally
   const style = document.createElement('style');
   style.id = 'pixel-cursor-style';
-  style.textContent = '* { cursor: none !important; }';
+  style.textContent = '*, *::before, *::after, *::scroll-button(*), *::scroll-marker, *::scroll-marker-group { cursor: none !important; }';
   if (!document.getElementById('pixel-cursor-style')) {
     document.head.appendChild(style);
   }
@@ -116,8 +122,23 @@
   }
 
   function updateState() {
-    if (isGrabbing) {
-      if (!animating || currentFrames !== GRAB_FRAMES) startAnim(GRAB_FRAMES, false, GRAB_SPEED);
+    if (isGrabbing && isOverDraggable) {
+      // Drag down: grab hand frames
+      if (!animating || currentFrames !== GRAB_DOWN_FRAMES) startAnim(GRAB_DOWN_FRAMES, false, CLICK_SPEED);
+    } else if (isGrabbing) {
+      // Click down (default for everything): pointer click frames
+      if (!animating || currentFrames !== CLICK_DOWN_FRAMES) startAnim(CLICK_DOWN_FRAMES, false, CLICK_SPEED);
+    } else if (isReleasingClick) {
+      // Release animation — grab or click depending on what was pressed
+      var upFrames = releaseIsDrag ? GRAB_UP_FRAMES : CLICK_UP_FRAMES;
+      if (!animating || currentFrames !== upFrames) {
+        startAnim(upFrames, false, CLICK_SPEED);
+        setTimeout(function() {
+          isReleasingClick = false;
+          releaseIsDrag = false;
+          updateState();
+        }, upFrames.length * CLICK_SPEED);
+      }
     } else if (isOverClickable) {
       if (!animating || currentFrames !== POINTER_FRAMES) startAnim(POINTER_FRAMES, true);
     } else {
@@ -132,26 +153,32 @@
     ensureCursorInDOM();
     cursorEl.style.transform = 'translate(' + lastX + 'px,' + lastY + 'px)';
 
-    const el = document.elementFromPoint(e.clientX, e.clientY);
-    const clickable = el && (
+    var el = document.elementFromPoint(e.clientX, e.clientY);
+    var clickable = el && (
       el.matches('a, button, [role="button"], input[type="submit"], select, label[for], [onclick]') ||
-      el.closest('a, button, [role="button"]') ||
-      getComputedStyle(el).cursor === 'pointer'
+      el.closest('a, button, [role="button"]')
+    );
+    var draggable = el && (
+      el.matches('[data-drag-cursor]') ||
+      el.closest('[data-drag-cursor]')
     );
 
-    if (clickable !== isOverClickable) {
-      isOverClickable = clickable;
-      updateState();
-    }
+    var changed = false;
+    if (clickable !== isOverClickable) { isOverClickable = clickable; changed = true; }
+    if (draggable !== isOverDraggable) { isOverDraggable = draggable; changed = true; }
+    if (changed) updateState();
   });
 
   document.addEventListener('mousedown', function() {
     isGrabbing = true;
+    isReleasingClick = false;
     updateState();
   });
 
   document.addEventListener('mouseup', function() {
     isGrabbing = false;
+    isReleasingClick = true;
+    releaseIsDrag = isOverDraggable;
     updateState();
   });
 

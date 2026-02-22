@@ -44,10 +44,19 @@ const currentPath = Astro.url.pathname;
           <span class="font-display text-xl sm:text-2xl text-white tracking-wide">Ian Hogers</span>
         </a>
         <div class="flex items-center gap-2 sm:gap-4 text-sm font-mono">
-          <!-- Nav links: hidden on mobile, shown on sm+ -->
-          <a href="/about" class:list={["no-underline text-xs sm:text-sm hidden sm:inline", currentPath.startsWith('/about') ? 'accent-text' : 'text-gray-400 accent-text-hover']}>about</a>
-          <a href="/skills" class:list={["no-underline text-xs sm:text-sm hidden sm:inline", currentPath.startsWith('/skills') ? 'accent-text' : 'text-gray-400 accent-text-hover']}>skills</a>
-          <a href="/shoutouts" class:list={["no-underline text-xs sm:text-sm hidden sm:inline", currentPath.startsWith('/shoutouts') ? 'accent-text' : 'text-gray-400 accent-text-hover']}>shouts</a>
+          <!-- Nav icons: hidden on mobile, shown on sm+ -->
+          <a href="/about" class:list={["no-underline hidden sm:inline-flex nav-icon-link", currentPath.startsWith('/about') ? 'nav-icon-active' : 'nav-icon-inactive']} title="About">
+            <img src="/assets/pixel-art/ui/nav-about.png" alt="About" class="pixel-sprite nav-icon" />
+          </a>
+          <a href="/skills" class:list={["no-underline hidden sm:inline-flex nav-icon-link", currentPath.startsWith('/skills') ? 'nav-icon-active' : 'nav-icon-inactive']} title="Skills">
+            <img src="/assets/pixel-art/ui/nav-skills.png" alt="Skills" class="pixel-sprite nav-icon" />
+          </a>
+          <a href="/shoutouts" class:list={["no-underline hidden sm:inline-flex nav-icon-link", currentPath.startsWith('/shoutouts') ? 'nav-icon-active' : 'nav-icon-inactive']} title="Shout Outs">
+            <img src="/assets/pixel-art/ui/nav-shouts.png" alt="Shout Outs" class="pixel-sprite nav-icon" />
+          </a>
+          <a href="/guestbook" class:list={["no-underline hidden sm:inline-flex nav-icon-link", currentPath.startsWith('/guestbook') ? 'nav-icon-active' : 'nav-icon-inactive']} title="Guest Book">
+            <img src="/assets/pixel-art/ui/nav-guestbook.png" alt="Guest Book" class="pixel-sprite nav-icon" />
+          </a>
           <!-- Side toggle pill -->
           <div class="side-toggle flex items-center gap-0 rounded-full border-2 border-gray-700 transition-all p-0.5">
             <a
@@ -69,11 +78,20 @@ const currentPath = Astro.url.pathname;
           </div>
         </div>
       </div>
-      <!-- Mobile nav links -->
-      <div class="flex sm:hidden justify-center gap-4 mt-2 text-sm font-mono">
-        <a href="/about" class:list={["no-underline text-xs", currentPath.startsWith('/about') ? 'accent-text' : 'text-gray-400 accent-text-hover']}>about</a>
-        <a href="/skills" class:list={["no-underline text-xs", currentPath.startsWith('/skills') ? 'accent-text' : 'text-gray-400 accent-text-hover']}>skills</a>
-        <a href="/shoutouts" class:list={["no-underline text-xs", currentPath.startsWith('/shoutouts') ? 'accent-text' : 'text-gray-400 accent-text-hover']}>shouts</a>
+      <!-- Mobile nav icons -->
+      <div class="flex sm:hidden justify-center gap-4 mt-2">
+        <a href="/about" class:list={["no-underline nav-icon-link", currentPath.startsWith('/about') ? 'nav-icon-active' : 'nav-icon-inactive']} title="About">
+          <img src="/assets/pixel-art/ui/nav-about.png" alt="About" class="pixel-sprite nav-icon" />
+        </a>
+        <a href="/skills" class:list={["no-underline nav-icon-link", currentPath.startsWith('/skills') ? 'nav-icon-active' : 'nav-icon-inactive']} title="Skills">
+          <img src="/assets/pixel-art/ui/nav-skills.png" alt="Skills" class="pixel-sprite nav-icon" />
+        </a>
+        <a href="/shoutouts" class:list={["no-underline nav-icon-link", currentPath.startsWith('/shoutouts') ? 'nav-icon-active' : 'nav-icon-inactive']} title="Shout Outs">
+          <img src="/assets/pixel-art/ui/nav-shouts.png" alt="Shout Outs" class="pixel-sprite nav-icon" />
+        </a>
+        <a href="/guestbook" class:list={["no-underline nav-icon-link", currentPath.startsWith('/guestbook') ? 'nav-icon-active' : 'nav-icon-inactive']} title="Guest Book">
+          <img src="/assets/pixel-art/ui/nav-guestbook.png" alt="Guest Book" class="pixel-sprite nav-icon" />
+        </a>
       </div>
     </nav>
 

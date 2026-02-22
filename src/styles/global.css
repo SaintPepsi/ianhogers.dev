@@ -4,9 +4,32 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ═══════════════════════════════════════
+   CSS @property for scroll-timeline sprite animation (Chrome 134+)
+   Required for animatable custom properties in the guestbook book carousel.
+   ═══════════════════════════════════════ */
+@property --sprite-fs {
+  syntax: "<integer>";
+  initial-value: 0;
+  inherits: true;
+}
+@property --_progress {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+
 @font-face {
   font-family: 'Weiholmir';
   src: url('/assets/fonts/Weiholmir_regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Grand9KPixel';
+  src: url('/assets/fonts/Grand9KPixel.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -276,4 +299,28 @@ html {
   .prose h3 {
     @apply text-lg mt-6 mb-2;
   }
+}
+
+/* ═══════════════════════════════════════
+   NAV ICONS
+   ═══════════════════════════════════════ */
+.nav-icon-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s, filter 0.15s;
+}
+
+.nav-icon-link:hover {
+  transform: scale(1.25);
+}
+
+.nav-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.nav-icon-active {
+  filter: drop-shadow(0 0 4px rgba(179, 136, 255, 0.5));
 }
