@@ -33,7 +33,7 @@ I burned out before I finished it. The code was solid but my mental health wasn'
 
 Then I moved to [OpenClaw](https://openclaw.ai) and started using that for agent orchestration. One conversation stream, multiple projects, sub-agents handling the work. And it was good. Really good. But something was still off.
 
-I was burning through tokens. The outputs were inconsistent. Sometimes brilliant, sometimes garbage. I tried [Obra superpowers](https://github.com/nichochar/obra-ai), which gives you a structured pattern: brainstorm, then plan in a new session, then execute with skills. It added stability. But it still wasn't complete.
+I was burning through tokens. The outputs were inconsistent. Sometimes brilliant, sometimes garbage. I tried [Obra superpowers](https://github.com/obra/superpowers), which gives you a structured pattern: brainstorm, then plan in a new session, then execute with skills. It added stability. But it still wasn't complete.
 
 So I built my own skill. A complete pipeline, end to end. And it was overbaked. The model would go through everything but forget things halfway through. I'd tweak the skill and suddenly it would stop doing things I expected. Back and forth, never really knowing what was actually optimising the prompting. That's the frustrating part. It's hard.
 
