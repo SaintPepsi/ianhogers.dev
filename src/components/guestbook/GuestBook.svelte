@@ -246,7 +246,7 @@
 </div>
 
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&display=swap');
+  /* Grand9KPixel loaded via global.css @font-face */
 
   .guestbook-container {
     width: 100%;
@@ -277,9 +277,10 @@
   }
 
   .loading-text {
-    font-family: 'Caveat', cursive;
-    font-size: 1.2rem;
+    font-family: 'Grand9KPixel', monospace;
+    font-size: 0.9rem;
     color: #b0a898;
+    image-rendering: pixelated;
   }
 
   /* Error state */
@@ -293,14 +294,15 @@
   }
 
   .error-text {
-    font-family: 'Caveat', cursive;
-    font-size: 1.1rem;
+    font-family: 'Grand9KPixel', monospace;
+    font-size: 0.8rem;
     color: #ef5350;
+    image-rendering: pixelated;
   }
 
   .retry-btn {
-    font-family: 'Caveat', cursive;
-    font-size: 0.9rem;
+    font-family: 'Grand9KPixel', monospace;
+    font-size: 0.7rem;
     background: #1e1a28;
     color: #f5f0e8;
     border: 1px solid #4a4458;
@@ -560,7 +562,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #1e1a28;
+    background: transparent;
     height: 100%;
   }
 
@@ -579,12 +581,13 @@
   }
 
   .cover-title {
-    font-family: 'Weiholmir', cursive;
-    font-size: 1.2rem;
-    color: #f5f0e8;
+    font-family: 'Grand9KPixel', monospace;
+    font-size: 0.9rem;
+    color: #333;
     text-align: center;
     letter-spacing: 0.05em;
     margin: 0;
+    image-rendering: pixelated;
   }
 
   /* Title page */
@@ -598,29 +601,32 @@
   }
 
   .title-main {
-    font-family: 'Weiholmir', cursive;
-    font-size: 1.1rem;
-    color: #2c2420;
+    font-family: 'Grand9KPixel', monospace;
+    font-size: 0.9rem;
+    color: #333;
     text-align: center;
     margin: 0 0 0.15rem 0;
+    image-rendering: pixelated;
   }
 
   .title-subtitle {
-    font-family: 'Caveat', cursive;
-    font-size: 0.75rem;
-    color: #6b5e50;
+    font-family: 'Grand9KPixel', monospace;
+    font-size: 0.55rem;
+    color: hsl(45.71deg 69.23% 30%);
     text-align: center;
     margin: 0 0 0.5rem 0;
+    image-rendering: pixelated;
   }
 
   .title-credit {
-    font-size: 0.45rem;
-    color: #b0a898;
+    font-size: 0.4rem;
+    color: hsl(45.71deg 69.23% 40%);
     text-align: center;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Grand9KPixel', monospace;
     max-width: 80%;
     line-height: 1.3;
     margin: 0;
+    image-rendering: pixelated;
   }
 
   .title-notes-area {

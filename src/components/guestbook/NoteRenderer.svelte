@@ -86,8 +86,6 @@
 {/each}
 
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&display=swap');
-
   .note {
     display: flex;
     flex-direction: column;
@@ -100,20 +98,22 @@
   }
 
   .note-content {
-    font-family: 'Caveat', cursive;
-    color: #2c2420;
+    font-family: 'Grand9KPixel', monospace;
+    color: #333;
     text-align: center;
-    line-height: 1.3;
+    line-height: 1.4;
     word-break: break-word;
     overflow-wrap: break-word;
+    image-rendering: pixelated;
   }
 
   .note-author {
-    font-family: 'Caveat', cursive;
-    font-size: 0.7em;
-    color: #8a7e72;
+    font-family: 'Grand9KPixel', monospace;
+    font-size: 0.6em;
+    color: hsl(45.71deg 69.23% 30%);
     margin-top: 2px;
     text-align: right;
     align-self: flex-end;
+    image-rendering: pixelated;
   }
 </style>

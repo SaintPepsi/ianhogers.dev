@@ -59,14 +59,6 @@
   on:pointermove={handlePointerMove}
   on:pointerup={handlePointerUp}
 >
-  <!-- Ruled lines -->
-  {#each Array(gridConfig.rows - 1) as _, i}
-    <div
-      class="ruled-line"
-      style="grid-column: 1 / -1; grid-row: {i + 2} / {i + 2}; align-self: start;"
-    ></div>
-  {/each}
-
   <slot />
 
   <!-- Page number -->
@@ -81,14 +73,7 @@
     display: grid;
     grid-template-columns: repeat(var(--grid-cols, 9), 1fr);
     grid-template-rows: repeat(var(--grid-rows, 16), 1fr);
-    aspect-ratio: 9 / 16;
-    background-color: #f5f0e8;
-    background-image:
-      url("data:image/svg+xml,%3Csvg width='200' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
-    border-radius: 2px;
-    box-shadow:
-      inset 0 0 30px rgba(0, 0, 0, 0.05),
-      2px 2px 8px rgba(0, 0, 0, 0.15);
+    background: transparent;
     overflow: hidden;
     touch-action: none;
     user-select: none;
@@ -98,23 +83,16 @@
     cursor: crosshair;
   }
 
-  .ruled-line {
-    width: 100%;
-    height: 1px;
-    background-color: #e0d8cc;
-    pointer-events: none;
-    z-index: 0;
-  }
-
   .page-number {
     display: flex;
     align-items: flex-end;
     justify-content: center;
-    font-size: 0.65rem;
-    color: #b0a898;
+    font-size: 0.5rem;
+    color: hsl(45.71deg 69.23% 30%);
     padding-bottom: 4px;
     pointer-events: none;
     z-index: 1;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'Grand9KPixel', monospace;
+    image-rendering: pixelated;
   }
 </style>

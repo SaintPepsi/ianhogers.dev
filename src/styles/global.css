@@ -27,6 +27,14 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: 'Grand9KPixel';
+  src: url('/assets/fonts/Grand9KPixel.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
 }

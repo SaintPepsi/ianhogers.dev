@@ -176,15 +176,12 @@
 </div>
 
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&display=swap');
-
   .write-mode {
     position: relative;
     display: flex;
     flex-direction: column;
-    background: #ede7db;
-    border-radius: 2px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.08);
+    background: rgba(245, 240, 232, 0.6);
+    border: 1px dashed hsl(45.71deg 69.23% 30%);
     z-index: 20;
     padding: 4px;
     overflow: hidden;
@@ -217,7 +214,7 @@
     width: 100%;
     border: none;
     background: transparent;
-    font-family: 'Caveat', cursive;
+    font-family: 'Grand9KPixel', monospace;
     font-size: 0.9rem;
     color: #2c2420;
     text-align: center;
@@ -286,7 +283,7 @@
   }
 
   .name-label {
-    font-family: 'Caveat', cursive;
+    font-family: 'Grand9KPixel', monospace;
     font-size: 0.9rem;
     color: #6b5e50;
   }
@@ -297,7 +294,7 @@
     border: 1px solid #d4ccc0;
     border-radius: 2px;
     background: #f5f0e8;
-    font-family: 'Caveat', cursive;
+    font-family: 'Grand9KPixel', monospace;
     font-size: 0.85rem;
     color: #2c2420;
     text-align: center;
@@ -310,7 +307,7 @@
   }
 
   .name-submit {
-    font-family: 'Caveat', cursive;
+    font-family: 'Grand9KPixel', monospace;
     font-size: 0.8rem;
     color: #f5f0e8;
     background: #6b8e5a;
@@ -347,7 +344,7 @@
   }
 
   .confirm-text {
-    font-family: 'Caveat', cursive;
+    font-family: 'Grand9KPixel', monospace;
     font-size: 0.85rem;
     color: #2c2420;
     margin-bottom: 8px;
@@ -360,7 +357,7 @@
   }
 
   .confirm-btn {
-    font-family: 'Caveat', cursive;
+    font-family: 'Grand9KPixel', monospace;
     font-size: 0.75rem;
     border: none;
     border-radius: 2px;
