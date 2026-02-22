@@ -22,6 +22,7 @@ const currentPath = Astro.url.pathname;
     <link rel="alternate" type="application/rss+xml" title="Ian Hogers - Dev" href="/dev/rss.xml" />
     <link rel="alternate" type="application/rss+xml" title="Ian Hogers - Personal" href="/personal/rss.xml" />
     <title>{title}</title>
+    <slot name="head" />
     <ViewTransitions />
   </head>
   <body class="min-h-screen flex flex-col">

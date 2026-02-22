@@ -19,6 +19,10 @@
   let activeSpread: number = 0;
   let carouselEl: HTMLDivElement;
 
+  // Sound state
+  const MUTE_KEY = 'guestbook-muted';
+  let isMuted: boolean = false;
+
   // Page turn sounds
   const PAGE_TURN_SOUNDS = [
     '/assets/guestbook/sounds/page-turn-1.m4a',
@@ -28,6 +32,7 @@
   let pageTurnAudios: HTMLAudioElement[] = [];
 
   onMount(() => {
+    isMuted = localStorage.getItem(MUTE_KEY) === 'true';
     pageTurnAudios = PAGE_TURN_SOUNDS.map((src) => {
       const audio = new Audio(src);
       audio.volume = 0.3;
@@ -35,8 +40,13 @@
     });
   });
 
+  function toggleMute() {
+    isMuted = !isMuted;
+    localStorage.setItem(MUTE_KEY, String(isMuted));
+  }
+
   function playPageTurnSound() {
-    if (pageTurnAudios.length === 0) return;
+    if (isMuted || pageTurnAudios.length === 0) return;
     const audio = pageTurnAudios[Math.floor(Math.random() * pageTurnAudios.length)];
     audio.currentTime = 0;
     audio.play().catch(() => {});
@@ -168,6 +178,13 @@
     </div>
   {:else}
     <div class="sprite-wrapper">
+      <button class="mute-btn pixel-sprite" on:click={toggleMute} title={isMuted ? 'Unmute' : 'Mute'}>
+        <img
+          src={isMuted ? '/assets/pixel-art/ui/sound_off.png' : '/assets/pixel-art/ui/sound_on.png'}
+          alt={isMuted ? 'Sound off' : 'Sound on'}
+          class="mute-icon pixel-sprite"
+        />
+      </button>
       <div class="book">
         <!-- Scroll-timeline carousel -->
         <div class="carousel" class:no-scroll={$isDragging || isWriteMode} style="--slides: {spreadCount};" bind:this={carouselEl} on:scroll={handleCarouselScroll}>
@@ -394,6 +411,29 @@
   /* ═══════════════════════════════════════
      SPRITE-BASED BOOK (Maseone architecture)
      ═══════════════════════════════════════ */
+
+  .mute-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 10;
+    background: none;
+    border: none;
+    padding: 4px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.15s;
+  }
+
+  .mute-btn:hover {
+    opacity: 1;
+  }
+
+  .mute-icon {
+    width: 24px;
+    height: 24px;
+    image-rendering: pixelated;
+  }
 
   .sprite-wrapper {
     position: relative;

@@ -6,6 +6,16 @@ export const prerender = false;
 ---
 
 <Base title="Guest Book - Ian Hogers" description="Sign Ian's guest book! Leave a note, doodle, or just say hi." side="personal">
+  <Fragment slot="head">
+    <link rel="preload" href="/assets/guestbook/book-sprite.webp" as="image" type="image/webp" />
+    <link rel="preload" href="/assets/pixel-art/decorative/sample-bunny.png" as="image" />
+    <link rel="preload" href="/assets/pixel-art/ui/sound_on.png" as="image" />
+    <link rel="preload" href="/assets/pixel-art/ui/sound_off.png" as="image" />
+    <link rel="preload" href="/assets/pixel-art/ui/cancel.png" as="image" />
+    <link rel="preload" href="/assets/pixel-art/ui/confirm.png" as="image" />
+    <link rel="preload" href="/assets/pixel-art/ui/btn-discard.png" as="image" />
+    <link rel="preload" href="/assets/pixel-art/ui/btn-seal.png" as="image" />
+  </Fragment>
   <div class="guestbook-wrapper">
     <GuestBook client:load />
   </div>
