@@ -67,7 +67,7 @@ One of PAI's principles is that because your agent has terminal access, you shou
 
 I built [PAI-tools](https://github.com/SaintPepsi/pai-tools), a TypeScript CLI with hard-typed structured commands. Right now it has one tool: `orchestrate`. It reads all the GitHub issues on a repository, figures out their dependencies and ordering, then systematically works through them one by one. Branching off master or an existing branch, actioning each issue, moving to the next. I'm testing it now on a [roguelike card game](https://rogue-like-cards.vercel.app/) I'm working on.
 
-I built that on day one. One prompt to create a structured skill, and it worked.
+I built the orchestrate tool within my first day of using PAI. One prompt to create a structured CLI, and it worked.
 
 ## The actual point
 
