@@ -9,6 +9,9 @@ export const prerender = false;
   <div class="guestbook-wrapper">
     <GuestBook client:load />
   </div>
+  <p class="guestbook-credit">
+    Book animation by <a href="https://codepen.io/Maseone/pen/WbbGxeO" target="_blank" rel="noopener noreferrer">Maseone</a> (<a href="https://x.com/troshkin_pavel" target="_blank" rel="noopener noreferrer">@troshkin_pavel</a>)
+  </p>
 </Base>
 
 <style>
@@ -17,5 +20,20 @@ export const prerender = false;
     justify-content: center;
     align-items: center;
     min-height: 70vh;
+  }
+  .guestbook-credit {
+    text-align: center;
+    font-family: 'Grand9KPixel', monospace;
+    font-size: 0.55rem;
+    color: #6b5e50;
+    margin-top: 1rem;
+    image-rendering: pixelated;
+  }
+  .guestbook-credit a {
+    color: #b388ff;
+    text-decoration: none;
+  }
+  .guestbook-credit a:hover {
+    text-decoration: underline;
   }
 </style>

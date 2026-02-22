@@ -197,7 +197,7 @@
                         <h1 class="title-main">Guest Book</h1>
                         <p class="title-subtitle">by Ian Hogers</p>
                         <p class="title-credit">
-                          Book animation inspired by Maseone (@troshkin_pavel)
+                          Book animation by Maseone (@troshkin_pavel)
                         </p>
                       </div>
                       <div class="title-notes-area" style="grid-row: 13 / 17; grid-column: 1 / -1;">
