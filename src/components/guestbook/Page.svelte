@@ -73,6 +73,8 @@
     display: grid;
     grid-template-columns: repeat(var(--grid-cols, 9), 1fr);
     grid-template-rows: repeat(var(--grid-rows, 16), 1fr);
+    width: 100%;
+    height: 100%;
     background: transparent;
     overflow: hidden;
     touch-action: none;
