@@ -57,7 +57,7 @@ The structure PAI provides actually helps with that. Not because it's magic, but
 
 ## The hard parts
 
-The UI is overwhelming when you first open it. There's a lot going on and I didn't know what half of it meant. Some features, like the learning system, are scaffolded but not fully implemented yet. The creator has talked about having all the infrastructure for gathering learning data but not yet having the optimisation loop that uses it. That's interesting to know, and honest, which I appreciate.
+The UI is overwhelming when you first open it. There's a lot going on and I didn't know what half of it meant. Some features, like the learning system, are scaffolded but not fully implemented yet. The creator has [talked about](https://github.com/danielmiessler/Personal_AI_Infrastructure/discussions/531#discussioncomment-15646552) having all the infrastructure for gathering learning data but not yet having the optimisation loop that uses it. That's interesting to know, and honest, which I appreciate.
 
 It's still early. This is day one for me. I'm not writing from the other side. I'm writing from the beginning.
 
