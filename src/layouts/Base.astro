@@ -80,7 +80,7 @@ const currentPath = Astro.url.pathname;
         </div>
       </div>
       <!-- Mobile nav icons -->
-      <div class="flex sm:hidden justify-center gap-4 mt-2">
+      <div class="mobile-nav flex sm:hidden justify-center gap-4 mt-2">
         <a href="/about" class:list={["no-underline nav-icon-link", currentPath.startsWith('/about') ? 'nav-icon-active' : 'nav-icon-inactive']} title="About">
           <img src="/assets/pixel-art/ui/nav-about.png" alt="About" class="pixel-sprite nav-icon" />
         </a>

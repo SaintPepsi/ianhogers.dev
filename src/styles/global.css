@@ -305,7 +305,6 @@ html {
    NAV ICONS
    ═══════════════════════════════════════ */
 .nav-icon-link {
-  display: inline-flex;
   align-items: center;
   justify-content: center;
   transition: transform 0.15s, filter 0.15s;
@@ -319,6 +318,12 @@ html {
   width: 24px;
   height: 24px;
   object-fit: contain;
+}
+
+/* Bigger tap targets on mobile nav row */
+.mobile-nav .nav-icon {
+  width: 32px;
+  height: 32px;
 }
 
 .nav-icon-active {
