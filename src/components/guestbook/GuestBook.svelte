@@ -19,11 +19,38 @@
   let activeSpread: number = 0;
   let carouselEl: HTMLDivElement;
 
+  // Page turn sounds
+  const PAGE_TURN_SOUNDS = [
+    '/assets/guestbook/sounds/page-turn-1.m4a',
+    '/assets/guestbook/sounds/page-turn-2.m4a',
+    '/assets/guestbook/sounds/page-turn-3.m4a',
+  ];
+  let pageTurnAudios: HTMLAudioElement[] = [];
+
+  onMount(() => {
+    pageTurnAudios = PAGE_TURN_SOUNDS.map((src) => {
+      const audio = new Audio(src);
+      audio.volume = 0.3;
+      return audio;
+    });
+  });
+
+  function playPageTurnSound() {
+    if (pageTurnAudios.length === 0) return;
+    const audio = pageTurnAudios[Math.floor(Math.random() * pageTurnAudios.length)];
+    audio.currentTime = 0;
+    audio.play().catch(() => {});
+  }
+
   function handleCarouselScroll() {
     if (!carouselEl) return;
     const itemWidth = carouselEl.clientWidth;
     if (itemWidth === 0) return;
-    activeSpread = Math.round(carouselEl.scrollLeft / itemWidth);
+    const newSpread = Math.round(carouselEl.scrollLeft / itemWidth);
+    if (newSpread !== activeSpread) {
+      playPageTurnSound();
+    }
+    activeSpread = newSpread;
   }
 
   // Derived: organize notes by page_index
