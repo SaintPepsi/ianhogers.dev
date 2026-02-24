@@ -19,4 +19,9 @@ const personal = defineCollection({
   schema: postSchema,
 });
 
-export const collections = { dev, personal };
+const maple = defineCollection({
+  loader: glob({ pattern: '**/*.{md,mdx}', base: './src/content/maple' }),
+  schema: postSchema,
+});
+
+export const collections = { dev, personal, maple };

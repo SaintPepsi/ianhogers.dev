@@ -137,6 +137,13 @@
   --accent-secondary: #f59e0b;
   --accent-glow: rgba(245, 158, 11, 0.15);
 }
+.side-maple {
+  --accent: #D4845A;
+  --accent-hover: #E09B75;
+  --accent-secondary: #B45A2B;
+  --accent-secondary-hover: #C87245;
+  --accent-glow: rgba(180, 90, 43, 0.15);
+}
 .side-neutral {
   --accent: #a78bfa;
   --accent-hover: #c4b5fd;
@@ -305,7 +312,6 @@ html {
    NAV ICONS
    ═══════════════════════════════════════ */
 .nav-icon-link {
-  display: inline-flex;
   align-items: center;
   justify-content: center;
   transition: transform 0.15s, filter 0.15s;
