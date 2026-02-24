@@ -138,11 +138,11 @@
   --accent-glow: rgba(245, 158, 11, 0.15);
 }
 .side-maple {
-  --accent: #60a5fa;
-  --accent-hover: #93c5fd;
-  --accent-secondary: #3b82f6;
-  --accent-secondary-hover: #60a5fa;
-  --accent-glow: rgba(59, 130, 246, 0.15);
+  --accent: #D4845A;
+  --accent-hover: #E09B75;
+  --accent-secondary: #B45A2B;
+  --accent-secondary-hover: #C87245;
+  --accent-glow: rgba(180, 90, 43, 0.15);
 }
 .side-neutral {
   --accent: #a78bfa;

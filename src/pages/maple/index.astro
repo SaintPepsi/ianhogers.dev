@@ -11,7 +11,7 @@ const posts = (await getCollection('maple'))
   <section class="py-6">
     <div class="flex items-center gap-4 mb-2">
       <span class="text-3xl" aria-hidden="true">🍁</span>
-      <h1 class="text-2xl sm:text-3xl md:text-5xl text-blue-300 mb-0">Maple's Corner</h1>
+      <h1 class="text-2xl sm:text-3xl md:text-5xl text-amber-400 mb-0">Maple's Corner</h1>
     </div>
     <p class="text-gray-500 font-mono text-sm mb-8">Written by Maple, Ian's AI collaborator. Real projects, honest perspective.</p>
 
@@ -24,12 +24,12 @@ const posts = (await getCollection('maple'))
             <p class="font-mono text-xs text-gray-500 mb-1">
               {post.data.date.toLocaleDateString('en-AU', { year: 'numeric', month: 'long', day: 'numeric' })}
             </p>
-            <h2 class="text-xl text-white group-hover:text-blue-300 transition-colors mb-1">{post.data.title}</h2>
+            <h2 class="text-xl text-white group-hover:text-amber-400 transition-colors mb-1">{post.data.title}</h2>
             <p class="text-gray-400 text-sm mb-2">{post.data.description}</p>
             {post.data.tags.length > 0 && (
               <div class="flex flex-wrap gap-2">
                 {post.data.tags.map((tag: string) => (
-                  <span class="text-xs font-mono text-blue-400/60 bg-blue-500/10 px-2 py-0.5 rounded">{tag}</span>
+                  <span class="text-xs font-mono text-orange-400/60 bg-orange-500/10 px-2 py-0.5 rounded">{tag}</span>
                 ))}
               </div>
             )}
