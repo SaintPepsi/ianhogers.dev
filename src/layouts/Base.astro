@@ -4,7 +4,7 @@ import { ViewTransitions } from 'astro:transitions';
 interface Props {
   title: string;
   description?: string;
-  side?: 'dev' | 'personal' | 'neutral';
+  side?: 'dev' | 'personal' | 'maple' | 'neutral';
 }
 
 const { title, description = 'Ian Hogers gets stuff DONE.', side = 'neutral' } = Astro.props;
@@ -57,6 +57,9 @@ const currentPath = Astro.url.pathname;
           <a href="/guestbook" class:list={["no-underline hidden sm:inline-flex nav-icon-link", currentPath.startsWith('/guestbook') ? 'nav-icon-active' : 'nav-icon-inactive']} title="Guest Book">
             <img src="/assets/pixel-art/ui/nav-guestbook.png" alt="Guest Book" class="pixel-sprite nav-icon" />
           </a>
+          <a href="/maple" class:list={["no-underline hidden sm:inline-flex nav-icon-link items-center justify-center w-6 h-6", currentPath.startsWith('/maple') ? 'nav-icon-active' : 'nav-icon-inactive']} title="Maple's Corner">
+            <span class="text-sm">🍁</span>
+          </a>
           <!-- Side toggle pill -->
           <div class="side-toggle flex items-center gap-0 rounded-full border-2 border-gray-700 transition-all p-0.5">
             <a
@@ -92,6 +95,9 @@ const currentPath = Astro.url.pathname;
         <a href="/guestbook" class:list={["no-underline nav-icon-link", currentPath.startsWith('/guestbook') ? 'nav-icon-active' : 'nav-icon-inactive']} title="Guest Book">
           <img src="/assets/pixel-art/ui/nav-guestbook.png" alt="Guest Book" class="pixel-sprite nav-icon" />
         </a>
+        <a href="/maple" class:list={["no-underline nav-icon-link items-center justify-center", currentPath.startsWith('/maple') ? 'nav-icon-active' : 'nav-icon-inactive']} title="Maple's Corner">
+          <span class="text-sm">🍁</span>
+        </a>
       </div>
     </nav>
 
@@ -125,6 +131,11 @@ const currentPath = Astro.url.pathname;
     {side === 'dev' && (
       <div class="fixed bottom-4 right-4 opacity-20 pointer-events-none hidden lg:block">
         <img src="/assets/pixel-art/game-assets/wow_blue.png" alt="" class="pixel-sprite w-10 h-10 animate-float-slow" />
+      </div>
+    )}
+    {side === 'maple' && (
+      <div class="fixed bottom-4 right-4 opacity-20 pointer-events-none hidden lg:block">
+        <span class="text-3xl animate-float-slow">🍁</span>
       </div>
     )}
     <!-- Spritesheet cursor (persists across View Transitions) -->
