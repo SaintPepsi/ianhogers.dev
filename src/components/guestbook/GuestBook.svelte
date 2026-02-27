@@ -18,6 +18,7 @@
   let error: string = '';
   let activeSpread: number = 0;
   let carouselEl: HTMLDivElement;
+  let isPortrait = false;
 
   function handleCarouselScroll() {
     if (!carouselEl) return;
@@ -47,6 +48,7 @@
 
   let totalPages = 4;
   $: spreadCount = Math.ceil(totalPages / 2);
+  $: portraitSide = isPortrait ? activeSpread % 2 : 0;
 
   function getSpreadPages(spreadIndex: number): [number, number] {
     return [spreadIndex * 2, spreadIndex * 2 + 1];
@@ -120,6 +122,24 @@
       isLoading = false;
     }
   });
+
+  // Portrait detection for responsive single-page layout
+  onMount(() => {
+    const mql = window.matchMedia('(orientation: portrait)');
+    isPortrait = mql.matches;
+    const handler = (e: MediaQueryListEvent) => {
+      const wasPortrait = isPortrait;
+      isPortrait = e.matches;
+      // Convert activeSpread between page index and spread index
+      if (wasPortrait && !isPortrait) {
+        activeSpread = Math.floor(activeSpread / 2);
+      } else if (!wasPortrait && isPortrait) {
+        activeSpread = activeSpread * 2;
+      }
+    };
+    mql.addEventListener('change', handler);
+    return () => mql.removeEventListener('change', handler);
+  });
 </script>
 
 <div class="guestbook-container">
@@ -141,17 +161,72 @@
     </div>
   {:else}
     <div class="sprite-wrapper">
-      <div class="book">
+      <div class="book" style="--portrait-side: {portraitSide}">
         <!-- Scroll-timeline carousel -->
-        <div class="carousel" class:no-scroll={$isDragging || isWriteMode} style="--slides: {spreadCount};" bind:this={carouselEl} on:scroll={handleCarouselScroll}>
+        <div class="carousel" class:no-scroll={$isDragging || isWriteMode} style="--slides: {isPortrait ? totalPages : spreadCount}; --spread-count: {spreadCount};" bind:this={carouselEl} on:scroll={handleCarouselScroll}>
           <!-- Sprite sheet for page-flip animation -->
-          <div class="sprite"></div>
+          <div class="sprite-shift">
+            <div class="sprite"></div>
+          </div>
 
           <!-- Carousel items (one per spread) -->
-          {#each Array(spreadCount) as _, si}
-            {@const [leftIdx, rightIdx] = getSpreadPages(si)}
+          {#each Array(isPortrait ? totalPages : spreadCount) as _, si}
             <div class="carousel-item">
-              <div class="page-container" style="{si !== activeSpread ? 'pointer-events: none;' : ''}">
+              {#if isPortrait}
+                {@const pageIdx = si}
+                <div class="page-container portrait-mode" style="{si !== activeSpread ? 'pointer-events: none;' : ''}">
+                  <div class="single-page" class:cover-page={pageIdx === 0} class:title-page={pageIdx === 1}>
+                    <Page
+                      pageIndex={pageIdx}
+                      notes={notesByPage[pageIdx] || []}
+                      isWritable={!isWriteMode}
+                    >
+                      {#if pageIdx === 0}
+                        <div class="cover-inner" style="grid-column: 1 / -1; grid-row: 1 / -1; pointer-events: none;">
+                          <img
+                            src="/assets/pixel-art/decorative/sample-bunny.png"
+                            alt="Pixel bunny"
+                            class="cover-bunny pixel-sprite"
+                          />
+                          <h1 class="cover-title">Guest Book</h1>
+                        </div>
+                      {/if}
+                      {#if pageIdx === 1}
+                        <div class="title-header" style="grid-row: 1 / 7; grid-column: 1 / -1; pointer-events: none;">
+                          <h1 class="title-main">Guest Book</h1>
+                          <p class="title-subtitle">by Ian Hogers</p>
+                          <p class="title-credit">
+                            Thank you for visiting my corner of the web, I would love for you to leave your mark in this book! thank you
+                          </p>
+                        </div>
+                      {/if}
+                      <NoteRenderer
+                        notes={notesByPage[pageIdx] || []}
+                        pageIndex={pageIdx}
+                      />
+                      {#if si === activeSpread}
+                        <DragSelector
+                          occupancyMap={pageIdx === 1
+                            ? (() => { const m = new OccupancyMap(notesByPage[pageIdx] || []); m.addNote({ row_start: 1, row_end: 4, col_start: 4, col_end: 7 }); m.addNote({ row_start: 4, row_end: 5, col_start: 1, col_end: 10 }); return m; })()
+                            : new OccupancyMap(notesByPage[pageIdx] || [])}
+                          on:select={(e) => handleSelect(e, pageIdx)}
+                        />
+                      {/if}
+                      {#if isWriteMode && activePageIndex === pageIdx && selection}
+                        <WriteMode
+                          {selection}
+                          pageIndex={pageIdx}
+                          bind:text={writeText}
+                          onsubmit={handleSubmit}
+                          oncancel={handleCancel}
+                        />
+                      {/if}
+                    </Page>
+                  </div>
+                </div>
+              {:else}
+                {@const [leftIdx, rightIdx] = getSpreadPages(si)}
+                <div class="page-container" style="{si !== activeSpread ? 'pointer-events: none;' : ''}">
                 <!-- LEFT PAGE -->
                 {#if si === 0}
                   <div class="left-page cover-page">
@@ -286,6 +361,7 @@
                   </div>
                 {/if}
               </div>
+              {/if}
             </div>
           {/each}
         </div>
@@ -400,6 +476,13 @@
       "scroll scroll scroll"
       "left markers right";
     gap: 1rem;
+  }
+
+  /* Sprite shift wrapper — translates in portrait to show left/right page */
+  .sprite-shift {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
   }
 
   /* Sprite animation element */
@@ -683,5 +766,47 @@
     grid-template-columns: repeat(9, 1fr);
     grid-template-rows: repeat(4, 1fr);
     z-index: 1;
+  }
+
+  /* ═══════════════════════════════════════
+     PORTRAIT: Single page per slide
+     ═══════════════════════════════════════ */
+
+  @media (orientation: portrait) {
+    .guestbook-container {
+      padding: 0;
+    }
+
+    .book {
+      /* Scale sprite up so one page fills most of the viewport width */
+      --sprite-th: calc(var(--sprite-sh) / 2);
+      max-width: 100%;
+      grid-template-columns: 48px 1fr 48px;
+    }
+
+    .sprite-shift {
+      /* Shift the wrapper to show left or right book half */
+      translate: calc(var(--portrait-side, 0) * -1px * var(--sprite-tw) * 0.7042 / 2) 0;
+    }
+
+    .carousel {
+      /* Show one page content width, centered within the wider book frame */
+      width: calc(1px * (var(--sprite-tw) * 0.3521));
+      height: calc(1px * (var(--sprite-th) * 0.6107));
+      margin: 0 auto;
+    }
+
+    .portrait-mode {
+      height: 100%;
+    }
+
+    .single-page {
+      flex: 1;
+      overflow: visible;
+      position: relative;
+      padding: 15px;
+      width: 100%;
+      height: 100%;
+    }
   }
 </style>
