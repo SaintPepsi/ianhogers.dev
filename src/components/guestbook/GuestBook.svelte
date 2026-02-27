@@ -775,13 +775,13 @@
   @media (orientation: portrait) {
     .guestbook-container {
       padding: 0;
+      max-width: 100dvw;
+      overflow-x: hidden;
     }
 
     .book {
       /* Scale sprite up so one page fills most of the viewport width */
       --sprite-th: calc(var(--sprite-sh) / 2);
-      width: 100%;
-      grid-template-columns: 48px 1fr 48px;
     }
 
     .sprite-shift {
