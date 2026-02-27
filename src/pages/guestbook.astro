@@ -21,6 +21,15 @@ export const prerender = false;
     align-items: center;
     min-height: 70vh;
   }
+  @media (orientation: portrait) {
+    .guestbook-wrapper {
+      overflow: hidden;
+      max-width: 100dvw;
+      /* Break out of <main> padding to get full viewport width */
+      width: 100vw;
+      margin-left: calc(50% - 50vw);
+    }
+  }
   .guestbook-credit {
     text-align: center;
     font-family: 'Grand9KPixel', monospace;

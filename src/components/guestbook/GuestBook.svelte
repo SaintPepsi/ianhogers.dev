@@ -782,11 +782,6 @@
       --sprite-th: calc(var(--sprite-sh) / 2);
     }
 
-    .carousel::scroll-button(*),
-    .carousel::scroll-marker-group {
-      max-width: 100dvw;
-    }
-
     .sprite-shift {
       /* Shift the wrapper to show left or right book half */
       translate: calc(var(--portrait-side, 0) * -1px * var(--sprite-tw) * 0.7042 / 2) 0;
