@@ -775,13 +775,16 @@
   @media (orientation: portrait) {
     .guestbook-container {
       padding: 0;
-      max-width: 100dvw;
-      overflow-x: hidden;
     }
 
     .book {
       /* Scale sprite up so one page fills most of the viewport width */
       --sprite-th: calc(var(--sprite-sh) / 2);
+    }
+
+    .carousel::scroll-button(*),
+    .carousel::scroll-marker-group {
+      max-width: 100dvw;
     }
 
     .sprite-shift {
