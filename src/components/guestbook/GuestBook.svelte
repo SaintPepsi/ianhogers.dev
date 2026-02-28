@@ -23,6 +23,7 @@
   let mobileSpriteTH = $state(0);
   let mobileSpriteFrame = $state(0);
   let isAnimatingSpread = $state(false);
+  let mobileFading = $state(false);
 
   function handleMobileChange(e: MediaQueryListEvent | MediaQueryList) {
     isMobile = e.matches;
@@ -80,22 +81,30 @@
     requestAnimationFrame(step);
   }
 
-  // Mobile: navigate to specific page
+  // Mobile: navigate to specific page with fade transition
   function mobileGoToPage(page: number) {
-    if (page < 0 || page >= totalPages || isAnimatingSpread) return;
-    const prevSpread = Math.floor(mobileActivePage / 2);
-    const newSpread = Math.floor(page / 2);
+    if (page < 0 || page >= totalPages || isAnimatingSpread || mobileFading) return;
 
-    mobileActivePage = page;
-    activeSpread = newSpread;
+    mobileFading = true;
 
-    if (prevSpread !== newSpread) {
-      // Cross-spread: play page-flip sprite animation
-      isAnimatingSpread = true;
-      animateSprite(prevSpread * 7, newSpread * 7, () => {
-        isAnimatingSpread = false;
+    setTimeout(() => {
+      const prevSpread = Math.floor(mobileActivePage / 2);
+      const newSpread = Math.floor(page / 2);
+
+      mobileActivePage = page;
+      activeSpread = newSpread;
+
+      if (prevSpread !== newSpread) {
+        isAnimatingSpread = true;
+        animateSprite(prevSpread * 7, newSpread * 7, () => {
+          isAnimatingSpread = false;
+        });
+      }
+
+      requestAnimationFrame(() => {
+        mobileFading = false;
       });
-    }
+    }, 150);
   }
 
   function mobileNext() {
@@ -262,7 +271,7 @@
             {@const leftIdx = si * 2}
             {@const rightIdx = si * 2 + 1}
             <div class="carousel-item" style="{isMobile && si !== activeSpread ? 'display: none;' : ''}">
-              <div class="page-container" style="{si !== activeSpread ? 'pointer-events: none;' : ''}">
+              <div class="page-container" class:mobile-fading={isMobile && mobileFading} style="{si !== activeSpread ? 'pointer-events: none;' : ''}">
                 {#each [leftIdx, rightIdx] as pageIdx, pi}
                   <div
                     class={isMobile ? 'mobile-page' : (pi === 0 ? 'left-page' : 'right-page')}
@@ -588,6 +597,11 @@
     height: 100%;
     animation: stay-centered linear both;
     animation-timeline: view(x);
+    transition: opacity 0.15s ease;
+  }
+
+  .page-container.mobile-fading {
+    opacity: 0;
   }
 
   .left-page, .right-page {
