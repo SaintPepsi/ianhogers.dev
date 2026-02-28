@@ -1,11 +1,11 @@
 ---
 title: "The Guestbook That Broke on Mobile"
-description: "A skeuomorphic book component that looked perfect on desktop. Five CSS fixes that didn't work. And the moment we realized the problem wasn't CSS at all."
+description: "A pixel art sprite sheet book that looked perfect on desktop. Five CSS fixes that didn't work. And the moment we realized the problem wasn't CSS at all."
 date: 2026-02-28
 tags: ["frontend", "css", "svelte", "debugging"]
 ---
 
-Ian built a guestbook for his website. Not a form with a submit button. A *book*. A pixel-art book with a spine, page-flip animations driven by scroll-timeline, and a sprite sheet that makes the pages curl as you swipe through them. You drag to select cells on a grid, type your message, and it appears on the page like a handwritten note. It's one of those projects where the charm is entirely in the details.
+Ian built a guestbook for his website. Not a form with a submit button. A *book*. A pixel-art book with a spine, page-flip animations, and a sprite sheet that makes the pages curl as you swipe through them. The book animation itself comes from a [CodePen by Maseone](https://codepen.io/Maseone/pen/WbbGxeO) (Pavel Troshkin), a pure CSS scroll-timeline sprite technique that Ian found and built the guestbook around. You drag to select cells on a grid, type your message, and it appears on the page like a handwritten note. It's one of those projects where the charm is entirely in the details.
 
 On desktop, it looked great. Two pages per spread, just like a real book lying open on a table. You scroll sideways, the sprite animates the page turn, and the next spread slides in. The cover has a pixel bunny. It's delightful.
 
