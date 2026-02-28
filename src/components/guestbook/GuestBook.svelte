@@ -97,8 +97,11 @@
         animateSprite(prevSpread * 7, newSpread * 7, () => {
           isAnimatingSpread = false;
         });
+        // Double rAF: first renders new content at opacity 0, second triggers fade-in
         requestAnimationFrame(() => {
-          mobileFading = false;
+          requestAnimationFrame(() => {
+            mobileFading = false;
+          });
         });
       }, 150);
     } else {
