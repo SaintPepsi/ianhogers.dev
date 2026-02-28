@@ -468,6 +468,7 @@
     background-repeat: no-repeat;
     background-size: calc(1px * var(--sprite-uw)) calc(1px * var(--sprite-uh));
     z-index: -1;
+    pointer-events: none;
     image-rendering: pixelated;
 
     --sprite-fe: calc(var(--sprite-f) * (var(--slides) - 1));
@@ -596,6 +597,7 @@
     overflow: visible;
     position: relative;
     padding: 15px;
+    container-type: inline-size;
   }
 
   /* Keyframes matching reference */
@@ -687,6 +689,7 @@
     overflow: visible;
     position: relative;
     padding: 15px;
+    container-type: inline-size;
   }
 
   /* Mobile: hide CSS scroll-buttons (we use JS buttons) */
@@ -759,13 +762,13 @@
   }
 
   .cover-bunny {
-    width: 48px;
-    height: 48px;
+    width: 18cqi;
+    height: 18cqi;
   }
 
   .cover-title {
     font-family: 'Grand9KPixel', monospace;
-    font-size: clamp(0.55rem, 2.5vw, 0.9rem);
+    font-size: 5cqi;
     color: #333;
     text-align: center;
     letter-spacing: 0.05em;
@@ -785,7 +788,7 @@
 
   .title-main {
     font-family: 'Grand9KPixel', monospace;
-    font-size: clamp(0.55rem, 2.5vw, 0.9rem);
+    font-size: 5cqi;
     color: #333;
     text-align: center;
     margin: 0 0 0.15rem 0;
@@ -794,7 +797,7 @@
 
   .title-subtitle {
     font-family: 'Grand9KPixel', monospace;
-    font-size: 0.55rem;
+    font-size: 3cqi;
     color: hsl(45.71deg 69.23% 30%);
     text-align: center;
     margin: 0 0 0.5rem 0;
@@ -802,7 +805,7 @@
   }
 
   .title-credit {
-    font-size: 0.4rem;
+    font-size: 2.2cqi;
     color: hsl(45.71deg 69.23% 40%);
     text-align: center;
     font-family: 'Grand9KPixel', monospace;
