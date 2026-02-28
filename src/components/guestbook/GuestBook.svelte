@@ -49,7 +49,7 @@
     const VISIBLE_H_RATIO = 0.6107;
 
     // One page = half the carousel width. Size so one page fills viewport minus padding.
-    const padding = 16;
+    const padding = 32;
     const targetPageWidth = window.innerWidth - padding * 2;
     let th = (2 * targetPageWidth * SPRITE_SH * SPRITE_C) / (SPRITE_W * VISIBLE_W_RATIO);
 
@@ -660,7 +660,7 @@
     overflow: visible;
     scroll-snap-type: none;
     scroll-timeline: none;
-    transform: translateX(calc(-50% * var(--mobile-page-in-spread, 0)));
+    transform: translateX(calc(32px - 50% * var(--mobile-page-in-spread, 0)));
     transition: transform 0.3s ease;
   }
 
@@ -765,7 +765,7 @@
 
   .cover-title {
     font-family: 'Grand9KPixel', monospace;
-    font-size: 0.9rem;
+    font-size: clamp(0.55rem, 2.5vw, 0.9rem);
     color: #333;
     text-align: center;
     letter-spacing: 0.05em;
@@ -785,7 +785,7 @@
 
   .title-main {
     font-family: 'Grand9KPixel', monospace;
-    font-size: 0.9rem;
+    font-size: clamp(0.55rem, 2.5vw, 0.9rem);
     color: #333;
     text-align: center;
     margin: 0 0 0.15rem 0;
