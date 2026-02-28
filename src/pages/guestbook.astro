@@ -21,6 +21,12 @@ export const prerender = false;
     align-items: center;
     min-height: 70vh;
   }
+  @media (max-width: 799px) {
+    :global(main) {
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+    }
+  }
   .guestbook-credit {
     text-align: center;
     font-family: 'Grand9KPixel', monospace;
