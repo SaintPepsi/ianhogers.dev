@@ -2,8 +2,7 @@
   import type { GuestbookNote, ProfanityFlag } from './lib/types';
   import StickerOverlay from './StickerOverlay.svelte';
 
-  export let notes: GuestbookNote[] = [];
-  export let pageIndex: number;
+  let { notes = [], pageIndex }: { notes?: GuestbookNote[]; pageIndex: number } = $props();
 
   interface TextSegment {
     text: string;
