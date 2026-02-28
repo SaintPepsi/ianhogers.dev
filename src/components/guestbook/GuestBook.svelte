@@ -81,30 +81,30 @@
     requestAnimationFrame(step);
   }
 
-  // Mobile: navigate to specific page with fade transition
+  // Mobile: navigate to specific page, fade only on spread changes
   function mobileGoToPage(page: number) {
     if (page < 0 || page >= totalPages || isAnimatingSpread || mobileFading) return;
+    const prevSpread = Math.floor(mobileActivePage / 2);
+    const newSpread = Math.floor(page / 2);
 
-    mobileFading = true;
-
-    setTimeout(() => {
-      const prevSpread = Math.floor(mobileActivePage / 2);
-      const newSpread = Math.floor(page / 2);
-
-      mobileActivePage = page;
-      activeSpread = newSpread;
-
-      if (prevSpread !== newSpread) {
+    if (prevSpread !== newSpread) {
+      // Cross-spread: fade out, switch, fade in
+      mobileFading = true;
+      setTimeout(() => {
+        mobileActivePage = page;
+        activeSpread = newSpread;
         isAnimatingSpread = true;
         animateSprite(prevSpread * 7, newSpread * 7, () => {
           isAnimatingSpread = false;
         });
-      }
-
-      requestAnimationFrame(() => {
-        mobileFading = false;
-      });
-    }, 150);
+        requestAnimationFrame(() => {
+          mobileFading = false;
+        });
+      }, 150);
+    } else {
+      // Same spread: just slide to the other page
+      mobileActivePage = page;
+    }
   }
 
   function mobileNext() {
