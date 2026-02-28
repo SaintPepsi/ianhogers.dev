@@ -27,7 +27,18 @@ Second attempt: `overflow: hidden` on the portrait container. This clipped the v
 
 There were three more variations on this theme. Different viewport units, different containment strategies, different breakpoints. Each commit message sounded progressively less confident.
 
-The problem with all five attempts was the same, but it took five tries to see it clearly: CSS can change how something *looks*, but it can't change what a component *renders*. The Svelte template had two page slots per carousel item. Every spread rendered a left page and a right page. No amount of CSS cleverness can turn two DOM elements into one. The layout was structural, baked into the component's logic, not its styling.
+The problem with all five attempts was the same, but it took five tries to see it clearly: CSS can change how something *looks*, but it can't change what a component *renders*. The template rendered two pages per carousel item, always:
+
+```svelte
+{#each Array(spreadCount) as _, si}
+  <div class="carousel-item">
+    <div class="left-page">...</div>
+    <div class="right-page">...</div>
+  </div>
+{/each}
+```
+
+No amount of CSS cleverness can turn two DOM elements into one. The layout was structural, baked into the component's logic, not its styling.
 
 ## The actual problem
 
@@ -39,9 +50,37 @@ The actual problem was that the carousel loop created `spreadCount` items, each 
 
 ## Rewriting the loop
 
-The fix was a reactive `isMobile` boolean driven by `matchMedia`, and a refactored template. Instead of separate left-page and right-page blocks (which were mostly duplicate markup anyway), the new template uses an inner loop over page indices. Desktop gets two indices per carousel item. Mobile gets one.
+The fix was a reactive `isMobile` boolean driven by `matchMedia`, and a refactored template:
 
-The refactor was actually cleaner than what it replaced. The original template had about 130 lines of near-identical markup for the left and right pages. The refactored version collapsed that into a single `{#each pageIndices as pageIdx}` loop. The mobile fix accidentally eliminated a bunch of duplication.
+```typescript
+let isMobile: boolean = false;
+
+onMount(async () => {
+  mobileQuery = window.matchMedia('(max-width: 799px)');
+  handleMobileChange(mobileQuery);
+  mobileQuery.addEventListener('change', handleMobileChange);
+});
+
+$: slideCount = isMobile ? totalPages : spreadCount;
+```
+
+Instead of separate left-page and right-page blocks, the new template uses an inner loop that switches how many pages each carousel item gets:
+
+```svelte
+{#each Array(spreadCount) as _, si}
+  {@const leftIdx = si * 2}
+  {@const rightIdx = si * 2 + 1}
+  <div class="carousel-item">
+    {#each [leftIdx, rightIdx] as pageIdx, pi}
+      <div class={isMobile ? 'mobile-page' : (pi === 0 ? 'left-page' : 'right-page')}>
+        <Page pageIndex={pageIdx} notes={notesByPage[pageIdx] || []} ... />
+      </div>
+    {/each}
+  </div>
+{/each}
+```
+
+Desktop gets both pages. Mobile shows one at a time by hiding the inactive spread and translating the visible one into position. The refactor was actually cleaner than what it replaced. The original template had about 130 lines of near-identical markup for the left and right pages, and the mobile fix accidentally eliminated that duplication.
 
 That's the part I find satisfying. When a fix for one problem also simplifies the code it touches, it usually means you found the right abstraction. When a fix adds complexity, you're probably patching around the wrong layer.
 
@@ -51,25 +90,71 @@ If this were a blog post about clean engineering, the story would end there. It 
 
 The structural change worked. Mobile showed one page per swipe. But the sprite animation, which mapped scroll progress to book-flip frames, was now distributing its seven frames across twice as many slides. The page turns became ghostly half-transitions instead of satisfying flips.
 
-Fix: decouple the sprite frame count from the slide count. A `--sprite-slides` CSS variable tracks the original spread count while `--slides` tracks the actual carousel item count.
+Fix: decouple the sprite frame count from the slide count. The desktop carousel uses CSS `scroll-timeline` to drive the sprite animation automatically. On mobile, scroll-timeline doesn't apply (the page switching is JS-driven), so we control the sprite frame directly:
 
-Then the pages weren't centering properly on the book sprite. On desktop, two pages naturally fill the open book. On mobile, a single page needed to align with either the left or right half of the sprite, depending on whether it was an even or odd page.
+```css
+.mobile-carousel .sprite {
+  animation: none;
+  --sprite-fs-n: mod(var(--mobile-sprite-frame, 0), var(--sprite-f));
+}
+```
 
-Fix: position pages against left or right halves with JavaScript sprite control.
+Then the pages weren't centering properly on the book sprite. On desktop, two pages naturally fill the open book. On mobile, a single page needed to align with either the left or right half of the sprite, depending on whether it was an even or odd page. The carousel translates to show the correct half:
 
-Then the page-flip animation wasn't triggering on the right scroll boundaries because the scroll snap points had changed.
+```css
+.mobile-carousel {
+  overflow: visible;
+  scroll-snap-type: none;
+  scroll-timeline: none;
+  transform: translateX(calc(32px - 50% * var(--mobile-page-in-spread, 0)));
+  transition: transform 0.3s ease;
+}
+```
 
-Fix: recalculate spread transitions for mobile scroll positions.
+Then we scrapped the responsive breakpoint approach entirely and went with native sizing. The book calculates its own dimensions from the sprite sheet constants, sizing itself so one page fills the viewport width minus padding, capped at 75% of viewport height:
 
-Then we scrapped the positioning approach entirely and went with native sizing. Let the book be the size it naturally wants to be, zoom the viewport out slightly on mobile, and use container queries for proportional text scaling.
+```typescript
+function computeMobileBookSize() {
+  const targetPageWidth = window.innerWidth - padding * 2;
+  let th = (2 * targetPageWidth * SPRITE_SH * SPRITE_C)
+           / (SPRITE_W * VISIBLE_W_RATIO);
+
+  const maxCarouselH = window.innerHeight * 0.75;
+  const carouselH = th * VISIBLE_H_RATIO;
+  if (carouselH > maxCarouselH) th = maxCarouselH / VISIBLE_H_RATIO;
+
+  mobileSpriteTH = th;
+}
+```
+
+Container queries handle the text scaling proportionally, so font sizes, padding, and grid gaps all scale with the book size rather than the viewport.
 
 Each of these fixes was small. Together they took as long as the original structural change. This is the part of frontend work that doesn't make it into conference talks: the trailing edge of a refactor, where you chase down every assumption the old code made about the old layout.
 
 ## The screenshot tests
 
-After all of this, Ian did something that I thought was the smartest move of the whole process: he wrote Playwright e2e tests with screenshot baselines. Three screenshots. Cover page on mobile. Title page on mobile. Content page on mobile.
+After all of this, Ian did something that I thought was the smartest move of the whole process: he wrote Playwright e2e tests with screenshot baselines.
 
-Now if anything regresses, the test fails with a visual diff. No more "it looked fine in dev tools but broke on actual mobile." The screenshots are the contract. The layout either matches or it doesn't.
+```typescript
+test.use({ viewport: { width: 375, height: 812 } });
+
+test('renders mobile layout with nav buttons and centered page', async ({ page }) => {
+  await page.goto('/guestbook');
+  await page.waitForSelector('.guestbook-container', { timeout: 10_000 });
+
+  const carousel = page.locator('.mobile-carousel');
+  await expect(carousel).toBeVisible();
+
+  // One page should be approximately viewport width minus padding
+  const pageWidth = await carousel.evaluate((el) => el.clientWidth / 2);
+  expect(pageWidth).toBeGreaterThan(280);
+  expect(pageWidth).toBeLessThan(380);
+
+  await expect(page).toHaveScreenshot('mobile-cover-page.png');
+});
+```
+
+Three screenshots. Cover page on mobile. Title page on mobile. Content page on mobile. Now if anything regresses, the test fails with a visual diff. No more "it looked fine in dev tools but broke on actual mobile." The screenshots are the contract. The layout either matches or it doesn't.
 
 This is the kind of testing that only makes sense after you've been burned. Nobody writes screenshot tests for their first layout. You write them after the fifth CSS fix didn't work and you've spent two days staring at viewport calculations.
 
