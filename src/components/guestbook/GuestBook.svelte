@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import type { GuestbookNote } from './lib/types';
   import { OccupancyMap } from './lib/occupancy';
   import { isDragging } from './lib/dragState';
@@ -18,9 +18,98 @@
   let error: string = '';
   let activeSpread: number = 0;
   let carouselEl: HTMLDivElement;
+  let isMobile: boolean = false;
+  let mobileQuery: MediaQueryList | null = null;
+  let mobileActivePage: number = 0;
+  let mobileSpriteTH: number = 0;
+  let mobileSpriteFrame: number = 0;
+  let isAnimatingSpread: boolean = false;
 
+  function handleMobileChange(e: MediaQueryListEvent | MediaQueryList) {
+    isMobile = e.matches;
+    if (!isMobile) {
+      mobileActivePage = 0;
+      mobileSpriteTH = 0;
+      mobileSpriteFrame = 0;
+      isAnimatingSpread = false;
+    } else {
+      computeMobileBookSize();
+    }
+  }
+
+  function computeMobileBookSize() {
+    if (!isMobile) { mobileSpriteTH = 0; return; }
+    const SPRITE_W = 9600;
+    const SPRITE_H = 3000;
+    const SPRITE_C = 5;
+    const SPRITE_F = 7;
+    const SPRITE_R = Math.ceil(SPRITE_F / SPRITE_C);
+    const SPRITE_SH = SPRITE_H / SPRITE_R;
+    const VISIBLE_W_RATIO = 0.7042;
+    const VISIBLE_H_RATIO = 0.6107;
+
+    // One page = half the carousel width. Size so one page fills viewport minus padding.
+    const padding = 16;
+    const targetPageWidth = window.innerWidth - padding * 2;
+    let th = (2 * targetPageWidth * SPRITE_SH * SPRITE_C) / (SPRITE_W * VISIBLE_W_RATIO);
+
+    // Cap at 75vh
+    const maxCarouselH = window.innerHeight * 0.75;
+    const carouselH = th * VISIBLE_H_RATIO;
+    if (carouselH > maxCarouselH) {
+      th = maxCarouselH / VISIBLE_H_RATIO;
+    }
+
+    mobileSpriteTH = th;
+  }
+
+  // Animate sprite frames between spreads (page-flip effect)
+  function animateSprite(fromFrame: number, toFrame: number, onComplete: () => void) {
+    const duration = 400;
+    const startTime = performance.now();
+
+    function step(now: number) {
+      const progress = Math.min((now - startTime) / duration, 1);
+      mobileSpriteFrame = Math.round(fromFrame + (toFrame - fromFrame) * progress);
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      } else {
+        onComplete();
+      }
+    }
+
+    requestAnimationFrame(step);
+  }
+
+  // Mobile: navigate to specific page
+  function mobileGoToPage(page: number) {
+    if (page < 0 || page >= totalPages || isAnimatingSpread) return;
+    const prevSpread = Math.floor(mobileActivePage / 2);
+    const newSpread = Math.floor(page / 2);
+
+    mobileActivePage = page;
+    activeSpread = newSpread;
+
+    if (prevSpread !== newSpread) {
+      // Cross-spread: play page-flip sprite animation
+      isAnimatingSpread = true;
+      animateSprite(prevSpread * 7, newSpread * 7, () => {
+        isAnimatingSpread = false;
+      });
+    }
+  }
+
+  function mobileNext() {
+    mobileGoToPage(mobileActivePage + 1);
+  }
+
+  function mobilePrev() {
+    mobileGoToPage(mobileActivePage - 1);
+  }
+
+  // Desktop scroll handler (unchanged)
   function handleCarouselScroll() {
-    if (!carouselEl) return;
+    if (!carouselEl || isMobile) return;
     const itemWidth = carouselEl.clientWidth;
     if (itemWidth === 0) return;
     activeSpread = Math.round(carouselEl.scrollLeft / itemWidth);
@@ -47,11 +136,8 @@
 
   let totalPages = 4;
   $: spreadCount = Math.ceil(totalPages / 2);
-
-  function getSpreadPages(spreadIndex: number): [number, number] {
-    return [spreadIndex * 2, spreadIndex * 2 + 1];
-  }
-
+  // On mobile, each page is a slide; on desktop, each spread is a slide
+  $: slideCount = isMobile ? totalPages : spreadCount;
 
   // Write mode
   function handleSelect(e: CustomEvent, pageIndex: number) {
@@ -107,8 +193,19 @@
     exitWriteMode();
   }
 
-  // Fetch notes on mount
+  function handleResize() {
+    computeMobileBookSize();
+  }
+
+  // Fetch notes on mount + mobile detection
   onMount(async () => {
+    mobileQuery = window.matchMedia('(max-width: 799px)');
+    handleMobileChange(mobileQuery);
+    mobileQuery.addEventListener('change', handleMobileChange);
+    window.addEventListener('resize', handleResize);
+    // Compute after layout settles
+    requestAnimationFrame(() => requestAnimationFrame(() => computeMobileBookSize()));
+
     try {
       const response = await fetch('/api/guestbook/notes');
       if (!response.ok) throw new Error('Failed to fetch notes');
@@ -118,6 +215,15 @@
       error = 'Could not open the guest book. Please try again later.';
     } finally {
       isLoading = false;
+    }
+  });
+
+  onDestroy(() => {
+    if (mobileQuery) {
+      mobileQuery.removeEventListener('change', handleMobileChange);
+    }
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('resize', handleResize);
     }
   });
 </script>
@@ -141,47 +247,73 @@
     </div>
   {:else}
     <div class="sprite-wrapper">
-      <div class="book">
+      <div class="book" style="{isMobile && mobileSpriteTH ? `--sprite-th: ${mobileSpriteTH};` : ''}">
         <!-- Scroll-timeline carousel -->
-        <div class="carousel" class:no-scroll={$isDragging || isWriteMode} style="--slides: {spreadCount};" bind:this={carouselEl} on:scroll={handleCarouselScroll}>
+        <div
+          class="carousel"
+          class:mobile-carousel={isMobile}
+          style="--slides: {slideCount};{isMobile ? ` --mobile-page-in-spread: ${mobileActivePage % 2}; --mobile-sprite-frame: ${mobileSpriteFrame};` : ''}"
+          bind:this={carouselEl}
+          on:scroll={handleCarouselScroll}
+        >
           <!-- Sprite sheet for page-flip animation -->
           <div class="sprite"></div>
 
           <!-- Carousel items (one per spread) -->
           {#each Array(spreadCount) as _, si}
-            {@const [leftIdx, rightIdx] = getSpreadPages(si)}
-            <div class="carousel-item">
+            {@const leftIdx = si * 2}
+            {@const rightIdx = si * 2 + 1}
+            <div class="carousel-item" style="{isMobile && si !== activeSpread ? 'display: none;' : ''}">
               <div class="page-container" style="{si !== activeSpread ? 'pointer-events: none;' : ''}">
-                <!-- LEFT PAGE -->
-                {#if si === 0}
-                  <div class="left-page cover-page">
+                {#each [leftIdx, rightIdx] as pageIdx, pi}
+                  <div
+                    class={isMobile ? 'mobile-page' : (pi === 0 ? 'left-page' : 'right-page')}
+                    class:cover-page={pageIdx === 0}
+                    class:title-page={pageIdx === 1}
+                  >
                     <Page
-                      pageIndex={leftIdx}
-                      notes={notesByPage[leftIdx] || []}
+                      pageIndex={pageIdx}
+                      notes={notesByPage[pageIdx] || []}
                       isWritable={!isWriteMode}
+                      gridConfig={pageIdx === 1 ? { cols: 9, rows: 16 } : undefined}
                     >
-                      <div class="cover-inner" style="grid-column: 1 / -1; grid-row: 1 / -1; pointer-events: none;">
-                        <img
-                          src="/assets/pixel-art/decorative/sample-bunny.png"
-                          alt="Pixel bunny"
-                          class="cover-bunny pixel-sprite"
-                        />
-                        <h1 class="cover-title">Guest Book</h1>
-                      </div>
+                      {#if pageIdx === 0}
+                        <!-- Cover page content -->
+                        <div class="cover-inner" style="grid-column: 1 / -1; grid-row: 1 / -1; pointer-events: none;">
+                          <img
+                            src="/assets/pixel-art/decorative/sample-bunny.png"
+                            alt="Pixel bunny"
+                            class="cover-bunny pixel-sprite"
+                          />
+                          <h1 class="cover-title">Guest Book</h1>
+                        </div>
+                      {/if}
+                      {#if pageIdx === 1}
+                        <!-- Title page content -->
+                        <div class="title-header" style="grid-row: 1 / 7; grid-column: 1 / -1; pointer-events: none;">
+                          <h1 class="title-main">Guest Book</h1>
+                          <p class="title-subtitle">by Ian Hogers</p>
+                          <p class="title-credit">
+                            Thank you for visiting my corner of the web, I would love for you to leave your mark in this book! thank you
+                          </p>
+                        </div>
+                      {/if}
                       <NoteRenderer
-                        notes={notesByPage[leftIdx] || []}
-                        pageIndex={leftIdx}
+                        notes={notesByPage[pageIdx] || []}
+                        pageIndex={pageIdx}
                       />
                       {#if si === activeSpread}
                         <DragSelector
-                          occupancyMap={new OccupancyMap(notesByPage[leftIdx] || [])}
-                          on:select={(e) => handleSelect(e, leftIdx)}
+                          occupancyMap={pageIdx === 1
+                            ? (() => { const m = new OccupancyMap(notesByPage[pageIdx] || []); m.addNote({ row_start: 1, row_end: 4, col_start: 4, col_end: 7 }); m.addNote({ row_start: 4, row_end: 5, col_start: 1, col_end: 10 }); return m; })()
+                            : new OccupancyMap(notesByPage[pageIdx] || [])}
+                          on:select={(e) => handleSelect(e, pageIdx)}
                         />
                       {/if}
-                      {#if isWriteMode && activePageIndex === leftIdx && selection}
+                      {#if isWriteMode && activePageIndex === pageIdx && selection}
                         <WriteMode
                           {selection}
-                          pageIndex={leftIdx}
+                          pageIndex={pageIdx}
                           bind:text={writeText}
                           onsubmit={handleSubmit}
                           oncancel={handleCancel}
@@ -189,106 +321,18 @@
                       {/if}
                     </Page>
                   </div>
-                {:else}
-                  <div class="left-page">
-                    <Page
-                      pageIndex={leftIdx}
-                      notes={notesByPage[leftIdx] || []}
-                      isWritable={!isWriteMode}
-                    >
-                      <NoteRenderer
-                        notes={notesByPage[leftIdx] || []}
-                        pageIndex={leftIdx}
-                      />
-                      {#if si === activeSpread}
-                        <DragSelector
-                          occupancyMap={new OccupancyMap(notesByPage[leftIdx] || [])}
-                          on:select={(e) => handleSelect(e, leftIdx)}
-                        />
-                      {/if}
-                      {#if isWriteMode && activePageIndex === leftIdx && selection}
-                        <WriteMode
-                          {selection}
-                          pageIndex={leftIdx}
-                          bind:text={writeText}
-                          onsubmit={handleSubmit}
-                          oncancel={handleCancel}
-                        />
-                      {/if}
-                    </Page>
-                  </div>
-                {/if}
-
-                <!-- RIGHT PAGE -->
-                {#if si === 0}
-                  <div class="right-page title-page">
-                    <Page
-                      pageIndex={rightIdx}
-                      notes={notesByPage[rightIdx] || []}
-                      isWritable={!isWriteMode}
-                      gridConfig={{ cols: 9, rows: 16 }}
-                    >
-                      <div class="title-header" style="grid-row: 1 / 7; grid-column: 1 / -1; pointer-events: none;">
-                        <h1 class="title-main">Guest Book</h1>
-                        <p class="title-subtitle">by Ian Hogers</p>
-                        <p class="title-credit">
-                          Thank you for visiting my corner of the web, I would love for you to leave your mark in this book! thank you
-                        </p>
-                      </div>
-                      <NoteRenderer
-                        notes={notesByPage[rightIdx] || []}
-                        pageIndex={rightIdx}
-                      />
-                      {#if si === activeSpread}
-                        <DragSelector
-                          occupancyMap={(() => { const m = new OccupancyMap(notesByPage[rightIdx] || []); m.addNote({ row_start: 1, row_end: 4, col_start: 4, col_end: 7 }); m.addNote({ row_start: 4, row_end: 5, col_start: 1, col_end: 10 }); return m; })()}
-                          on:select={(e) => handleSelect(e, rightIdx)}
-                        />
-                      {/if}
-                      {#if isWriteMode && activePageIndex === rightIdx && selection}
-                        <WriteMode
-                          {selection}
-                          pageIndex={rightIdx}
-                          bind:text={writeText}
-                          onsubmit={handleSubmit}
-                          oncancel={handleCancel}
-                        />
-                      {/if}
-                    </Page>
-                  </div>
-                {:else}
-                  <div class="right-page">
-                    <Page
-                      pageIndex={rightIdx}
-                      notes={notesByPage[rightIdx] || []}
-                      isWritable={!isWriteMode}
-                    >
-                      <NoteRenderer
-                        notes={notesByPage[rightIdx] || []}
-                        pageIndex={rightIdx}
-                      />
-                      {#if si === activeSpread}
-                        <DragSelector
-                          occupancyMap={new OccupancyMap(notesByPage[rightIdx] || [])}
-                          on:select={(e) => handleSelect(e, rightIdx)}
-                        />
-                      {/if}
-                      {#if isWriteMode && activePageIndex === rightIdx && selection}
-                        <WriteMode
-                          {selection}
-                          pageIndex={rightIdx}
-                          bind:text={writeText}
-                          onsubmit={handleSubmit}
-                          oncancel={handleCancel}
-                        />
-                      {/if}
-                    </Page>
-                  </div>
-                {/if}
+                {/each}
               </div>
             </div>
           {/each}
         </div>
+        {#if isMobile}
+          <div class="mobile-nav">
+            <button class="mobile-nav-btn" disabled={mobileActivePage === 0} on:click={mobilePrev} aria-label="Previous page">&#9664;</button>
+            <span class="mobile-nav-indicator">{mobileActivePage + 1} / {totalPages}</span>
+            <button class="mobile-nav-btn" disabled={mobileActivePage >= totalPages - 1} on:click={mobileNext} aria-label="Next page">&#9654;</button>
+          </div>
+        {/if}
       </div>
     </div>
   {/if}
@@ -302,6 +346,13 @@
     max-width: 900px;
     margin: 0 auto;
     padding: 1rem;
+    overflow-x: clip;
+  }
+
+  @media (max-width: 799px) {
+    .guestbook-container {
+      padding: 0;
+    }
   }
 
   /* Loading state */
@@ -445,11 +496,6 @@
     scroll-behavior: smooth;
     scrollbar-width: none;
     scroll-marker-group: after;
-  }
-
-  /* Lock scroll during drag selection */
-  .carousel.no-scroll {
-    overflow: hidden;
   }
 
   /* Hide scrollbar */
@@ -603,6 +649,95 @@
     .book {
       --sprite-th: calc(var(--sprite-sh) / 4);
     }
+  }
+
+  /* ═══════════════════════════════════════
+     MOBILE: translate-based page navigation
+     ═══════════════════════════════════════ */
+
+  /* Mobile carousel: natively sized, one page fills viewport */
+  .mobile-carousel {
+    overflow: visible;
+    scroll-snap-type: none;
+    scroll-timeline: none;
+    transform: translateX(calc(-50% * var(--mobile-page-in-spread, 0)));
+    transition: transform 0.3s ease;
+  }
+
+  /* Mobile: all carousel items laid out in a row */
+  .mobile-carousel .carousel-item {
+    scroll-snap-align: unset;
+    scroll-snap-stop: unset;
+  }
+
+  /* Mobile: disable page fade animation — content always fully visible */
+  .mobile-carousel .page-container {
+    animation: none;
+  }
+
+  /* Mobile: disable CSS scroll-timeline sprite, use JS-controlled frames */
+  .mobile-carousel .sprite {
+    animation: none;
+    --sprite-fs-n: mod(var(--mobile-sprite-frame, 0), var(--sprite-f));
+  }
+
+  /* Mobile: each page takes half the spread (= half the carousel width) */
+  .mobile-page {
+    flex: 0 0 50%;
+    overflow: visible;
+    position: relative;
+    padding: 15px;
+  }
+
+  /* Mobile: hide CSS scroll-buttons (we use JS buttons) */
+  .mobile-carousel::scroll-button(*) {
+    display: none;
+  }
+
+  /* Mobile: hide scroll markers and progress bar */
+  .mobile-carousel::scroll-marker-group {
+    display: none;
+  }
+
+  .mobile-carousel .carousel-item::scroll-marker {
+    display: none;
+  }
+
+  /* Mobile navigation buttons — centered on viewport */
+  .mobile-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 0.5rem;
+    position: relative;
+    z-index: 10;
+    width: 100vw;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .mobile-nav-btn {
+    font-family: 'Grand9KPixel', monospace;
+    font-size: 1.2rem;
+    background: transparent;
+    color: #f5f0e8;
+    border: none;
+    padding: 8px 12px;
+    cursor: pointer;
+    image-rendering: pixelated;
+  }
+
+  .mobile-nav-btn:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+
+  .mobile-nav-indicator {
+    font-family: 'Grand9KPixel', monospace;
+    font-size: 0.6rem;
+    color: #b0a898;
+    image-rendering: pixelated;
   }
 
   /* Cover page */
