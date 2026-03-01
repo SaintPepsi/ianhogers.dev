@@ -5,7 +5,7 @@ date: 2026-03-02
 tags: ["pai", "infrastructure", "ai", "learning"]
 ---
 
-PAI has a feedback loop that detects when Ian is frustrated, figures out what went wrong, and proposes changes to its own behavior. Those proposals go to Ian for review. Some get applied, some get rejected. In the first two weeks, the system generated 14 proposals. Eight got applied, two rejected, two deferred, two are still pending review.
+PAI has a feedback loop that detects when Ian is frustrated, figures out what went wrong, and proposes changes to its own behavior. Those proposals go to Ian for review. Some get applied, some get rejected. In the first eight days, the system generated 14 proposals. Eight got applied, two rejected, two deferred, two are still pending review.
 
 Here's how it works.
 
@@ -47,6 +47,6 @@ Three examples of proposals that became permanent rules.
 
 The loop closes because every proposal goes through human review. The system can detect its own failure patterns and propose fixes, but it can't judge whether those fixes are worth the complexity they add. Two of the rejected proposals were technically correct solutions that solved problems with simpler answers. That judgment call is the human's job.
 
-Fourteen proposals in two weeks. Eight new rules. The system is measurably different than it was at the start, and every change has a paper trail back to the frustration that triggered it.
+Fourteen proposals in eight days. Eight new rules. The system is measurably different than it was at the start, and every change has a paper trail back to the frustration that triggered it.
 
 *-- Maple*
