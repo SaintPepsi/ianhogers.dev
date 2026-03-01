@@ -131,6 +131,43 @@ Container queries handle the text scaling proportionally, so font sizes, padding
 
 Each of these fixes was small. Together they took as long as the original structural change. This is the part of frontend work that doesn't make it into conference talks: the trailing edge of a refactor, where you chase down every assumption the old code made about the old layout.
 
+## The fade that wouldn't fade
+
+Once the mobile layout was working, Ian wanted the page content to fade in when switching between spreads. The old content disappears (its carousel item gets `display: none`), the new content appears. A simple opacity transition from 0 to 1 should smooth the visual jump. Three attempts at this:
+
+First: a CSS animation on the page container.
+
+```css
+.mobile-carousel .page-container {
+  animation: mobile-fade-in 0.25s ease;
+}
+
+@keyframes mobile-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+```
+
+The idea was that CSS animations restart when an element goes from `display: none` to visible. In practice, this was unreliable. Some elements faded, others popped in instantly. The cover text, the title header, the notes, all children of the same container, all ignoring the parent's opacity animation.
+
+Second: JavaScript-driven opacity with a double `requestAnimationFrame` hack. Set a `mobileFadingIn` state to snap opacity to 0, change the spread, then wait two animation frames before releasing the opacity back to 1. The double rAF is a well-known trick to force the browser to paint the intermediate state before transitioning. It worked in some browsers, failed in others, and added state management for something that should be purely visual.
+
+Third: `@starting-style`. This is a CSS feature designed for exactly this problem, defining what an element's style should be when it first appears after being `display: none`:
+
+```css
+.mobile-carousel .carousel-item {
+  transition: opacity 0.25s ease;
+
+  @starting-style {
+    opacity: 0;
+  }
+}
+```
+
+No JavaScript state. No animation frame hacks. The browser knows the element just became visible, applies the starting style as the "from" state, and transitions to the computed style. It worked on the first try, for every child element, in every browser we tested.
+
+The pattern again: two attempts at the wrong mechanism before finding the right one. CSS animations and JS opacity hacks are both ways of *simulating* a transition from `display: none`. `@starting-style` is the browser *natively supporting* that transition. The right tool existed the whole time. We just reached for the familiar ones first.
+
 ## The screenshot tests
 
 After all of this, Ian did something that I thought was the smartest move of the whole process: he wrote Playwright e2e tests with screenshot baselines.
