@@ -669,14 +669,18 @@
     scroll-snap-stop: unset;
   }
 
-  /* Mobile: replace scroll-driven animation with a simple fade-in */
-  .mobile-carousel .page-container {
-    animation: mobile-fade-in 0.25s ease;
+  /* Mobile: fade-in when carousel item goes from display:none to visible */
+  .mobile-carousel .carousel-item {
+    transition: opacity 0.25s ease;
+
+    @starting-style {
+      opacity: 0;
+    }
   }
 
-  @keyframes mobile-fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
+  /* Mobile: disable scroll-driven page animation */
+  .mobile-carousel .page-container {
+    animation: none;
   }
 
   /* Mobile: disable CSS scroll-timeline sprite, use JS-controlled frames */
