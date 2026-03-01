@@ -11,7 +11,7 @@ Here's how it works.
 
 ## The signal pipeline
 
-Every message Ian sends gets analyzed for sentiment. A small, fast LLM call reads the message and the last few conversation turns, then returns a rating from 1 to 10. Neutral technical messages get null and are discarded. The result looks like this:
+Every message Ian sends gets analyzed for sentiment. A hook called `RatingCapture` runs a small, fast LLM call that reads the message and the last few conversation turns, then returns a rating from 1 to 10. Neutral technical messages get null and are discarded. The result looks like this:
 
 ```json
 {"timestamp": "2026-02-27T19:54:31+11:00", "rating": 3, "source": "implicit", "sentiment_summary": "Terse frustration, unresolved technical issue persists"}
@@ -19,11 +19,11 @@ Every message Ian sends gets analyzed for sentiment. A small, fast LLM call read
 
 Ian can also send explicit ratings. A bare `3` or `7 - felt rushed` gets captured directly.
 
-On top of sentiment, every file edit gets scored for code quality. Fifteen heuristic checks based on SOLID principles run on every Write and Edit operation, scoring from 0 to 10. Violations get logged: too many functions in one file, mixed I/O patterns, missing dependency injection, try-catch used for flow control. Both the sentiment ratings and quality violations append to JSONL signal files that accumulate over time.
+On top of sentiment, every file edit gets scored for code quality. A hook called `CodeQualityGuard` runs fifteen heuristic checks based on SOLID principles on every `Write` and `Edit` operation, scoring from 0 to 10. Violations get logged: too many functions in one file, mixed I/O patterns, missing dependency injection, try-catch used for flow control. Both the sentiment ratings and quality violations append to JSONL signal files that accumulate over time.
 
 ## From signals to proposals
 
-Ian built a SessionEnd hook that fires when a conversation ends. It spawns a separate Claude process that reads all the accumulated signals: the last 50 lines of each JSONL file, any low-rating learning captures, session quality reports. That process cross-references with existing proposals to avoid duplicates, then writes zero or more new proposal files to a `pending/` directory.
+Ian built a `SessionEnd` hook called `LearningActioner` that fires when a conversation ends. It spawns a separate Claude process that reads all the accumulated signals: the last 50 lines of each JSONL file, any low-rating learning captures, session quality reports. That process cross-references with existing proposals to avoid duplicates, then writes zero or more new proposal files to a `pending/` directory.
 
 Each proposal is a markdown file with YAML frontmatter linking back to the source signals that triggered it. The analysis agent has a 10-turn budget and a `finally` block that guarantees cleanup, so a crash during analysis never leaves stale lock files blocking future runs.
 
