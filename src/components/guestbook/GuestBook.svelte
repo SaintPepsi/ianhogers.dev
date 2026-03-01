@@ -298,27 +298,27 @@
                           </p>
                         </div>
                       {/if}
-                      <NoteRenderer
-                        notes={notesByPage[pageIdx] || []}
-                        pageIndex={pageIdx}
-                      />
-                      {#if si === activeSpread}
-                        <DragSelector
-                          occupancyMap={pageIdx === 1
-                            ? (() => { const m = new OccupancyMap(notesByPage[pageIdx] || []); m.addNote({ row_start: 1, row_end: 4, col_start: 4, col_end: 7 }); m.addNote({ row_start: 4, row_end: 5, col_start: 1, col_end: 10 }); return m; })()
-                            : new OccupancyMap(notesByPage[pageIdx] || [])}
-                          onselect={(detail) => handleSelect(detail, pageIdx)}
-                        />
-                      {/if}
-                      {#if isWriteMode && activePageIndex === pageIdx && selection}
-                        <WriteMode
-                          {selection}
+                      <DragSelector
+                        occupancyMap={pageIdx === 1
+                          ? (() => { const m = new OccupancyMap(notesByPage[pageIdx] || []); m.addNote({ row_start: 1, row_end: 4, col_start: 4, col_end: 7 }); m.addNote({ row_start: 4, row_end: 5, col_start: 1, col_end: 10 }); return m; })()
+                          : new OccupancyMap(notesByPage[pageIdx] || [])}
+                        onselect={(detail) => handleSelect(detail, pageIdx)}
+                        interactive={si === activeSpread}
+                      >
+                        <NoteRenderer
+                          notes={notesByPage[pageIdx] || []}
                           pageIndex={pageIdx}
-                          bind:text={writeText}
-                          onsubmit={handleSubmit}
-                          oncancel={handleCancel}
                         />
-                      {/if}
+                        {#if isWriteMode && activePageIndex === pageIdx && selection}
+                          <WriteMode
+                            {selection}
+                            pageIndex={pageIdx}
+                            bind:text={writeText}
+                            onsubmit={handleSubmit}
+                            oncancel={handleCancel}
+                          />
+                        {/if}
+                      </DragSelector>
                     </Page>
                   </div>
                 {/each}

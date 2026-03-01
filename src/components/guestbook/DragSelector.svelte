@@ -1,4 +1,5 @@
 <script lang="ts">
+  import type { Snippet } from 'svelte';
   import { OccupancyMap } from './lib/occupancy';
   import { isDragging } from './lib/dragState';
 
@@ -7,11 +8,15 @@
     gridCols = 9,
     gridRows = 16,
     onselect,
+    interactive = true,
+    children,
   }: {
     occupancyMap: OccupancyMap;
     gridCols?: number;
     gridRows?: number;
     onselect?: (detail: { rowStart: number; rowEnd: number; colStart: number; colEnd: number }) => void;
+    interactive?: boolean;
+    children?: Snippet;
   } = $props();
 
   let overlayEl = $state<HTMLDivElement | undefined>(undefined);
@@ -131,11 +136,13 @@
 
 <div
   class="drag-overlay"
+  class:interactive
   data-drag-cursor
   bind:this={overlayEl}
-  onpointerdown={handlePointerDown}
+  onpointerdown={interactive ? handlePointerDown : undefined}
   style="--grid-cols: {gridCols}; --grid-rows: {gridRows};"
 >
+  {@render children?.()}
   {#if selection}
     <div
       class="selection-highlight"
@@ -158,6 +165,12 @@
     grid-template-columns: repeat(var(--grid-cols, 9), minmax(0, 1fr));
     grid-template-rows: repeat(var(--grid-rows, 16), minmax(0, 1fr));
     z-index: 10;
+    pointer-events: none;
+    touch-action: auto;
+  }
+
+  .drag-overlay.interactive {
+    pointer-events: auto;
     touch-action: none;
   }
 

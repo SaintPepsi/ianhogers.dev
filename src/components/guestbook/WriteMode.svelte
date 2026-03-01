@@ -125,6 +125,7 @@
     font-size: {fontSize};
   "
   onkeydown={handleKeydown}
+  onpointerdown={(e) => e.stopPropagation()}
 >
   {#if showConfirmDiscard}
     <div class="confirm-overlay">
