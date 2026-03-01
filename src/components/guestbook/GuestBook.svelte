@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from 'svelte';
   import type { GuestbookNote } from './lib/types';
   import { OccupancyMap } from './lib/occupancy';
   import { isDragging } from './lib/dragState';
@@ -199,7 +200,7 @@
   // Fetch notes on mount + mobile detection
   $effect(() => {
     mobileQuery = window.matchMedia('(max-width: 799px)');
-    handleMobileChange(mobileQuery);
+    untrack(() => handleMobileChange(mobileQuery));
     mobileQuery.addEventListener('change', handleMobileChange);
     window.addEventListener('resize', handleResize);
     // Compute after layout settles
