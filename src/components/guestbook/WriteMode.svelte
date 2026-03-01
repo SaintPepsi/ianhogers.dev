@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
 
   interface Props {
     selection: {
@@ -52,7 +51,7 @@
     }
   }
 
-  onMount(() => {
+  $effect(() => {
     const savedAuthor = localStorage.getItem('guestbook-author');
     if (savedAuthor) {
       author = savedAuthor;
@@ -126,6 +125,7 @@
     font-size: {fontSize};
   "
   onkeydown={handleKeydown}
+  onpointerdown={(e) => e.stopPropagation()}
 >
   {#if showConfirmDiscard}
     <div class="confirm-overlay">

@@ -1,30 +1,52 @@
 <script lang="ts">
-  import { createEventDispatcher, onDestroy } from 'svelte';
+  import type { Snippet } from 'svelte';
   import { OccupancyMap } from './lib/occupancy';
   import { isDragging } from './lib/dragState';
 
-  export let occupancyMap: OccupancyMap;
-  export let gridCols: number = 9;
-  export let gridRows: number = 16;
+  let {
+    occupancyMap,
+    gridCols = 9,
+    gridRows = 16,
+    onselect,
+    interactive = true,
+    children,
+  }: {
+    occupancyMap: OccupancyMap;
+    gridCols?: number;
+    gridRows?: number;
+    onselect?: (detail: { rowStart: number; rowEnd: number; colStart: number; colEnd: number }) => void;
+    interactive?: boolean;
+    children?: Snippet;
+  } = $props();
 
-  const dispatch = createEventDispatcher();
+  let overlayEl = $state<HTMLDivElement | undefined>(undefined);
+  let isSelecting = $state(false);
+  let startCell = $state<{ row: number; col: number } | null>(null);
+  let currentCell = $state<{ row: number; col: number } | null>(null);
+  let isValid = $state(false);
+  let showFlash = $state(false);
 
-  let overlayEl: HTMLDivElement;
-  let isSelecting = false;
-  let startCell: { row: number; col: number } | null = null;
-  let currentCell: { row: number; col: number } | null = null;
-  let isValid = false;
-  let showFlash = false;
+  let selection = $derived(computeSelection(startCell, currentCell));
 
-  $: selection = computeSelection(startCell, currentCell);
-  $: if (selection) {
-    isValid = occupancyMap.isRegionFree(
-      selection.rowStart,
-      selection.rowEnd,
-      selection.colStart,
-      selection.colEnd
-    ) && meetsMinimumSize(selection);
-  }
+  $effect(() => {
+    if (selection) {
+      isValid = occupancyMap.isRegionFree(
+        selection.rowStart,
+        selection.rowEnd,
+        selection.colStart,
+        selection.colEnd
+      ) && meetsMinimumSize(selection);
+    }
+  });
+
+  // Cleanup window listeners on destroy
+  $effect(() => {
+    return () => {
+      window.removeEventListener('pointermove', handleWindowPointerMove);
+      window.removeEventListener('pointerup', handleWindowPointerUp);
+      window.removeEventListener('pointercancel', handleWindowPointerCancel);
+    };
+  });
 
   function meetsMinimumSize(sel: { rowStart: number; rowEnd: number; colStart: number; colEnd: number }): boolean {
     return (sel.rowEnd - sel.rowStart) >= 2 && (sel.colEnd - sel.colStart) >= 2;
@@ -90,7 +112,7 @@
     if (!isSelecting) return;
 
     if (selection && isValid) {
-      dispatch('select', {
+      onselect?.({
         rowStart: selection.rowStart,
         rowEnd: selection.rowEnd,
         colStart: selection.colStart,
@@ -110,21 +132,17 @@
     if (!isSelecting) return;
     endDrag();
   }
-
-  onDestroy(() => {
-    window.removeEventListener('pointermove', handleWindowPointerMove);
-    window.removeEventListener('pointerup', handleWindowPointerUp);
-    window.removeEventListener('pointercancel', handleWindowPointerCancel);
-  });
 </script>
 
 <div
   class="drag-overlay"
+  class:interactive
   data-drag-cursor
   bind:this={overlayEl}
-  on:pointerdown={handlePointerDown}
+  onpointerdown={interactive ? handlePointerDown : undefined}
   style="--grid-cols: {gridCols}; --grid-rows: {gridRows};"
 >
+  {@render children?.()}
   {#if selection}
     <div
       class="selection-highlight"
@@ -147,6 +165,12 @@
     grid-template-columns: repeat(var(--grid-cols, 9), minmax(0, 1fr));
     grid-template-rows: repeat(var(--grid-rows, 16), minmax(0, 1fr));
     z-index: 10;
+    pointer-events: none;
+    touch-action: auto;
+  }
+
+  .drag-overlay.interactive {
+    pointer-events: auto;
     touch-action: none;
   }
 

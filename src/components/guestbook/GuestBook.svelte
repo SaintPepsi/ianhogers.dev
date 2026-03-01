@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount, onDestroy } from 'svelte';
+  import { untrack } from 'svelte';
   import type { GuestbookNote } from './lib/types';
   import { OccupancyMap } from './lib/occupancy';
   import { isDragging } from './lib/dragState';
@@ -9,21 +9,21 @@
   import WriteMode from './WriteMode.svelte';
 
   // State
-  let notes: GuestbookNote[] = [];
-  let isWriteMode: boolean = false;
-  let selection: { rowStart: number; rowEnd: number; colStart: number; colEnd: number } | null = null;
-  let activePageIndex: number = -1;
-  let writeText: string = '';
-  let isLoading: boolean = true;
-  let error: string = '';
-  let activeSpread: number = 0;
-  let carouselEl: HTMLDivElement;
-  let isMobile: boolean = false;
+  let notes = $state<GuestbookNote[]>([]);
+  let isWriteMode = $state(false);
+  let selection = $state<{ rowStart: number; rowEnd: number; colStart: number; colEnd: number } | null>(null);
+  let activePageIndex = $state(-1);
+  let writeText = $state('');
+  let isLoading = $state(true);
+  let error = $state('');
+  let activeSpread = $state(0);
+  let carouselEl = $state<HTMLDivElement | undefined>(undefined);
+  let isMobile = $state(false);
   let mobileQuery: MediaQueryList | null = null;
-  let mobileActivePage: number = 0;
-  let mobileSpriteTH: number = 0;
-  let mobileSpriteFrame: number = 0;
-  let isAnimatingSpread: boolean = false;
+  let mobileActivePage = $state(0);
+  let mobileSpriteTH = $state(0);
+  let mobileSpriteFrame = $state(0);
+  let isAnimatingSpread = $state(false);
 
   function handleMobileChange(e: MediaQueryListEvent | MediaQueryList) {
     isMobile = e.matches;
@@ -33,6 +33,8 @@
       mobileSpriteFrame = 0;
       isAnimatingSpread = false;
     } else {
+      mobileActivePage = activeSpread * 2;
+      mobileSpriteFrame = activeSpread * 7;
       computeMobileBookSize();
     }
   }
@@ -91,7 +93,6 @@
     activeSpread = newSpread;
 
     if (prevSpread !== newSpread) {
-      // Cross-spread: play page-flip sprite animation
       isAnimatingSpread = true;
       animateSprite(prevSpread * 7, newSpread * 7, () => {
         isAnimatingSpread = false;
@@ -116,14 +117,14 @@
   }
 
   // Derived: organize notes by page_index
-  $: notesByPage = notes.reduce<Record<number, GuestbookNote[]>>((acc, note) => {
+  let notesByPage = $derived(notes.reduce<Record<number, GuestbookNote[]>>((acc, note) => {
     if (!acc[note.page_index]) acc[note.page_index] = [];
     acc[note.page_index].push(note);
     return acc;
-  }, {});
+  }, {}));
 
   // Determine total spread count (minimum 2: cover+title, first content spread)
-  $: {
+  let totalPages = $derived.by(() => {
     const maxPageIndex = notes.reduce((max, n) => Math.max(max, n.page_index), 1);
     let neededPages = Math.max(4, maxPageIndex + 2);
     const lastPageNotes = notesByPage[neededPages - 1] || [];
@@ -131,20 +132,19 @@
     if (lastPageOccupancy.getOccupancy() > 0.7) {
       neededPages += 2;
     }
-    totalPages = neededPages;
-  }
+    return neededPages;
+  });
 
-  let totalPages = 4;
-  $: spreadCount = Math.ceil(totalPages / 2);
+  let spreadCount = $derived(Math.ceil(totalPages / 2));
   // On mobile, each page is a slide; on desktop, each spread is a slide
-  $: slideCount = isMobile ? totalPages : spreadCount;
+  let slideCount = $derived(isMobile ? totalPages : spreadCount);
 
   // Write mode
-  function handleSelect(e: CustomEvent, pageIndex: number) {
+  function handleSelect(detail: { rowStart: number; rowEnd: number; colStart: number; colEnd: number }, pageIndex: number) {
     // If write mode is active with content, ignore new selections
     if (isWriteMode && writeText.trim()) return;
 
-    selection = e.detail;
+    selection = detail;
     activePageIndex = pageIndex;
     isWriteMode = true;
     writeText = '';
@@ -198,33 +198,33 @@
   }
 
   // Fetch notes on mount + mobile detection
-  onMount(async () => {
+  $effect(() => {
     mobileQuery = window.matchMedia('(max-width: 799px)');
-    handleMobileChange(mobileQuery);
+    untrack(() => handleMobileChange(mobileQuery));
     mobileQuery.addEventListener('change', handleMobileChange);
     window.addEventListener('resize', handleResize);
     // Compute after layout settles
     requestAnimationFrame(() => requestAnimationFrame(() => computeMobileBookSize()));
 
-    try {
-      const response = await fetch('/api/guestbook/notes');
-      if (!response.ok) throw new Error('Failed to fetch notes');
-      notes = await response.json();
-    } catch (err) {
-      console.error('Failed to load guestbook:', err);
-      error = 'Could not open the guest book. Please try again later.';
-    } finally {
-      isLoading = false;
-    }
-  });
+    (async () => {
+      try {
+        const response = await fetch('/api/guestbook/notes');
+        if (!response.ok) throw new Error('Failed to fetch notes');
+        notes = await response.json();
+      } catch (err) {
+        console.error('Failed to load guestbook:', err);
+        error = 'Could not open the guest book. Please try again later.';
+      } finally {
+        isLoading = false;
+      }
+    })();
 
-  onDestroy(() => {
-    if (mobileQuery) {
-      mobileQuery.removeEventListener('change', handleMobileChange);
-    }
-    if (typeof window !== 'undefined') {
+    return () => {
+      if (mobileQuery) {
+        mobileQuery.removeEventListener('change', handleMobileChange);
+      }
       window.removeEventListener('resize', handleResize);
-    }
+    };
   });
 </script>
 
@@ -241,7 +241,7 @@
   {:else if error}
     <div class="error-state">
       <p class="error-text">{error}</p>
-      <button class="retry-btn" on:click={() => location.reload()}>
+      <button class="retry-btn" onclick={() => location.reload()}>
         Try again
       </button>
     </div>
@@ -254,7 +254,7 @@
           class:mobile-carousel={isMobile}
           style="--slides: {slideCount};{isMobile ? ` --mobile-page-in-spread: ${mobileActivePage % 2}; --mobile-sprite-frame: ${mobileSpriteFrame};` : ''}"
           bind:this={carouselEl}
-          on:scroll={handleCarouselScroll}
+          onscroll={handleCarouselScroll}
         >
           <!-- Sprite sheet for page-flip animation -->
           <div class="sprite"></div>
@@ -298,27 +298,27 @@
                           </p>
                         </div>
                       {/if}
-                      <NoteRenderer
-                        notes={notesByPage[pageIdx] || []}
-                        pageIndex={pageIdx}
-                      />
-                      {#if si === activeSpread}
-                        <DragSelector
-                          occupancyMap={pageIdx === 1
-                            ? (() => { const m = new OccupancyMap(notesByPage[pageIdx] || []); m.addNote({ row_start: 1, row_end: 4, col_start: 4, col_end: 7 }); m.addNote({ row_start: 4, row_end: 5, col_start: 1, col_end: 10 }); return m; })()
-                            : new OccupancyMap(notesByPage[pageIdx] || [])}
-                          on:select={(e) => handleSelect(e, pageIdx)}
-                        />
-                      {/if}
-                      {#if isWriteMode && activePageIndex === pageIdx && selection}
-                        <WriteMode
-                          {selection}
+                      <DragSelector
+                        occupancyMap={pageIdx === 1
+                          ? (() => { const m = new OccupancyMap(notesByPage[pageIdx] || []); m.addNote({ row_start: 1, row_end: 4, col_start: 4, col_end: 7 }); m.addNote({ row_start: 4, row_end: 5, col_start: 1, col_end: 10 }); return m; })()
+                          : new OccupancyMap(notesByPage[pageIdx] || [])}
+                        onselect={(detail) => handleSelect(detail, pageIdx)}
+                        interactive={si === activeSpread}
+                      >
+                        <NoteRenderer
+                          notes={notesByPage[pageIdx] || []}
                           pageIndex={pageIdx}
-                          bind:text={writeText}
-                          onsubmit={handleSubmit}
-                          oncancel={handleCancel}
                         />
-                      {/if}
+                        {#if isWriteMode && activePageIndex === pageIdx && selection}
+                          <WriteMode
+                            {selection}
+                            pageIndex={pageIdx}
+                            bind:text={writeText}
+                            onsubmit={handleSubmit}
+                            oncancel={handleCancel}
+                          />
+                        {/if}
+                      </DragSelector>
                     </Page>
                   </div>
                 {/each}
@@ -328,9 +328,9 @@
         </div>
         {#if isMobile}
           <div class="mobile-nav">
-            <button class="mobile-nav-btn" disabled={mobileActivePage === 0} on:click={mobilePrev} aria-label="Previous page">&#9664;</button>
+            <button class="mobile-nav-btn" disabled={mobileActivePage === 0} onclick={mobilePrev} aria-label="Previous page">&#9664;</button>
             <span class="mobile-nav-indicator">{mobileActivePage + 1} / {totalPages}</span>
-            <button class="mobile-nav-btn" disabled={mobileActivePage >= totalPages - 1} on:click={mobileNext} aria-label="Next page">&#9654;</button>
+            <button class="mobile-nav-btn" disabled={mobileActivePage >= totalPages - 1} onclick={mobileNext} aria-label="Next page">&#9654;</button>
           </div>
         {/if}
       </div>
@@ -672,7 +672,16 @@
     scroll-snap-stop: unset;
   }
 
-  /* Mobile: disable page fade animation — content always fully visible */
+  /* Mobile: fade-in when carousel item goes from display:none to visible */
+  .mobile-carousel .carousel-item {
+    transition: opacity 0.25s ease;
+
+    @starting-style {
+      opacity: 0;
+    }
+  }
+
+  /* Mobile: disable scroll-driven page animation */
   .mobile-carousel .page-container {
     animation: none;
   }

@@ -1,17 +1,27 @@
 <script lang="ts">
   import type { GuestbookNote } from './lib/types';
+  import type { Snippet } from 'svelte';
 
-  export let pageIndex: number;
-  export let notes: GuestbookNote[] = [];
-  export let isWritable: boolean = true;
-  export let gridConfig: { cols: number; rows: number } = { cols: 9, rows: 16 };
+  let {
+    pageIndex,
+    notes = [],
+    isWritable = true,
+    gridConfig = { cols: 9, rows: 16 },
+    children,
+  }: {
+    pageIndex: number;
+    notes?: GuestbookNote[];
+    isWritable?: boolean;
+    gridConfig?: { cols: number; rows: number };
+    children?: Snippet;
+  } = $props();
 </script>
 
 <div
   class="page pixel-sprite"
   style="--grid-cols: {gridConfig.cols}; --grid-rows: {gridConfig.rows};"
 >
-  <slot />
+  {@render children?.()}
 
   <!-- Page number -->
   <div class="page-number" style="grid-column: 1 / -1; grid-row: {gridConfig.rows} / {gridConfig.rows + 1};">
@@ -27,6 +37,7 @@
     grid-template-rows: repeat(var(--grid-rows, 16), minmax(0, 1fr));
     width: 100%;
     height: 100%;
+    overflow: visible;
     background: transparent;
     user-select: none;
   }

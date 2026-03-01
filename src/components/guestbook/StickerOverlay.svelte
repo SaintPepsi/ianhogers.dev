@@ -1,11 +1,14 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
   import { createPRNG, hashString } from './lib/prng';
   import type { ProfanityFlag } from './lib/types';
+  import type { Snippet } from 'svelte';
 
-  export let flag: ProfanityFlag;
-  export let pageIndex: number;
-  export let gridArea: string;
+  let { flag, pageIndex, gridArea, children }: {
+    flag: ProfanityFlag;
+    pageIndex: number;
+    gridArea: string;
+    children?: Snippet;
+  } = $props();
 
   interface StickerPlacement {
     src: string;
@@ -17,12 +20,12 @@
     zIndex: number;
   }
 
-  let wrapperEl: HTMLSpanElement;
-  let placements: StickerPlacement[] = [];
+  let wrapperEl = $state<HTMLSpanElement | undefined>(undefined);
+  let placements = $state<StickerPlacement[]>([]);
 
   const AVG_STICKER_WIDTH = 14;
 
-  onMount(() => {
+  $effect(() => {
     if (!wrapperEl || flag.stickerPool.length === 0) return;
 
     const rect = wrapperEl.getBoundingClientRect();
@@ -79,7 +82,7 @@
 </script>
 
 <span class="sticker-overlay" bind:this={wrapperEl}>
-  <span class="sticker-text"><slot /></span>
+  <span class="sticker-text">{@render children?.()}</span>
   {#each placements as sticker}
     <img
       class="sticker-img pixel-sprite"
