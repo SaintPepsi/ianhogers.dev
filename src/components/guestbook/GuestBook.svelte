@@ -32,6 +32,8 @@
       mobileSpriteFrame = 0;
       isAnimatingSpread = false;
     } else {
+      mobileActivePage = activeSpread * 2;
+      mobileSpriteFrame = activeSpread * 7;
       computeMobileBookSize();
     }
   }
