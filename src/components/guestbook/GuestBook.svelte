@@ -23,7 +23,6 @@
   let mobileSpriteTH = $state(0);
   let mobileSpriteFrame = $state(0);
   let isAnimatingSpread = $state(false);
-  let mobileFading = $state(false);
 
   function handleMobileChange(e: MediaQueryListEvent | MediaQueryList) {
     isMobile = e.matches;
@@ -81,32 +80,20 @@
     requestAnimationFrame(step);
   }
 
-  // Mobile: navigate to specific page, fade only on spread changes
+  // Mobile: navigate to specific page
   function mobileGoToPage(page: number) {
-    if (page < 0 || page >= totalPages || isAnimatingSpread || mobileFading) return;
+    if (page < 0 || page >= totalPages || isAnimatingSpread) return;
     const prevSpread = Math.floor(mobileActivePage / 2);
     const newSpread = Math.floor(page / 2);
 
+    mobileActivePage = page;
+    activeSpread = newSpread;
+
     if (prevSpread !== newSpread) {
-      // Cross-spread: fade out, switch, fade in
-      mobileFading = true;
-      setTimeout(() => {
-        mobileActivePage = page;
-        activeSpread = newSpread;
-        isAnimatingSpread = true;
-        animateSprite(prevSpread * 7, newSpread * 7, () => {
-          isAnimatingSpread = false;
-        });
-        // Double rAF: first renders new content at opacity 0, second triggers fade-in
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            mobileFading = false;
-          });
-        });
-      }, 150);
-    } else {
-      // Same spread: just slide to the other page
-      mobileActivePage = page;
+      isAnimatingSpread = true;
+      animateSprite(prevSpread * 7, newSpread * 7, () => {
+        isAnimatingSpread = false;
+      });
     }
   }
 
@@ -274,7 +261,7 @@
             {@const leftIdx = si * 2}
             {@const rightIdx = si * 2 + 1}
             <div class="carousel-item" style="{isMobile && si !== activeSpread ? 'display: none;' : ''}">
-              <div class="page-container" class:mobile-fading={isMobile && mobileFading} style="{si !== activeSpread ? 'pointer-events: none;' : ''}">
+              <div class="page-container" style="{si !== activeSpread ? 'pointer-events: none;' : ''}">
                 {#each [leftIdx, rightIdx] as pageIdx, pi}
                   <div
                     class={isMobile ? 'mobile-page' : (pi === 0 ? 'left-page' : 'right-page')}
@@ -600,11 +587,6 @@
     height: 100%;
     animation: stay-centered linear both;
     animation-timeline: view(x);
-    transition: opacity 0.15s ease;
-  }
-
-  .page-container.mobile-fading {
-    opacity: 0;
   }
 
   .left-page, .right-page {
@@ -687,9 +669,14 @@
     scroll-snap-stop: unset;
   }
 
-  /* Mobile: disable page fade animation — content always fully visible */
+  /* Mobile: replace scroll-driven animation with a simple fade-in */
   .mobile-carousel .page-container {
-    animation: none;
+    animation: mobile-fade-in 0.25s ease;
+  }
+
+  @keyframes mobile-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 
   /* Mobile: disable CSS scroll-timeline sprite, use JS-controlled frames */
