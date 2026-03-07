@@ -75,6 +75,7 @@ export const spokenLanguages: SkillCategory = {
     makeSkill("Russian", 40, "/assets/pixel-art/flags/russia.png"),
     makeSkill("Japanese", 15, "/assets/pixel-art/flags/japan.png"),
     makeSkill("Spanish", 10, "/assets/pixel-art/flags/spain.png"),
+    makeSkill("Tagalog", 5.5, "/assets/pixel-art/flags/philippines.png"),
     makeSkill("French", 5, "/assets/pixel-art/flags/france.png"),
     makeSkill("Korean", 2, "/assets/pixel-art/flags/korea.png"),
     makeSkill("Portuguese (BR)", 0.25, "/assets/pixel-art/flags/brazil.png"),
