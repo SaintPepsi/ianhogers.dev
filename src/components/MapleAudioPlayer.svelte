@@ -64,11 +64,11 @@
   }
 
   function handleSeek(e: MouseEvent) {
-    if (!audio) return;
+    if (!audio || !isFinite(audio.duration) || audio.duration === 0) return;
     const bar = e.currentTarget as HTMLDivElement;
     const rect = bar.getBoundingClientRect();
     const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-    audio.currentTime = ratio * duration;
+    audio.currentTime = ratio * audio.duration;
   }
 
   function close() {

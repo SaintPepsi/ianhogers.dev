@@ -107,4 +107,13 @@ const sideLabel = side === 'dev' ? 'dev' : side === 'personal' ? 'life' : "maple
     left: calc(100% + 1rem);
     top: 0;
   }
+
+  /* On narrow screens, tuck inside header top-right */
+  @media (max-width: 1200px) {
+    .audio-btn-anchor {
+      left: auto;
+      right: 0.75rem;
+      top: 0.75rem;
+    }
+  }
 </style>
