@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { Tooltip } from 'bits-ui';
+
   let {
     audioSrc,
     articleTitle = 'this article',
@@ -13,7 +15,6 @@
   let progress = $state(0);
   let duration = $state(0);
   let currentTime = $state(0);
-  let isHovered = $state(false);
   let hasError = $state(false);
 
   function formatTime(seconds: number): string {
@@ -103,26 +104,26 @@
   ></audio>
 
   {#if !isExpanded}
-    <button
-      class="maple-play-btn"
-      onclick={togglePlay}
-      onmouseenter={() => isHovered = true}
-      onmouseleave={() => isHovered = false}
-      aria-label="Let Maple read this"
-      disabled={hasError}
-    >
-      <img
-        src="/assets/pixel-art/ui/sound_on.png"
-        alt=""
-        class="pixel-sprite play-icon"
-      />
-      {#if isHovered && !hasError}
-        <span class="tooltip">Let Maple read this</span>
-      {/if}
-      {#if hasError}
-        <span class="tooltip tooltip-error">Audio unavailable</span>
-      {/if}
-    </button>
+    <Tooltip.Provider>
+      <Tooltip.Root delayDuration={200}>
+        <Tooltip.Trigger
+          onclick={togglePlay}
+          class="maple-play-btn"
+          disabled={hasError}
+        >
+          <img
+            src="/assets/pixel-art/ui/sound_on.png"
+            alt=""
+            class="pixel-sprite play-icon"
+          />
+        </Tooltip.Trigger>
+        <Tooltip.Portal>
+          <Tooltip.Content sideOffset={8} class="maple-tooltip {hasError ? 'maple-tooltip-error' : ''}">
+            {hasError ? 'Audio unavailable' : 'Let Maple read this'}
+          </Tooltip.Content>
+        </Tooltip.Portal>
+      </Tooltip.Root>
+    </Tooltip.Provider>
   {:else}
     <div class="maple-mini-player">
       <button
@@ -211,38 +212,6 @@
     height: 16px;
   }
 
-  .tooltip {
-    position: absolute;
-    left: 100%;
-    top: 50%;
-    transform: translateY(-50%);
-    margin-left: 12px;
-    white-space: nowrap;
-    background: #1e1a28;
-    color: #fb923c;
-    font-size: 0.75rem;
-    padding: 6px 12px;
-    pointer-events: none;
-    background-image:
-      repeating-linear-gradient(90deg, #fb923c 0px 4px, transparent 4px 8px),
-      repeating-linear-gradient(90deg, #fb923c 0px 4px, transparent 4px 8px),
-      linear-gradient(#fb923c, #fb923c),
-      linear-gradient(#fb923c, #fb923c);
-    background-size: 100% 2px, 100% 2px, 2px 100%, 2px 100%;
-    background-position: top left, bottom left, top left, top right;
-    background-repeat: no-repeat;
-    background-color: #1e1a28;
-    animation: tooltip-in 0.15s ease;
-  }
-
-  .tooltip-error {
-    color: #ef5350;
-  }
-
-  @keyframes tooltip-in {
-    from { opacity: 0; transform: translateY(-50%) translateX(-4px); }
-    to { opacity: 1; transform: translateY(-50%) translateX(0); }
-  }
 
   /* Expanded mini player — always fixed at bottom */
   .maple-mini-player {
@@ -397,5 +366,34 @@
 
   .close-btn:hover {
     color: #fb923c;
+  }
+  /* Bits UI tooltip — global because it renders in a portal */
+  :global(.maple-tooltip) {
+    font-family: 'JetBrains Mono', monospace;
+    white-space: nowrap;
+    background-color: #1e1a28;
+    color: #fb923c;
+    font-size: 0.75rem;
+    padding: 6px 12px;
+    pointer-events: none;
+    background-image:
+      repeating-linear-gradient(90deg, #fb923c 0px 4px, transparent 4px 8px),
+      repeating-linear-gradient(90deg, #fb923c 0px 4px, transparent 4px 8px),
+      linear-gradient(#fb923c, #fb923c),
+      linear-gradient(#fb923c, #fb923c);
+    background-size: 100% 2px, 100% 2px, 2px 100%, 2px 100%;
+    background-position: top left, bottom left, top left, top right;
+    background-repeat: no-repeat;
+    animation: maple-tooltip-in 0.15s ease;
+    z-index: 200;
+  }
+
+  :global(.maple-tooltip-error) {
+    color: #ef5350;
+  }
+
+  @keyframes maple-tooltip-in {
+    from { opacity: 0; transform: translateY(2px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 </style>
