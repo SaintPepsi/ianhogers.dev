@@ -9,9 +9,9 @@ Generates narration audio files for Maple's Corner articles using [Kokoro TTS](h
 2. Extracts title and description from frontmatter, strips markdown body to plain text
 3. Assembles narration text as: "Title. Description. Body..."
 4. Sends paragraphs to the Kokoro TTS server (port 8889) for WAV generation
-4. Concatenates paragraph WAVs into one file
-5. Converts WAV → M4A (AAC 64kbps) via macOS `afconvert`
-6. Writes to `public/audio/maple/{slug}.m4a`
+5. Concatenates paragraph WAVs into one file
+6. Converts WAV → M4A (AAC 64kbps) via macOS `afconvert`
+7. Writes to `public/audio/maple/{slug}.m4a`
 
 **Prerequisites:**
 - Kokoro TTS server running (`cd ~/.claude/VoiceServer && ./start.sh`)
