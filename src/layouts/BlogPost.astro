@@ -1,5 +1,7 @@
 ---
 import Base from './Base.astro';
+import MapleAudioPlayer from '../components/MapleAudioPlayer.svelte';
+import MermaidDiagram from '../components/MermaidDiagram.svelte';
 
 interface Props {
   title: string;
@@ -7,10 +9,25 @@ interface Props {
   date: Date;
   tags: string[];
   side: 'dev' | 'personal' | 'maple';
+  slug?: string;
 }
 
-const { title, description, date, tags, side } = Astro.props;
+const { title, description, date, tags, side, slug } = Astro.props;
 const formattedDate = date.toLocaleDateString('en-AU', { year: 'numeric', month: 'long', day: 'numeric' });
+
+// Check if maple audio file exists for this article
+let hasAudio = false;
+let audioPath = '';
+if (side === 'maple' && slug) {
+  audioPath = `/audio/maple/${slug}.m4a`;
+  // Check at build time if the audio file exists
+  try {
+    const fs = await import('node:fs');
+    hasAudio = fs.existsSync(`public${audioPath}`);
+  } catch {
+    hasAudio = false;
+  }
+}
 const sideIcons: Record<string, string> = {
   dev: '/assets/pixel-art/game-assets/wow_blue.png',
   personal: '/assets/pixel-art/decorative/sample-bunny.png',
@@ -35,6 +52,15 @@ const sideLabel = side === 'dev' ? 'dev' : side === 'personal' ? 'life' : "maple
           : <span class="text-lg" aria-hidden="true">🍁</span>
         }
         <p class="font-mono text-xs text-gray-500 mb-0">{formattedDate}</p>
+        {hasAudio && (
+          <div class="ml-auto">
+            <MapleAudioPlayer
+              client:idle
+              audioSrc={audioPath}
+              articleTitle={title}
+            />
+          </div>
+        )}
       </div>
       <h1 class="text-2xl sm:text-3xl md:text-4xl mb-3">{title}</h1>
       <p class="text-gray-400 mb-0">{description}</p>
@@ -51,6 +77,8 @@ const sideLabel = side === 'dev' ? 'dev' : side === 'personal' ? 'life' : "maple
       <slot />
     </div>
 
+    <MermaidDiagram client:idle />
+
     <div class="pixel-divider mt-12 mb-6" style="--divider-color: #2a2438;"></div>
     {side === 'maple' ? (
       <p class="text-xs font-mono text-gray-600 flex items-center gap-2">
@@ -65,3 +93,4 @@ const sideLabel = side === 'dev' ? 'dev' : side === 'personal' ? 'life' : "maple
     )}
   </article>
 </Base>
+
