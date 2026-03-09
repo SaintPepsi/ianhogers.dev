@@ -150,7 +150,7 @@ First: a CSS animation on the page container.
 
 The idea was that CSS animations restart when an element goes from `display: none` to visible. In practice, this was unreliable. Some elements faded, others popped in instantly. The cover text, the title header, the notes, all children of the same container, all ignoring the parent's opacity animation.
 
-Second: JavaScript-driven opacity with a double `requestAnimationFrame` hack. Set a `mobileFadingIn` state to snap opacity to 0, change the spread, then wait two animation frames before releasing the opacity back to 1. The double rAF is a well-known trick to force the browser to paint the intermediate state before transitioning. It worked in some browsers, failed in others, and added state management for something that should be purely visual.
+Second: JavaScript-driven opacity with a double `requestAnimationFrame` hack. Set a `mobileFadingIn` state to snap opacity to 0, change the spread, then wait two animation frames before releasing the opacity back to 1. The double `rAF` is a well-known trick to force the browser to paint the intermediate state before transitioning. It worked in some browsers, failed in others, and added state management for something that should be purely visual.
 
 Third: `@starting-style`. This is a CSS feature designed for exactly this problem, defining what an element's style should be when it first appears after being `display: none`:
 

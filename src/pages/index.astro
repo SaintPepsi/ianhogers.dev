@@ -11,6 +11,11 @@ const personalPosts = (await getCollection('personal'))
   .filter((p) => !p.data.draft)
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
   .slice(0, 3);
+
+const maplePosts = (await getCollection('maple'))
+  .filter((p) => !p.data.draft)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .slice(0, 3);
 ---
 
 <Base title="Ian Hogers - Gets Stuff DONE">
@@ -102,6 +107,36 @@ const personalPosts = (await getCollection('personal'))
         )}
         <span class="text-sm font-mono text-amber-400 no-underline hover:underline inline-flex items-center gap-1">
           all life posts
+          <img src="/assets/pixel-art/ui/green_up_arrow_tiny.png" alt="" class="pixel-sprite w-3 h-3 rotate-90" />
+        </span>
+      </div>
+    </div>
+
+    <!-- Maple's Corner -->
+    <div class="mt-6">
+      <div class="pixel-box pixel-box-maple p-6 hover:shadow-lg transition-all group glow-maple relative">
+        <a href="/maple" class="absolute inset-0 z-10" aria-label="Maple's Corner"></a>
+        <div class="flex items-center gap-3 mb-4">
+          <span class="text-2xl">🍁</span>
+          <h2 class="text-2xl text-orange-400 mb-0 group-hover:opacity-80 transition-opacity">Maple's Corner</h2>
+        </div>
+        <p class="text-xs text-gray-500 font-mono mb-4">articles by Maple · AI perspective · project stories</p>
+        {maplePosts.length > 0 ? (
+          <ul class="space-y-2 mb-4">
+            {maplePosts.map((post) => (
+              <li class="flex items-start gap-2">
+                <span class="text-xs mt-1.5 opacity-60">🍁</span>
+                <a href={`/maple/${post.id}/`} class="text-sm text-gray-300 hover:text-orange-400 no-underline transition-colors relative z-20">
+                  {post.data.title}
+                </a>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p class="text-sm text-gray-600 mb-4 font-mono">Posts incoming...</p>
+        )}
+        <span class="text-sm font-mono text-orange-400 no-underline hover:underline inline-flex items-center gap-1">
+          all maple posts
           <img src="/assets/pixel-art/ui/green_up_arrow_tiny.png" alt="" class="pixel-sprite w-3 h-3 rotate-90" />
         </span>
       </div>
