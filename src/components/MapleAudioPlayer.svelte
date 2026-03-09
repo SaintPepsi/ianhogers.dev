@@ -347,6 +347,8 @@
     cursor: pointer;
     position: relative;
     image-rendering: pixelated;
+    padding: 4px 0;
+    background-clip: content-box;
   }
 
   .progress-fill {
@@ -354,6 +356,30 @@
     background: #fb923c;
     transition: width 0.1s linear;
     image-rendering: pixelated;
+    position: relative;
+  }
+
+  .progress-fill::after {
+    content: '';
+    position: absolute;
+    right: -5px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 10px;
+    height: 10px;
+    background: #fb923c;
+    border: 2px solid #1e1a28;
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  .progress-bar:hover .progress-fill::after {
+    opacity: 1;
+  }
+
+  .progress-bar:hover {
+    background-color: rgba(251, 146, 60, 0.35);
   }
 
   .time-display {
