@@ -60,6 +60,11 @@ function extractTitle(md: string): string {
   return match ? match[1] : '';
 }
 
+function extractDescription(md: string): string {
+  const match = md.match(/^---[\s\S]*?description:\s*"([^"]+)"[\s\S]*?---/m);
+  return match ? match[1] : '';
+}
+
 function stripMarkdown(md: string): string {
   const withoutFrontmatter = md.replace(/^---[\s\S]*?---\n*/m, '');
 
@@ -189,8 +194,10 @@ async function main(deps: ScriptDeps) {
 
     const markdown = deps.readFile(join(deps.articlesDir, file));
     const title = extractTitle(markdown);
+    const description = extractDescription(markdown);
     const body = stripMarkdown(markdown);
-    const plainText = title ? `${title}.\n\n${body}` : body;
+    const header = [title, description].filter(Boolean).join('. ');
+    const plainText = header ? `${header}.\n\n${body}` : body;
     deps.log(`  ${title ? `"${title}" — ` : ''}${plainText.length} chars of text`);
 
     deps.log('  Generating audio...');

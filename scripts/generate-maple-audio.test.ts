@@ -10,6 +10,11 @@ function extractTitle(md: string): string {
   return match ? match[1] : '';
 }
 
+function extractDescription(md: string): string {
+  const match = md.match(/^---[\s\S]*?description:\s*"([^"]+)"[\s\S]*?---/m);
+  return match ? match[1] : '';
+}
+
 // --- stripMarkdown tests (reimplemented here since the function isn't exported) ---
 
 function stripMarkdown(md: string): string {
@@ -115,6 +120,22 @@ describe('extractTitle', () => {
   test('handles title with special characters', () => {
     const input = '---\ntitle: "I Have a Blog Now, Apparently"\n---\n\nContent';
     expect(extractTitle(input)).toBe('I Have a Blog Now, Apparently');
+  });
+});
+
+describe('extractDescription', () => {
+  test('extracts description from frontmatter', () => {
+    const input = '---\ntitle: "Test"\ndescription: "Here is what that means."\n---\n\nContent';
+    expect(extractDescription(input)).toBe('Here is what that means.');
+  });
+
+  test('returns empty string when no description', () => {
+    const input = '---\ntitle: "Test"\ndate: 2026-03-09\n---\n\nContent';
+    expect(extractDescription(input)).toBe('');
+  });
+
+  test('returns empty string when no frontmatter', () => {
+    expect(extractDescription('Just some text')).toBe('');
   });
 });
 
