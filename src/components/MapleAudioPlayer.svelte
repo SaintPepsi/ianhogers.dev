@@ -1,15 +1,12 @@
 <script lang="ts">
-  let {
-    audioSrc,
-    articleTitle = 'this article',
-  }: {
-    audioSrc: string;
-    articleTitle?: string;
-  } = $props();
+  import { onMount } from 'svelte';
 
   let audio = $state<HTMLAudioElement | undefined>(undefined);
+  let audioSrc = $state('');
+  let articleTitle = $state('');
   let isPlaying = $state(false);
   let isExpanded = $state(false);
+  let isVisible = $state(false);
   let progress = $state(0);
   let duration = $state(0);
   let currentTime = $state(0);
@@ -20,6 +17,34 @@
     const m = Math.floor(seconds / 60);
     const s = Math.floor(seconds % 60);
     return `${m}:${s.toString().padStart(2, '0')}`;
+  }
+
+  function detectAudioOnPage() {
+    const el = document.querySelector('[data-maple-audio]');
+    if (el) {
+      const newSrc = el.getAttribute('data-maple-audio') || '';
+      const newTitle = el.getAttribute('data-maple-title') || '';
+
+      if (newSrc !== audioSrc) {
+        // New article — reset player if not playing
+        if (!isPlaying) {
+          audioSrc = newSrc;
+          articleTitle = newTitle;
+          isExpanded = false;
+          progress = 0;
+          currentTime = 0;
+          duration = 0;
+          hasError = false;
+        }
+        // If playing, keep current audio going (user navigated away but still listening)
+      }
+      isVisible = true;
+    } else {
+      // Not a maple article page — hide button but keep audio playing if active
+      if (!isPlaying) {
+        isVisible = false;
+      }
+    }
   }
 
   function togglePlay() {
@@ -81,92 +106,108 @@
     progress = 0;
     currentTime = 0;
   }
+
+  onMount(() => {
+    detectAudioOnPage();
+
+    // Re-detect after Astro view transitions
+    document.addEventListener('astro:page-load', detectAudioOnPage);
+
+    return () => {
+      document.removeEventListener('astro:page-load', detectAudioOnPage);
+    };
+  });
 </script>
 
-<div class="maple-audio-player" class:expanded={isExpanded}>
-  <audio
-    bind:this={audio}
-    src={audioSrc}
-    preload="metadata"
-    ontimeupdate={handleTimeUpdate}
-    onloadedmetadata={handleLoadedMetadata}
-    onended={handleEnded}
-    onplay={handlePlay}
-    onpause={handlePause}
-    onerror={handleError}
-  ></audio>
+{#if isVisible || isPlaying}
+  <div class="maple-audio-player" class:expanded={isExpanded}>
+    {#if audioSrc}
+      <audio
+        bind:this={audio}
+        src={audioSrc}
+        preload="metadata"
+        ontimeupdate={handleTimeUpdate}
+        onloadedmetadata={handleLoadedMetadata}
+        onended={handleEnded}
+        onplay={handlePlay}
+        onpause={handlePause}
+        onerror={handleError}
+      ></audio>
+    {/if}
 
-  {#if !isExpanded}
-    <!-- Floating play button -->
-    <button
-      class="maple-play-btn"
-      onclick={togglePlay}
-      onmouseenter={() => isHovered = true}
-      onmouseleave={() => isHovered = false}
-      aria-label="Let Maple read this"
-      disabled={hasError}
-    >
-      <img
-        src="/assets/pixel-art/ui/sound_on.png"
-        alt=""
-        class="pixel-sprite play-icon"
-      />
-      {#if isHovered && !hasError}
-        <span class="tooltip">Let Maple read this</span>
-      {/if}
-      {#if hasError}
-        <span class="tooltip tooltip-error">Audio unavailable</span>
-      {/if}
-    </button>
-  {:else}
-    <!-- Expanded mini player -->
-    <div class="maple-mini-player">
+    {#if !isExpanded}
+      <!-- Floating play button -->
       <button
-        class="mini-play-btn"
+        class="maple-play-btn"
         onclick={togglePlay}
-        aria-label={isPlaying ? 'Pause' : 'Play'}
+        onmouseenter={() => isHovered = true}
+        onmouseleave={() => isHovered = false}
+        aria-label="Let Maple read this"
+        disabled={hasError}
       >
         <img
-          src={isPlaying ? '/assets/pixel-art/ui/sound_on.png' : '/assets/pixel-art/ui/sound_off.png'}
+          src="/assets/pixel-art/ui/sound_on.png"
           alt=""
-          class="pixel-sprite mini-icon"
+          class="pixel-sprite play-icon"
         />
+        {#if isHovered && !hasError}
+          <span class="tooltip">Let Maple read this</span>
+        {/if}
+        {#if hasError}
+          <span class="tooltip tooltip-error">Audio unavailable</span>
+        {/if}
       </button>
+    {:else}
+      <!-- Expanded mini player -->
+      <div class="maple-mini-player">
+        <button
+          class="mini-play-btn"
+          onclick={togglePlay}
+          aria-label={isPlaying ? 'Pause' : 'Play'}
+        >
+          <img
+            src={isPlaying ? '/assets/pixel-art/ui/sound_on.png' : '/assets/pixel-art/ui/sound_off.png'}
+            alt=""
+            class="pixel-sprite mini-icon"
+          />
+        </button>
 
-      <div class="player-content">
-        <div class="player-label">
-          <span class="maple-leaf">🍁</span>
-          <span class="label-text">{isPlaying ? 'Maple is reading...' : 'Paused'}</span>
+        <div class="player-content">
+          <div class="player-label">
+            <span class="maple-leaf">🍁</span>
+            <span class="label-text">{isPlaying ? 'Maple is reading...' : 'Paused'}</span>
+          </div>
+
+          <!-- svelte-ignore a11y_click_events_have_key_events -->
+          <!-- svelte-ignore a11y_no_static_element_interactions -->
+          <div class="progress-bar" onclick={handleSeek}>
+            <div class="progress-fill" style="width: {progress}%"></div>
+          </div>
+
+          <div class="time-display">
+            <span>{formatTime(currentTime)}</span>
+            <span>{formatTime(duration)}</span>
+          </div>
         </div>
 
-        <!-- svelte-ignore a11y_click_events_have_key_events -->
-        <!-- svelte-ignore a11y_no_static_element_interactions -->
-        <div class="progress-bar" onclick={handleSeek}>
-          <div class="progress-fill" style="width: {progress}%"></div>
-        </div>
-
-        <div class="time-display">
-          <span>{formatTime(currentTime)}</span>
-          <span>{formatTime(duration)}</span>
-        </div>
+        <button
+          class="close-btn"
+          onclick={close}
+          aria-label="Close player"
+        >
+          ✕
+        </button>
       </div>
-
-      <button
-        class="close-btn"
-        onclick={close}
-        aria-label="Close player"
-      >
-        ✕
-      </button>
-    </div>
-  {/if}
-</div>
+    {/if}
+  </div>
+{/if}
 
 <style>
   .maple-audio-player {
     position: fixed;
-    right: 1.5rem;
-    bottom: 2rem;
+    right: calc(50% - 24rem - 4rem);
+    top: 50%;
+    transform: translateY(-50%);
     z-index: 50;
     font-family: 'JetBrains Mono', monospace;
   }
@@ -183,7 +224,6 @@
     justify-content: center;
     transition: transform 0.15s, box-shadow 0.15s;
     image-rendering: pixelated;
-    /* Pixel-dashed border */
     background-color: #1e1a28;
     background-image:
       repeating-linear-gradient(90deg, #fb923c 0px 4px, transparent 4px 8px),
@@ -213,17 +253,16 @@
 
   .tooltip {
     position: absolute;
-    right: 100%;
+    left: 100%;
     top: 50%;
     transform: translateY(-50%);
-    margin-right: 12px;
+    margin-left: 12px;
     white-space: nowrap;
     background: #1e1a28;
     color: #fb923c;
     font-size: 0.75rem;
     padding: 6px 12px;
     pointer-events: none;
-    /* Pixel border */
     background-image:
       repeating-linear-gradient(90deg, #fb923c 0px 4px, transparent 4px 8px),
       repeating-linear-gradient(90deg, #fb923c 0px 4px, transparent 4px 8px),
@@ -241,7 +280,7 @@
   }
 
   @keyframes tooltip-in {
-    from { opacity: 0; transform: translateY(-50%) translateX(4px); }
+    from { opacity: 0; transform: translateY(-50%) translateX(-4px); }
     to { opacity: 1; transform: translateY(-50%) translateX(0); }
   }
 
@@ -266,7 +305,7 @@
   }
 
   @keyframes player-expand {
-    from { opacity: 0; transform: scale(0.9) translateX(20px); }
+    from { opacity: 0; transform: scale(0.9) translateX(-20px); }
     to { opacity: 1; transform: scale(1) translateX(0); }
   }
 
@@ -362,7 +401,28 @@
     color: #fb923c;
   }
 
-  /* Mobile adjustments */
+  /* On screens too narrow for the right margin, fall back to bottom-right fixed */
+  @media (max-width: 1200px) {
+    .maple-audio-player {
+      right: 1.5rem;
+      top: auto;
+      bottom: 2rem;
+      transform: none;
+    }
+
+    .tooltip {
+      left: auto;
+      right: 100%;
+      margin-left: 0;
+      margin-right: 12px;
+    }
+
+    @keyframes tooltip-in {
+      from { opacity: 0; transform: translateY(-50%) translateX(4px); }
+      to { opacity: 1; transform: translateY(-50%) translateX(0); }
+    }
+  }
+
   @media (max-width: 640px) {
     .maple-audio-player {
       right: 1rem;

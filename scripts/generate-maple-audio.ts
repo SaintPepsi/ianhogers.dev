@@ -55,6 +55,11 @@ function createDefaultDeps(config: { kokoroUrl: string; kokoroVoice: string }): 
 
 // --- Markdown to plain text ---
 
+function extractTitle(md: string): string {
+  const match = md.match(/^---[\s\S]*?title:\s*"([^"]+)"[\s\S]*?---/m);
+  return match ? match[1] : '';
+}
+
 function stripMarkdown(md: string): string {
   const withoutFrontmatter = md.replace(/^---[\s\S]*?---\n*/m, '');
 
@@ -183,8 +188,10 @@ async function main(deps: ScriptDeps) {
     deps.log(`▸ ${slug}`);
 
     const markdown = deps.readFile(join(deps.articlesDir, file));
-    const plainText = stripMarkdown(markdown);
-    deps.log(`  ${plainText.length} chars of text`);
+    const title = extractTitle(markdown);
+    const body = stripMarkdown(markdown);
+    const plainText = title ? `${title}.\n\n${body}` : body;
+    deps.log(`  ${title ? `"${title}" — ` : ''}${plainText.length} chars of text`);
 
     deps.log('  Generating audio...');
     const wavData = await generateAudio(plainText, deps);

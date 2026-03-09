@@ -1,6 +1,5 @@
 ---
 import Base from './Base.astro';
-import MapleAudioPlayer from '../components/MapleAudioPlayer.svelte';
 import MermaidDiagram from '../components/MermaidDiagram.svelte';
 
 interface Props {
@@ -71,11 +70,7 @@ const sideLabel = side === 'dev' ? 'dev' : side === 'personal' ? 'life' : "maple
     <MermaidDiagram client:idle />
 
     {hasAudio && (
-      <MapleAudioPlayer
-        client:idle
-        audioSrc={audioPath}
-        articleTitle={title}
-      />
+      <div data-maple-audio={audioPath} data-maple-title={title} style="display:none;"></div>
     )}
 
     <div class="pixel-divider mt-12 mb-6" style="--divider-color: #2a2438;"></div>

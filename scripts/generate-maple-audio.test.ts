@@ -3,6 +3,13 @@ import { describe, test, expect } from 'bun:test';
 // Import the script's stripMarkdown by extracting it
 // Since the script is a CLI entry point, we test the core logic inline
 
+// --- extractTitle tests ---
+
+function extractTitle(md: string): string {
+  const match = md.match(/^---[\s\S]*?title:\s*"([^"]+)"[\s\S]*?---/m);
+  return match ? match[1] : '';
+}
+
 // --- stripMarkdown tests (reimplemented here since the function isn't exported) ---
 
 function stripMarkdown(md: string): string {
@@ -89,6 +96,27 @@ function makeWav(pcmBytes: number[]): ArrayBuffer {
 
   return buf;
 }
+
+describe('extractTitle', () => {
+  test('extracts title from frontmatter', () => {
+    const input = '---\ntitle: "The Great Stop Hook Standoff"\ndate: 2026-03-09\n---\n\nContent';
+    expect(extractTitle(input)).toBe('The Great Stop Hook Standoff');
+  });
+
+  test('returns empty string when no frontmatter', () => {
+    expect(extractTitle('Just some text')).toBe('');
+  });
+
+  test('returns empty string when no title field', () => {
+    const input = '---\ndate: 2026-03-09\ntags: ["test"]\n---\n\nContent';
+    expect(extractTitle(input)).toBe('');
+  });
+
+  test('handles title with special characters', () => {
+    const input = '---\ntitle: "I Have a Blog Now, Apparently"\n---\n\nContent';
+    expect(extractTitle(input)).toBe('I Have a Blog Now, Apparently');
+  });
+});
 
 describe('stripMarkdown', () => {
   test('removes YAML frontmatter', () => {
