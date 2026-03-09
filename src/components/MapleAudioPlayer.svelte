@@ -255,19 +255,21 @@
 
     .maple-mini-player {
       position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
+      bottom: 1rem;
+      left: 50%;
+      right: auto;
+      transform: translateX(-50%);
+      width: calc(100% - 2rem);
+      max-width: 48rem;
       min-width: unset;
       z-index: 100;
-      border-radius: 0;
       animation: player-slide-up 0.25s ease;
     }
   }
 
   @keyframes player-slide-up {
-    from { transform: translateY(100%); }
-    to { transform: translateY(0); }
+    from { opacity: 0; transform: translateX(-50%) translateY(1rem); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
   }
 
   /* Expanded mini player */
