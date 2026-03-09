@@ -175,8 +175,8 @@
   /* Floating play button */
   .maple-play-btn {
     position: relative;
-    width: 48px;
-    height: 48px;
+    width: 32px;
+    height: 32px;
     border: none;
     cursor: pointer;
     display: flex;
@@ -207,8 +207,8 @@
   }
 
   .play-icon {
-    width: 24px;
-    height: 24px;
+    width: 16px;
+    height: 16px;
   }
 
   .tooltip {
@@ -244,41 +244,19 @@
     to { opacity: 1; transform: translateY(-50%) translateX(0); }
   }
 
-  /* On narrow screens: flip tooltip, make mini player a fixed bottom bar */
-  @media (max-width: 1200px) {
-    .tooltip {
-      left: auto;
-      right: 100%;
-      margin-left: 0;
-      margin-right: 12px;
-    }
-
-    .maple-mini-player {
-      position: fixed;
-      bottom: 1rem;
-      left: 50%;
-      right: auto;
-      transform: translateX(-50%);
-      width: calc(100% - 2rem);
-      max-width: 48rem;
-      min-width: unset;
-      z-index: 100;
-      animation: player-slide-up 0.25s ease;
-    }
-  }
-
-  @keyframes player-slide-up {
-    from { opacity: 0; transform: translateX(-50%) translateY(1rem); }
-    to { opacity: 1; transform: translateX(-50%) translateY(0); }
-  }
-
-  /* Expanded mini player */
+  /* Expanded mini player — always fixed at bottom */
   .maple-mini-player {
+    position: fixed;
+    bottom: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 2rem);
+    max-width: 48rem;
+    z-index: 100;
     display: flex;
     align-items: center;
     gap: 10px;
     padding: 10px 14px;
-    min-width: 280px;
     background-color: #1e1a28;
     background-image:
       repeating-linear-gradient(90deg, #fb923c 0px 4px, transparent 4px 8px),
@@ -289,13 +267,14 @@
     background-position: top left, bottom left, top left, top right;
     background-repeat: no-repeat;
     box-shadow: 0 0 20px rgba(251, 146, 60, 0.15), 0 0 40px rgba(251, 146, 60, 0.05);
-    animation: player-expand 0.2s ease;
+    animation: player-slide-up 0.25s ease;
   }
 
-  @keyframes player-expand {
-    from { opacity: 0; transform: scale(0.9); }
-    to { opacity: 1; transform: scale(1); }
+  @keyframes player-slide-up {
+    from { opacity: 0; transform: translateX(-50%) translateY(1rem); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
   }
+
 
   .mini-play-btn {
     flex-shrink: 0;
