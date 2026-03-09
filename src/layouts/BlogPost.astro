@@ -104,16 +104,7 @@ const sideLabel = side === 'dev' ? 'dev' : side === 'personal' ? 'life' : "maple
 
   .audio-btn-anchor {
     position: absolute;
-    right: -64px;
+    left: calc(100% + 1rem);
     top: 0;
-  }
-
-  /* On narrow screens, tuck it inside the header top-right */
-  @media (max-width: 1200px) {
-    .audio-btn-anchor {
-      position: absolute;
-      right: 0.75rem;
-      top: 0.75rem;
-    }
   }
 </style>

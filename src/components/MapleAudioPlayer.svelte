@@ -118,6 +118,21 @@
       {/if}
     </button>
   {:else}
+    <!-- Compact mode: icon + label, shown on narrow screens -->
+    <button
+      class="compact-player"
+      onclick={togglePlay}
+      aria-label={isPlaying ? 'Pause' : 'Play'}
+    >
+      <img
+        src={isPlaying ? '/assets/pixel-art/ui/sound_on.png' : '/assets/pixel-art/ui/sound_off.png'}
+        alt=""
+        class="pixel-sprite compact-icon"
+      />
+      <span class="compact-label">{isPlaying ? 'Playing' : 'Paused'}</span>
+    </button>
+
+    <!-- Full mini player: shown on wide screens -->
     <div class="maple-mini-player">
       <button
         class="mini-play-btn"
@@ -238,8 +253,47 @@
     to { opacity: 1; transform: translateY(-50%) translateX(0); }
   }
 
-  /* On narrow screens, flip tooltip to the left */
+  /* Compact player: icon + "Playing" label */
+  .compact-player {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 4px;
+    transition: transform 0.1s;
+  }
+
+  .compact-player:hover {
+    transform: scale(1.1);
+  }
+
+  .compact-icon {
+    width: 24px;
+    height: 24px;
+  }
+
+  .compact-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem;
+    color: #fb923c;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+  }
+
+  /* On narrow screens: show compact, hide full player and tooltip */
   @media (max-width: 1200px) {
+    .compact-player {
+      display: flex;
+    }
+
+    .maple-mini-player {
+      display: none !important;
+    }
+
     .tooltip {
       left: auto;
       right: 100%;
@@ -248,7 +302,7 @@
     }
   }
 
-  /* Expanded mini player */
+  /* Expanded mini player (wide screens only) */
   .maple-mini-player {
     display: flex;
     align-items: center;
