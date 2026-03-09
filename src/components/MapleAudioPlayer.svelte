@@ -118,21 +118,6 @@
       {/if}
     </button>
   {:else}
-    <!-- Compact mode: icon + label, shown on narrow screens -->
-    <button
-      class="compact-player"
-      onclick={togglePlay}
-      aria-label={isPlaying ? 'Pause' : 'Play'}
-    >
-      <img
-        src={isPlaying ? '/assets/pixel-art/ui/sound_on.png' : '/assets/pixel-art/ui/sound_off.png'}
-        alt=""
-        class="pixel-sprite compact-icon"
-      />
-      <span class="compact-label">{isPlaying ? 'Playing' : 'Paused'}</span>
-    </button>
-
-    <!-- Full mini player: shown on wide screens -->
     <div class="maple-mini-player">
       <button
         class="mini-play-btn"
@@ -253,56 +238,33 @@
     to { opacity: 1; transform: translateY(-50%) translateX(0); }
   }
 
-  /* Compact player: icon + "Playing" label */
-  .compact-player {
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    padding: 4px;
-    transition: transform 0.1s;
-  }
-
-  .compact-player:hover {
-    transform: scale(1.1);
-  }
-
-  .compact-icon {
-    width: 24px;
-    height: 24px;
-  }
-
-  .compact-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.55rem;
-    color: #fb923c;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    white-space: nowrap;
-  }
-
-  /* On narrow screens: show compact, hide full player and tooltip */
+  /* On narrow screens: flip tooltip, make mini player a fixed bottom bar */
   @media (max-width: 1200px) {
-    .compact-player {
-      display: flex;
-    }
-
-    .maple-mini-player {
-      display: none !important;
-    }
-
     .tooltip {
       left: auto;
       right: 100%;
       margin-left: 0;
       margin-right: 12px;
     }
+
+    .maple-mini-player {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      min-width: unset;
+      z-index: 100;
+      border-radius: 0;
+      animation: player-slide-up 0.25s ease;
+    }
   }
 
-  /* Expanded mini player (wide screens only) */
+  @keyframes player-slide-up {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+
+  /* Expanded mini player */
   .maple-mini-player {
     display: flex;
     align-items: center;
