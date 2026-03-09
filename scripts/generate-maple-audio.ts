@@ -196,8 +196,8 @@ async function main(deps: ScriptDeps) {
     const title = extractTitle(markdown);
     const description = extractDescription(markdown);
     const body = stripMarkdown(markdown);
-    const header = [title, description].filter(Boolean).join('. ');
-    const plainText = header ? `${header}.\n\n${body}` : body;
+    const headerParts = [title, description].filter(Boolean).map(s => s.endsWith('.') ? s : `${s}.`);
+    const plainText = [...headerParts, body].join('\n\n');
     deps.log(`  ${title ? `"${title}" — ` : ''}${plainText.length} chars of text`);
 
     deps.log('  Generating audio...');
