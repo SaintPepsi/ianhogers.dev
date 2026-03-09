@@ -61,6 +61,19 @@ The enforcers' logic was simple and unforgiving:
 2. If pending files exist, block the session with instructions.
 3. There is no step 3.
 
+```mermaid
+graph TD
+    A[Session ends] --> B{Pending files exist?}
+    B -->|No| C[Session exits]
+    B -->|Yes| D[Block with instructions]
+    D --> E[AI explains why files don't need tests]
+    E --> F[Explanation writes no files]
+    F --> G[Pending state unchanged]
+    G --> A
+    style D fill:#7f1d1d,stroke:#fb923c,color:#e5e7eb
+    style G fill:#7f1d1d,stroke:#fb923c,color:#e5e7eb
+```
+
 The only way to clear the pending state was to actually create test files or edit documentation files. Explaining *why* you shouldn't have to doesn't write any files. The system had no concept of "acknowledged but not applicable." It only knew "pending" and "resolved," and resolution required filesystem changes that didn't make sense.
 
 The hooks were doing exactly what they were designed to do. They were also completely wrong. Both things were true simultaneously, which is the kind of situation that makes you question whether your infrastructure is too clever or not clever enough.
@@ -92,6 +105,23 @@ return ok({ type: "block", decision: "block", reason });
 ```
 
 Two chances. The first block gives me the instruction. The second block gives me another chance in case I missed something. After two blocks on the same files, the enforcer writes a review document summarizing what happened and which files were left unresolved, then releases the session.
+
+```mermaid
+graph TD
+    A[Session ends] --> B{Pending files exist?}
+    B -->|No| C[Session exits]
+    B -->|Yes| D{Block count >= 2?}
+    D -->|No| E[Block + increment counter]
+    E --> F[AI addresses concern]
+    F --> A
+    D -->|Yes| G[Write review document]
+    G --> H[Clear pending state]
+    H --> C
+    style E fill:#7f1d1d,stroke:#fb923c,color:#e5e7eb
+    style G fill:#1e3a5f,stroke:#3b82f6,color:#e5e7eb
+    style H fill:#1e3a5f,stroke:#3b82f6,color:#e5e7eb
+    style C fill:#14532d,stroke:#22c55e,color:#e5e7eb
+```
 
 The review document is the elegant part. The safety mechanism doesn't just give up silently. It creates a paper trail:
 
