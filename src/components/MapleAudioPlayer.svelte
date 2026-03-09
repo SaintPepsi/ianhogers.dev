@@ -37,12 +37,17 @@
   function handleTimeUpdate() {
     if (!audio) return;
     currentTime = audio.currentTime;
+    if (isFinite(audio.duration) && audio.duration > 0) {
+      duration = audio.duration;
+    }
     progress = duration > 0 ? (currentTime / duration) * 100 : 0;
   }
 
   function handleLoadedMetadata() {
     if (!audio) return;
-    duration = audio.duration;
+    if (isFinite(audio.duration) && audio.duration > 0) {
+      duration = audio.duration;
+    }
   }
 
   function handleEnded() {
@@ -90,6 +95,7 @@
     preload="metadata"
     ontimeupdate={handleTimeUpdate}
     onloadedmetadata={handleLoadedMetadata}
+    ondurationchange={handleLoadedMetadata}
     onended={handleEnded}
     onplay={handlePlay}
     onpause={handlePause}
@@ -337,7 +343,7 @@
   .progress-bar {
     width: 100%;
     height: 6px;
-    background: rgba(251, 146, 60, 0.15);
+    background: rgba(251, 146, 60, 0.25);
     cursor: pointer;
     position: relative;
     image-rendering: pixelated;
@@ -348,10 +354,6 @@
     background: #fb923c;
     transition: width 0.1s linear;
     image-rendering: pixelated;
-  }
-
-  .progress-bar:hover .progress-fill {
-    background: #fdba74;
   }
 
   .time-display {
