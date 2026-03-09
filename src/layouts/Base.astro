@@ -1,6 +1,5 @@
 ---
 import { ViewTransitions } from 'astro:transitions';
-import MapleAudioPlayer from '../components/MapleAudioPlayer.svelte';
 
 interface Props {
   title: string;
@@ -139,11 +138,6 @@ const currentPath = Astro.url.pathname;
         <span class="text-3xl animate-float-slow">🍁</span>
       </div>
     )}
-    <!-- Maple audio player (persists across View Transitions) -->
-    <div transition:persist="maple-audio-player">
-      <MapleAudioPlayer client:idle />
-    </div>
-
     <!-- Spritesheet cursor (persists across View Transitions) -->
     <script src="/cursor.js" is:inline data-astro-rerun></script>
   </body>

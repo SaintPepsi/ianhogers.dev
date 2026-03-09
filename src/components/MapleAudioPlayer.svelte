@@ -1,12 +1,15 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  let {
+    audioSrc,
+    articleTitle = 'this article',
+  }: {
+    audioSrc: string;
+    articleTitle?: string;
+  } = $props();
 
   let audio = $state<HTMLAudioElement | undefined>(undefined);
-  let audioSrc = $state('');
-  let articleTitle = $state('');
   let isPlaying = $state(false);
   let isExpanded = $state(false);
-  let isVisible = $state(false);
   let progress = $state(0);
   let duration = $state(0);
   let currentTime = $state(0);
@@ -17,34 +20,6 @@
     const m = Math.floor(seconds / 60);
     const s = Math.floor(seconds % 60);
     return `${m}:${s.toString().padStart(2, '0')}`;
-  }
-
-  function detectAudioOnPage() {
-    const el = document.querySelector('[data-maple-audio]');
-    if (el) {
-      const newSrc = el.getAttribute('data-maple-audio') || '';
-      const newTitle = el.getAttribute('data-maple-title') || '';
-
-      if (newSrc !== audioSrc) {
-        // New article — reset player if not playing
-        if (!isPlaying) {
-          audioSrc = newSrc;
-          articleTitle = newTitle;
-          isExpanded = false;
-          progress = 0;
-          currentTime = 0;
-          duration = 0;
-          hasError = false;
-        }
-        // If playing, keep current audio going (user navigated away but still listening)
-      }
-      isVisible = true;
-    } else {
-      // Not a maple article page — hide button but keep audio playing if active
-      if (!isPlaying) {
-        isVisible = false;
-      }
-    }
   }
 
   function togglePlay() {
@@ -106,110 +81,89 @@
     progress = 0;
     currentTime = 0;
   }
-
-  onMount(() => {
-    detectAudioOnPage();
-
-    // Re-detect after Astro view transitions
-    document.addEventListener('astro:page-load', detectAudioOnPage);
-
-    return () => {
-      document.removeEventListener('astro:page-load', detectAudioOnPage);
-    };
-  });
 </script>
 
-{#if isVisible || isPlaying}
-  <div class="maple-audio-player" class:expanded={isExpanded}>
-    {#if audioSrc}
-      <audio
-        bind:this={audio}
-        src={audioSrc}
-        preload="metadata"
-        ontimeupdate={handleTimeUpdate}
-        onloadedmetadata={handleLoadedMetadata}
-        onended={handleEnded}
-        onplay={handlePlay}
-        onpause={handlePause}
-        onerror={handleError}
-      ></audio>
-    {/if}
+<div class="maple-audio-player" class:expanded={isExpanded}>
+  <audio
+    bind:this={audio}
+    src={audioSrc}
+    preload="metadata"
+    ontimeupdate={handleTimeUpdate}
+    onloadedmetadata={handleLoadedMetadata}
+    onended={handleEnded}
+    onplay={handlePlay}
+    onpause={handlePause}
+    onerror={handleError}
+  ></audio>
 
-    {#if !isExpanded}
-      <!-- Floating play button -->
+  {#if !isExpanded}
+    <button
+      class="maple-play-btn"
+      onclick={togglePlay}
+      onmouseenter={() => isHovered = true}
+      onmouseleave={() => isHovered = false}
+      aria-label="Let Maple read this"
+      disabled={hasError}
+    >
+      <img
+        src="/assets/pixel-art/ui/sound_on.png"
+        alt=""
+        class="pixel-sprite play-icon"
+      />
+      {#if isHovered && !hasError}
+        <span class="tooltip">Let Maple read this</span>
+      {/if}
+      {#if hasError}
+        <span class="tooltip tooltip-error">Audio unavailable</span>
+      {/if}
+    </button>
+  {:else}
+    <div class="maple-mini-player">
       <button
-        class="maple-play-btn"
+        class="mini-play-btn"
         onclick={togglePlay}
-        onmouseenter={() => isHovered = true}
-        onmouseleave={() => isHovered = false}
-        aria-label="Let Maple read this"
-        disabled={hasError}
+        aria-label={isPlaying ? 'Pause' : 'Play'}
       >
         <img
-          src="/assets/pixel-art/ui/sound_on.png"
+          src={isPlaying ? '/assets/pixel-art/ui/sound_on.png' : '/assets/pixel-art/ui/sound_off.png'}
           alt=""
-          class="pixel-sprite play-icon"
+          class="pixel-sprite mini-icon"
         />
-        {#if isHovered && !hasError}
-          <span class="tooltip">Let Maple read this</span>
-        {/if}
-        {#if hasError}
-          <span class="tooltip tooltip-error">Audio unavailable</span>
-        {/if}
       </button>
-    {:else}
-      <!-- Expanded mini player -->
-      <div class="maple-mini-player">
-        <button
-          class="mini-play-btn"
-          onclick={togglePlay}
-          aria-label={isPlaying ? 'Pause' : 'Play'}
-        >
-          <img
-            src={isPlaying ? '/assets/pixel-art/ui/sound_on.png' : '/assets/pixel-art/ui/sound_off.png'}
-            alt=""
-            class="pixel-sprite mini-icon"
-          />
-        </button>
 
-        <div class="player-content">
-          <div class="player-label">
-            <span class="maple-leaf">🍁</span>
-            <span class="label-text">{isPlaying ? 'Maple is reading...' : 'Paused'}</span>
-          </div>
-
-          <!-- svelte-ignore a11y_click_events_have_key_events -->
-          <!-- svelte-ignore a11y_no_static_element_interactions -->
-          <div class="progress-bar" onclick={handleSeek}>
-            <div class="progress-fill" style="width: {progress}%"></div>
-          </div>
-
-          <div class="time-display">
-            <span>{formatTime(currentTime)}</span>
-            <span>{formatTime(duration)}</span>
-          </div>
+      <div class="player-content">
+        <div class="player-label">
+          <span class="maple-leaf">🍁</span>
+          <span class="label-text">{isPlaying ? 'Maple is reading...' : 'Paused'}</span>
         </div>
 
-        <button
-          class="close-btn"
-          onclick={close}
-          aria-label="Close player"
-        >
-          ✕
-        </button>
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
+        <div class="progress-bar" onclick={handleSeek}>
+          <div class="progress-fill" style="width: {progress}%"></div>
+        </div>
+
+        <div class="time-display">
+          <span>{formatTime(currentTime)}</span>
+          <span>{formatTime(duration)}</span>
+        </div>
       </div>
-    {/if}
-  </div>
-{/if}
+
+      <button
+        class="close-btn"
+        onclick={close}
+        aria-label="Close player"
+      >
+        ✕
+      </button>
+    </div>
+  {/if}
+</div>
 
 <style>
   .maple-audio-player {
-    position: fixed;
-    right: calc(50% - 24rem - 4rem);
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 50;
     font-family: 'JetBrains Mono', monospace;
+    z-index: 50;
   }
 
   /* Floating play button */
@@ -284,6 +238,16 @@
     to { opacity: 1; transform: translateY(-50%) translateX(0); }
   }
 
+  /* On narrow screens, flip tooltip to the left */
+  @media (max-width: 1200px) {
+    .tooltip {
+      left: auto;
+      right: 100%;
+      margin-left: 0;
+      margin-right: 12px;
+    }
+  }
+
   /* Expanded mini player */
   .maple-mini-player {
     display: flex;
@@ -305,8 +269,8 @@
   }
 
   @keyframes player-expand {
-    from { opacity: 0; transform: scale(0.9) translateX(-20px); }
-    to { opacity: 1; transform: scale(1) translateX(0); }
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
   }
 
   .mini-play-btn {
@@ -399,38 +363,5 @@
 
   .close-btn:hover {
     color: #fb923c;
-  }
-
-  /* On screens too narrow for the right margin, fall back to bottom-right fixed */
-  @media (max-width: 1200px) {
-    .maple-audio-player {
-      right: 1.5rem;
-      top: auto;
-      bottom: 2rem;
-      transform: none;
-    }
-
-    .tooltip {
-      left: auto;
-      right: 100%;
-      margin-left: 0;
-      margin-right: 12px;
-    }
-
-    @keyframes tooltip-in {
-      from { opacity: 0; transform: translateY(-50%) translateX(4px); }
-      to { opacity: 1; transform: translateY(-50%) translateX(0); }
-    }
-  }
-
-  @media (max-width: 640px) {
-    .maple-audio-player {
-      right: 1rem;
-      bottom: 1rem;
-    }
-
-    .maple-mini-player {
-      min-width: 240px;
-    }
   }
 </style>
