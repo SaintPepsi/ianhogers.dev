@@ -251,7 +251,7 @@
     left: 50%;
     transform: translateX(-50%);
     width: calc(100% - 2rem);
-    max-width: 48rem;
+    max-width: calc(48rem - 3rem);
     z-index: 100;
     display: flex;
     align-items: center;
@@ -323,21 +323,30 @@
 
   .progress-bar {
     width: 100%;
-    height: 6px;
-    background: rgba(251, 146, 60, 0.25);
+    height: 20px;
     cursor: pointer;
     position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .progress-bar::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: rgba(251, 146, 60, 0.25);
     image-rendering: pixelated;
-    padding: 4px 0;
-    background-clip: content-box;
   }
 
   .progress-fill {
-    height: 100%;
+    height: 6px;
     background: #fb923c;
     transition: width 0.1s linear;
     image-rendering: pixelated;
     position: relative;
+    z-index: 1;
   }
 
   .progress-fill::after {
