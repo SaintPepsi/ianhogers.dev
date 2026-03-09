@@ -108,17 +108,20 @@
       <Tooltip.Root delayDuration={200}>
         <Tooltip.Trigger
           onclick={togglePlay}
-          class="maple-play-btn"
+          class="relative w-8 h-8 border-2 border-dashed border-[#fb923c] bg-[#1e1a28] cursor-pointer flex items-center justify-center transition-transform hover:scale-110 disabled:opacity-40 disabled:cursor-not-allowed"
           disabled={hasError}
         >
           <img
             src="/assets/pixel-art/ui/sound_on.png"
             alt=""
-            class="pixel-sprite play-icon"
+            class="pixel-sprite w-4 h-4"
           />
         </Tooltip.Trigger>
         <Tooltip.Portal>
-          <Tooltip.Content sideOffset={8} class="maple-tooltip {hasError ? 'maple-tooltip-error' : ''}">
+          <Tooltip.Content
+            sideOffset={8}
+            class="whitespace-nowrap bg-[#1e1a28] font-mono text-xs px-3 py-1.5 z-50 border border-dashed border-[#fb923c] {hasError ? 'text-red-400' : 'text-[#fb923c]'}"
+          >
             {hasError ? 'Audio unavailable' : 'Let Maple read this'}
           </Tooltip.Content>
         </Tooltip.Portal>
@@ -173,44 +176,6 @@
     z-index: 50;
   }
 
-  /* Floating play button */
-  .maple-play-btn {
-    position: relative;
-    width: 32px;
-    height: 32px;
-    border: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.15s, box-shadow 0.15s;
-    image-rendering: pixelated;
-    background-color: #1e1a28;
-    background-image:
-      repeating-linear-gradient(90deg, #fb923c 0px 4px, transparent 4px 8px),
-      repeating-linear-gradient(90deg, #fb923c 0px 4px, transparent 4px 8px),
-      linear-gradient(#fb923c, #fb923c),
-      linear-gradient(#fb923c, #fb923c);
-    background-size: 100% 3px, 100% 3px, 3px 100%, 3px 100%;
-    background-position: top left, bottom left, top left, top right;
-    background-repeat: no-repeat;
-    box-shadow: 0 0 20px rgba(251, 146, 60, 0.15), 0 0 40px rgba(251, 146, 60, 0.05);
-  }
-
-  .maple-play-btn:hover:not(:disabled) {
-    transform: scale(1.1);
-    box-shadow: 0 0 24px rgba(251, 146, 60, 0.3), 0 0 48px rgba(251, 146, 60, 0.1);
-  }
-
-  .maple-play-btn:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
-
-  .play-icon {
-    width: 16px;
-    height: 16px;
-  }
 
 
   /* Expanded mini player — always fixed at bottom */
@@ -366,34 +331,5 @@
 
   .close-btn:hover {
     color: #fb923c;
-  }
-  /* Bits UI tooltip — global because it renders in a portal */
-  :global(.maple-tooltip) {
-    font-family: 'JetBrains Mono', monospace;
-    white-space: nowrap;
-    background-color: #1e1a28;
-    color: #fb923c;
-    font-size: 0.75rem;
-    padding: 6px 12px;
-    pointer-events: none;
-    background-image:
-      repeating-linear-gradient(90deg, #fb923c 0px 4px, transparent 4px 8px),
-      repeating-linear-gradient(90deg, #fb923c 0px 4px, transparent 4px 8px),
-      linear-gradient(#fb923c, #fb923c),
-      linear-gradient(#fb923c, #fb923c);
-    background-size: 100% 2px, 100% 2px, 2px 100%, 2px 100%;
-    background-position: top left, bottom left, top left, top right;
-    background-repeat: no-repeat;
-    animation: maple-tooltip-in 0.15s ease;
-    z-index: 200;
-  }
-
-  :global(.maple-tooltip-error) {
-    color: #ef5350;
-  }
-
-  @keyframes maple-tooltip-in {
-    from { opacity: 0; transform: translateY(2px); }
-    to { opacity: 1; transform: translateY(0); }
   }
 </style>
