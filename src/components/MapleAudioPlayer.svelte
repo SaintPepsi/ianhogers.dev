@@ -1,0 +1,376 @@
+<script lang="ts">
+  let {
+    audioSrc,
+    articleTitle = 'this article',
+  }: {
+    audioSrc: string;
+    articleTitle?: string;
+  } = $props();
+
+  let audio = $state<HTMLAudioElement | undefined>(undefined);
+  let isPlaying = $state(false);
+  let isExpanded = $state(false);
+  let progress = $state(0);
+  let duration = $state(0);
+  let currentTime = $state(0);
+  let isHovered = $state(false);
+  let hasError = $state(false);
+
+  function formatTime(seconds: number): string {
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  }
+
+  function togglePlay() {
+    if (!audio) return;
+    if (hasError) return;
+
+    if (isPlaying) {
+      audio.pause();
+    } else {
+      audio.play();
+      isExpanded = true;
+    }
+  }
+
+  function handleTimeUpdate() {
+    if (!audio) return;
+    currentTime = audio.currentTime;
+    progress = duration > 0 ? (currentTime / duration) * 100 : 0;
+  }
+
+  function handleLoadedMetadata() {
+    if (!audio) return;
+    duration = audio.duration;
+  }
+
+  function handleEnded() {
+    isPlaying = false;
+    progress = 100;
+  }
+
+  function handlePlay() {
+    isPlaying = true;
+  }
+
+  function handlePause() {
+    isPlaying = false;
+  }
+
+  function handleError() {
+    hasError = true;
+    isPlaying = false;
+  }
+
+  function handleSeek(e: MouseEvent) {
+    if (!audio) return;
+    const bar = e.currentTarget as HTMLDivElement;
+    const rect = bar.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    audio.currentTime = ratio * duration;
+  }
+
+  function close() {
+    if (audio) {
+      audio.pause();
+      audio.currentTime = 0;
+    }
+    isPlaying = false;
+    isExpanded = false;
+    progress = 0;
+    currentTime = 0;
+  }
+</script>
+
+<div class="maple-audio-player" class:expanded={isExpanded}>
+  <audio
+    bind:this={audio}
+    src={audioSrc}
+    preload="metadata"
+    ontimeupdate={handleTimeUpdate}
+    onloadedmetadata={handleLoadedMetadata}
+    onended={handleEnded}
+    onplay={handlePlay}
+    onpause={handlePause}
+    onerror={handleError}
+  ></audio>
+
+  {#if !isExpanded}
+    <!-- Floating play button -->
+    <button
+      class="maple-play-btn"
+      onclick={togglePlay}
+      onmouseenter={() => isHovered = true}
+      onmouseleave={() => isHovered = false}
+      aria-label="Let Maple read this"
+      disabled={hasError}
+    >
+      <img
+        src="/assets/pixel-art/ui/sound_on.png"
+        alt=""
+        class="pixel-sprite play-icon"
+      />
+      {#if isHovered && !hasError}
+        <span class="tooltip">Let Maple read this</span>
+      {/if}
+      {#if hasError}
+        <span class="tooltip tooltip-error">Audio unavailable</span>
+      {/if}
+    </button>
+  {:else}
+    <!-- Expanded mini player -->
+    <div class="maple-mini-player">
+      <button
+        class="mini-play-btn"
+        onclick={togglePlay}
+        aria-label={isPlaying ? 'Pause' : 'Play'}
+      >
+        <img
+          src={isPlaying ? '/assets/pixel-art/ui/sound_on.png' : '/assets/pixel-art/ui/sound_off.png'}
+          alt=""
+          class="pixel-sprite mini-icon"
+        />
+      </button>
+
+      <div class="player-content">
+        <div class="player-label">
+          <span class="maple-leaf">🍁</span>
+          <span class="label-text">{isPlaying ? 'Maple is reading...' : 'Paused'}</span>
+        </div>
+
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
+        <div class="progress-bar" onclick={handleSeek}>
+          <div class="progress-fill" style="width: {progress}%"></div>
+        </div>
+
+        <div class="time-display">
+          <span>{formatTime(currentTime)}</span>
+          <span>{formatTime(duration)}</span>
+        </div>
+      </div>
+
+      <button
+        class="close-btn"
+        onclick={close}
+        aria-label="Close player"
+      >
+        ✕
+      </button>
+    </div>
+  {/if}
+</div>
+
+<style>
+  .maple-audio-player {
+    position: fixed;
+    right: 1.5rem;
+    bottom: 2rem;
+    z-index: 50;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* Floating play button */
+  .maple-play-btn {
+    position: relative;
+    width: 48px;
+    height: 48px;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.15s, box-shadow 0.15s;
+    image-rendering: pixelated;
+    /* Pixel-dashed border */
+    background-color: #1e1a28;
+    background-image:
+      repeating-linear-gradient(90deg, #fb923c 0px 4px, transparent 4px 8px),
+      repeating-linear-gradient(90deg, #fb923c 0px 4px, transparent 4px 8px),
+      linear-gradient(#fb923c, #fb923c),
+      linear-gradient(#fb923c, #fb923c);
+    background-size: 100% 3px, 100% 3px, 3px 100%, 3px 100%;
+    background-position: top left, bottom left, top left, top right;
+    background-repeat: no-repeat;
+    box-shadow: 0 0 20px rgba(251, 146, 60, 0.15), 0 0 40px rgba(251, 146, 60, 0.05);
+  }
+
+  .maple-play-btn:hover:not(:disabled) {
+    transform: scale(1.1);
+    box-shadow: 0 0 24px rgba(251, 146, 60, 0.3), 0 0 48px rgba(251, 146, 60, 0.1);
+  }
+
+  .maple-play-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  .play-icon {
+    width: 24px;
+    height: 24px;
+  }
+
+  .tooltip {
+    position: absolute;
+    right: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    margin-right: 12px;
+    white-space: nowrap;
+    background: #1e1a28;
+    color: #fb923c;
+    font-size: 0.75rem;
+    padding: 6px 12px;
+    pointer-events: none;
+    /* Pixel border */
+    background-image:
+      repeating-linear-gradient(90deg, #fb923c 0px 4px, transparent 4px 8px),
+      repeating-linear-gradient(90deg, #fb923c 0px 4px, transparent 4px 8px),
+      linear-gradient(#fb923c, #fb923c),
+      linear-gradient(#fb923c, #fb923c);
+    background-size: 100% 2px, 100% 2px, 2px 100%, 2px 100%;
+    background-position: top left, bottom left, top left, top right;
+    background-repeat: no-repeat;
+    background-color: #1e1a28;
+    animation: tooltip-in 0.15s ease;
+  }
+
+  .tooltip-error {
+    color: #ef5350;
+  }
+
+  @keyframes tooltip-in {
+    from { opacity: 0; transform: translateY(-50%) translateX(4px); }
+    to { opacity: 1; transform: translateY(-50%) translateX(0); }
+  }
+
+  /* Expanded mini player */
+  .maple-mini-player {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    min-width: 280px;
+    background-color: #1e1a28;
+    background-image:
+      repeating-linear-gradient(90deg, #fb923c 0px 4px, transparent 4px 8px),
+      repeating-linear-gradient(90deg, #fb923c 0px 4px, transparent 4px 8px),
+      linear-gradient(#fb923c, #fb923c),
+      linear-gradient(#fb923c, #fb923c);
+    background-size: 100% 3px, 100% 3px, 3px 100%, 3px 100%;
+    background-position: top left, bottom left, top left, top right;
+    background-repeat: no-repeat;
+    box-shadow: 0 0 20px rgba(251, 146, 60, 0.15), 0 0 40px rgba(251, 146, 60, 0.05);
+    animation: player-expand 0.2s ease;
+  }
+
+  @keyframes player-expand {
+    from { opacity: 0; transform: scale(0.9) translateX(20px); }
+    to { opacity: 1; transform: scale(1) translateX(0); }
+  }
+
+  .mini-play-btn {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.1s;
+  }
+
+  .mini-play-btn:hover {
+    transform: scale(1.15);
+  }
+
+  .mini-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .player-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .player-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+
+  .maple-leaf {
+    font-size: 0.75rem;
+  }
+
+  .label-text {
+    font-size: 0.65rem;
+    color: #fb923c;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .progress-bar {
+    width: 100%;
+    height: 6px;
+    background: rgba(251, 146, 60, 0.15);
+    cursor: pointer;
+    position: relative;
+    image-rendering: pixelated;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: #fb923c;
+    transition: width 0.1s linear;
+    image-rendering: pixelated;
+  }
+
+  .progress-bar:hover .progress-fill {
+    background: #fdba74;
+  }
+
+  .time-display {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.6rem;
+    color: #9ca3af;
+    margin-top: 4px;
+  }
+
+  .close-btn {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border: none;
+    background: transparent;
+    color: #6b7280;
+    cursor: pointer;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.1s;
+  }
+
+  .close-btn:hover {
+    color: #fb923c;
+  }
+
+  /* Mobile adjustments */
+  @media (max-width: 640px) {
+    .maple-audio-player {
+      right: 1rem;
+      bottom: 1rem;
+    }
+
+    .maple-mini-player {
+      min-width: 240px;
+    }
+  }
+</style>

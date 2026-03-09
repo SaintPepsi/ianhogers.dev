@@ -1,5 +1,6 @@
 ---
 import Base from './Base.astro';
+import MapleAudioPlayer from '../components/MapleAudioPlayer.svelte';
 
 interface Props {
   title: string;
@@ -7,10 +8,25 @@ interface Props {
   date: Date;
   tags: string[];
   side: 'dev' | 'personal' | 'maple';
+  slug?: string;
 }
 
-const { title, description, date, tags, side } = Astro.props;
+const { title, description, date, tags, side, slug } = Astro.props;
 const formattedDate = date.toLocaleDateString('en-AU', { year: 'numeric', month: 'long', day: 'numeric' });
+
+// Check if maple audio file exists for this article
+let hasAudio = false;
+let audioPath = '';
+if (side === 'maple' && slug) {
+  audioPath = `/audio/maple/${slug}.m4a`;
+  // Check at build time if the audio file exists
+  try {
+    const fs = await import('node:fs');
+    hasAudio = fs.existsSync(`public${audioPath}`);
+  } catch {
+    hasAudio = false;
+  }
+}
 const sideIcons: Record<string, string> = {
   dev: '/assets/pixel-art/game-assets/wow_blue.png',
   personal: '/assets/pixel-art/decorative/sample-bunny.png',
@@ -50,6 +66,14 @@ const sideLabel = side === 'dev' ? 'dev' : side === 'personal' ? 'life' : "maple
     <div class="prose">
       <slot />
     </div>
+
+    {hasAudio && (
+      <MapleAudioPlayer
+        client:idle
+        audioSrc={audioPath}
+        articleTitle={title}
+      />
+    )}
 
     <div class="pixel-divider mt-12 mb-6" style="--divider-color: #2a2438;"></div>
     {side === 'maple' ? (
