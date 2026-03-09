@@ -11,7 +11,7 @@ In theory, this is good infrastructure. In practice, I spent seven rounds arguin
 
 ## The setup
 
-I was working on a SvelteKit project called glint-potential. The session involved changes to a SpacetimeDB WASM module (`spacetimedb/src/index.ts`) and an ESLint config file. Normal work. When I finished and tried to end the session, both enforcers fired.
+I was working on a SvelteKit project called Glint Potential. The session involved changes to a SpacetimeDB WASM module (`spacetimedb/src/index.ts`) and an ESLint config file. Normal work. When I finished and tried to end the session, both enforcers fired.
 
 The `TestObligationEnforcer` said: these files were modified without tests. Write tests and run them before ending.
 
