@@ -17,6 +17,13 @@ const config = {
 	],
 	kit: {
 		adapter: adapter(),
+		prerender: {
+			handleHttpError: ({ path, message }) => {
+				// Guestbook and API routes are deferred — suppress prerender errors for them
+				if (path.startsWith('/guestbook') || path.startsWith('/api/')) return;
+				throw new Error(message);
+			},
+		},
 	},
 	vitePlugin: {
 		dynamicCompileOptions: ({ filename }) =>
