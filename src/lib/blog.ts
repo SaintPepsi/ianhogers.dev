@@ -8,20 +8,22 @@ export interface PostMetadata {
   draft?: boolean;
 }
 
-export interface Post {
+export interface PostSummary {
   slug: string;
   metadata: PostMetadata;
-  component: Component;
 }
 
 export type PostModule = { metadata: PostMetadata; default: Component };
 
-export function loadPosts(modules: Record<string, PostModule>): Post[] {
+/**
+ * Load posts from an import.meta.glob result. Returns only serializable data
+ * (no component references) — safe to return from SvelteKit load functions.
+ */
+export function loadPosts(modules: Record<string, PostModule>): PostSummary[] {
   return Object.entries(modules)
     .map(([path, mod]) => ({
       slug: path.split('/').pop()?.replace(/\.mdx?$/, '') ?? '',
       metadata: mod.metadata,
-      component: mod.default,
     }))
     .filter((p) => !p.metadata.draft)
     .sort((a, b) => new Date(b.metadata.date).getTime() - new Date(a.metadata.date).getTime());

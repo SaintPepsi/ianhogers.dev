@@ -107,6 +107,7 @@
                     frameborder="0"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowfullscreen
+                    loading="lazy"
                   ></iframe>
                 </div>
                 <p class="text-xs font-mono text-gray-500 mt-2 text-center">The pixel art timelapse</p>

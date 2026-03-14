@@ -194,9 +194,8 @@
   }
 
   // Detect navigation to bamboo page after initial mount.
-  // This replaces the astro:page-load listener - the component lives in
-  // +layout.svelte so it never unmounts, but we still need to activate
-  // when the user navigates TO the bambooboys page.
+  // The component lives in +layout.svelte so it persists across navigations,
+  // but we still need to activate when the user navigates TO the bambooboys page.
   $effect(() => {
     const pathname = page.url.pathname;
     if (!mounted) return;

@@ -12,5 +12,5 @@ export const load: PageLoad = async ({ params }) => {
   const audioFiles = import.meta.glob('/static/audio/maple/*.m4a');
   const hasAudio = Object.keys(audioFiles).some((p) => p.includes(params.slug));
 
-  return { post, hasAudio };
+  return { metadata: post.metadata, slug: post.slug, hasAudio };
 };

@@ -43,6 +43,9 @@
 <svelte:head>
   <title>{title} - Ian Hogers</title>
   <meta name="description" content={description} />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:type" content="article" />
 </svelte:head>
 
 <article class="py-4">

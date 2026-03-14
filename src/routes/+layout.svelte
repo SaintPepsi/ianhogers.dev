@@ -3,7 +3,6 @@
   import { page } from '$app/state';
   import { onMount } from 'svelte';
   import FallingLeaves from '$lib/components/FallingLeaves.svelte';
-  import MapleAudioPlayer from '$lib/components/MapleAudioPlayer.svelte';
 
   let { data, children } = $props();
 
@@ -26,6 +25,9 @@
 
 <svelte:head>
   <meta name="description" content="Ian Hogers gets stuff DONE. Software engineer, game developer, Dutch-Australian." />
+  <meta property="og:site_name" content="Ian Hogers" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary" />
 </svelte:head>
 
 <div class="min-h-screen flex flex-col">
@@ -143,6 +145,4 @@
   <!-- Falling bamboo leaves (persists across navigations in layout) -->
   <FallingLeaves />
 
-  <!-- Maple audio player -->
-  <MapleAudioPlayer />
 </div>

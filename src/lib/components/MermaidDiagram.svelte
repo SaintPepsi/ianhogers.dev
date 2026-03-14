@@ -7,6 +7,13 @@
   onMount(async () => {
     if (initialized) return;
 
+    // Check if any mermaid code blocks exist before importing the library (~500KB)
+    const codeBlocks = document.querySelectorAll('pre code.language-mermaid');
+    if (codeBlocks.length === 0) {
+      initialized = true;
+      return;
+    }
+
     const mermaid = (await import('mermaid')).default;
     mermaid.initialize({
       startOnLoad: false,
@@ -35,9 +42,6 @@
       fontFamily: 'JetBrains Mono, monospace',
       fontSize: 14,
     });
-
-    // Find all mermaid code blocks in the article
-    const codeBlocks = document.querySelectorAll('pre code.language-mermaid');
 
     for (const block of codeBlocks) {
       const pre = block.parentElement;

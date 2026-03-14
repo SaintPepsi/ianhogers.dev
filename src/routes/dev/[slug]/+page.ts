@@ -7,5 +7,6 @@ export const load: PageLoad = async ({ params }) => {
   const posts = loadPosts(modules);
   const post = posts.find((p) => p.slug === params.slug);
   if (!post) throw error(404, 'Post not found');
-  return { post };
+  // Return only serializable data — component resolved in .svelte file
+  return { metadata: post.metadata, slug: post.slug };
 };

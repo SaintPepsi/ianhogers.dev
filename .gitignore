@@ -5,3 +5,6 @@ dist/
 .svelte-kit/
 .vercel/
 test-results/
+.env
+.env.local
+.env.*
