@@ -33,14 +33,64 @@
     sprite: string;
     duration: number;
     opacity: number;
-    drift1: number;
-    drift2: number;
-    drift3: number;
-    drift4: number;
     settled: boolean;
     fading: boolean;
     settledRotation: number;
     settledBottom: number;
+    // Physics state
+    startTime: number;
+    currentX: number;
+    currentY: number;
+    currentRotation: number;
+    done: boolean;
+    // Per-leaf physics params
+    swayAmplitude: number;   // dvw, how far it drifts horizontally
+    swayFrequency: number;   // Hz, oscillations per fall
+    swayPhase: number;       // radians, starting phase offset
+    baseSpeed: number;       // dvh/s, average vertical speed
+    dragCoefficient: number; // 0-1, how much sway slows the fall
+  }
+
+  /**
+   * Physics-based leaf motion:
+   * - Horizontal: sinusoidal sway with per-leaf amplitude, frequency, and phase
+   * - Vertical: base gravity speed modulated by horizontal velocity (leaf falls
+   *   fastest when sway velocity is zero, i.e. at the extremes of horizontal
+   *   travel, the leaf momentarily pauses vertically — wait, that's wrong.
+   *   Actually: fastest vertical when passing through center, slowest at edges.)
+   *   We use: vY = baseSpeed * (1 - drag * |cos(wt + phase)|)
+   *   cos is max at sway center crossing → drag slows it there? No.
+   *   sin derivative = cos, so horizontal velocity = A*w*cos(wt+p).
+   *   We want vertical speed to peak when horizontal displacement is zero
+   *   (center of swing). Displacement = A*sin(wt+p), so center when sin=0,
+   *   which is when cos is ±1 (max horizontal velocity).
+   *   So: vY = baseSpeed * (1 + drag * |cos(wt+p)|) — falls fastest at center.
+   * - Rotation: proportional to horizontal velocity (tilts in sway direction)
+   */
+  function computeLeafPosition(leaf: Leaf, elapsed: number): { x: number; y: number; rotation: number } {
+    const { swayAmplitude, swayFrequency, swayPhase, baseSpeed, dragCoefficient } = leaf;
+    const w = swayFrequency * Math.PI * 2;
+    const t = elapsed;
+
+    // Horizontal: simple sine wave
+    const x = swayAmplitude * Math.sin(w * t + swayPhase);
+
+    // Vertical: integrate speed over time. Speed = baseSpeed * (1 + drag * |cos(wt+p)|)
+    // For smooth results, compute analytically:
+    // y = baseSpeed * t + baseSpeed * drag * integral(|cos(wt+p)|) from 0 to t
+    // integral of |cos(u)| over one period = 4/period, but piecewise is complex.
+    // Approximate: since |cos| averages to 2/pi ≈ 0.637, and we want the modulation
+    // to feel natural, just use the instantaneous formula per frame.
+    // We accumulate y in the animation loop instead.
+    // Return NaN for y to signal "use accumulated value"
+    const horizontalVelocity = Math.abs(Math.cos(w * t + swayPhase));
+    const verticalSpeed = baseSpeed * (1 + dragCoefficient * horizontalVelocity);
+
+    // Rotation: tilt proportional to horizontal velocity (leaf banks into its sway)
+    const swayVelocity = swayAmplitude * w * Math.cos(w * t + swayPhase);
+    const rotation = swayVelocity * -2.5;
+
+    return { x, y: verticalSpeed, rotation };
   }
 
   let isActive = $state(false);
@@ -96,11 +146,6 @@
     return BAMBOO_POEMS[pick];
   }
 
-  function randomDrift(): number {
-    const magnitude = 4 + Math.random() * 2;
-    return Math.random() > 0.5 ? magnitude : -magnitude;
-  }
-
   function createLeaf(): Leaf {
     return {
       id: nextLeafId++,
@@ -108,14 +153,20 @@
       sprite: LEAF_SPRITES[Math.floor(Math.random() * LEAF_SPRITES.length)],
       duration: 18 + Math.random() * 12,
       opacity: 0.6 + Math.random() * 0.2,
-      drift1: randomDrift(),
-      drift2: randomDrift(),
-      drift3: randomDrift(),
-      drift4: randomDrift(),
       settled: false,
       fading: false,
       settledRotation: -20 + Math.random() * 40,
       settledBottom: Math.random() * 12,
+      startTime: 0,
+      currentX: 0,
+      currentY: -5,
+      currentRotation: 0,
+      done: false,
+      swayAmplitude: 3 + Math.random() * 4,       // 3-7 dvw
+      swayFrequency: 0.08 + Math.random() * 0.06,  // 0.08-0.14 Hz (slow, lazy sway)
+      swayPhase: Math.random() * Math.PI * 2,       // random start angle
+      baseSpeed: 3.5 + Math.random() * 1.5,         // 3.5-5 dvh/s
+      dragCoefficient: 0.3 + Math.random() * 0.3,   // 0.3-0.6 modulation depth
     };
   }
 
@@ -139,9 +190,9 @@
 
   function startTrickleSpawn() {
     stopSpawning();
-    // Spawn first leaf immediately
     leaves = [...leaves, createLeaf()];
     scheduleNextSpawn();
+    startAnimationLoop();
   }
 
   function isBambooPage(pathname: string): boolean {
@@ -164,13 +215,13 @@
     }
   }
 
-  function handleLeafAnimationEnd(leaf: Leaf, event: AnimationEvent) {
-    if (event.animationName !== 'leaf-fall') return;
+  let rafId: number | null = null;
+
+  function settleLeaf(leaf: Leaf) {
     if (leaf.settled) return;
-
     leaf.settled = true;
+    leaf.done = true;
 
-    // Auto-fade settled leaf after delay
     const leafId = leaf.id;
     setTimeout(() => {
       const target = leaves.find(l => l.id === leafId);
@@ -178,13 +229,59 @@
         target.fading = true;
         setTimeout(() => {
           leaves = leaves.filter(l => l.id !== leafId);
-          // Spawn replacement if poems remain
           if (!allPoemsRead()) {
             leaves = [...leaves, createLeaf()];
           }
         }, 1000);
       }
     }, SETTLE_FADE_DELAY);
+  }
+
+  let lastTickTime = 0;
+
+  function animationTick(now: number) {
+    const dt = lastTickTime === 0 ? 0.016 : Math.min((now - lastTickTime) / 1000, 0.1);
+    lastTickTime = now;
+    let needsUpdate = false;
+
+    for (const leaf of leaves) {
+      if (leaf.done || leaf.settled) continue;
+
+      if (leaf.startTime === 0) {
+        leaf.startTime = now;
+      }
+
+      const elapsed = (now - leaf.startTime) / 1000;
+      const { x, y: verticalSpeed, rotation } = computeLeafPosition(leaf, elapsed);
+
+      leaf.currentX = x;
+      leaf.currentY += verticalSpeed * dt;
+      leaf.currentRotation = Math.max(-35, Math.min(35, rotation));
+      needsUpdate = true;
+
+      if (leaf.currentY >= 100) {
+        leaf.currentY = 100;
+        settleLeaf(leaf);
+      }
+    }
+
+    if (needsUpdate) {
+      leaves = leaves;
+    }
+
+    rafId = requestAnimationFrame(animationTick);
+  }
+
+  function startAnimationLoop() {
+    if (rafId !== null) return;
+    rafId = requestAnimationFrame(animationTick);
+  }
+
+  function stopAnimationLoop() {
+    if (rafId !== null) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
   }
 
   function handleKeydown(event: KeyboardEvent) {
@@ -220,6 +317,7 @@
 
     return () => {
       stopSpawning();
+      stopAnimationLoop();
       document.removeEventListener('keydown', handleKeydown);
     };
   });
@@ -236,17 +334,12 @@
         class:fading={leaf.fading}
         style="
           left: {leaf.x}dvw;
-          --fall-duration: {leaf.duration}s;
-          --leaf-opacity: {leaf.opacity};
-          --drift-1: {leaf.drift1}dvw;
-          --drift-2: {leaf.drift2}dvw;
-          --drift-3: {leaf.drift3}dvw;
-          --drift-4: {leaf.drift4}dvw;
-          --settled-rotation: {leaf.settledRotation}deg;
-          --settled-bottom: {leaf.settledBottom}px;
+          opacity: {leaf.opacity};
+          translate: {leaf.currentX}dvw {leaf.currentY}dvh;
+          rotate: {leaf.settled ? leaf.settledRotation + 'deg' : leaf.currentRotation + 'deg'};
+          {leaf.settled ? 'bottom: ' + leaf.settledBottom + 'px;' : ''}
         "
         onclick={(e) => handleLeafClick(leaf, e)}
-        onanimationend={(e) => handleLeafAnimationEnd(leaf, e)}
       >
         <img
           src={leaf.sprite}
@@ -293,12 +386,7 @@
     top: 0;
     pointer-events: auto;
     cursor: pointer;
-    opacity: var(--leaf-opacity, 0.7);
     filter: drop-shadow(1px 2px 2px rgba(0, 0, 0, 0.3));
-    will-change: translate, rotate;
-    animation:
-      leaf-fall var(--fall-duration, 20s) ease-in-out forwards,
-      leaf-rotate var(--fall-duration, 20s) ease-in-out forwards;
     transition: scale 0.15s ease;
   }
 
@@ -308,48 +396,12 @@
   }
 
   .falling-leaf.settled {
-    animation: leaf-settle 0.3s ease-out forwards;
     top: auto;
-    bottom: var(--settled-bottom, 0px);
-    rotate: var(--settled-rotation, 0deg);
-    translate: none;
   }
 
   .falling-leaf.fading {
-    opacity: 0;
+    opacity: 0 !important;
     transition: opacity 1s ease;
-  }
-
-  /* Lazy float: 8-point organic curve with per-leaf random drift values */
-  @keyframes leaf-fall {
-    0%    { translate: 0 -5dvh; }
-    12%   { translate: var(--drift-1, 4dvw) 10dvh; }
-    25%   { translate: var(--drift-2, -3dvw) 22dvh; }
-    37%   { translate: calc(var(--drift-1, 4dvw) * 0.5) 35dvh; }
-    50%   { translate: var(--drift-3, 5dvw) 48dvh; }
-    62%   { translate: calc(var(--drift-2, -3dvw) * -0.7) 60dvh; }
-    75%   { translate: var(--drift-4, -4dvw) 73dvh; }
-    87%   { translate: calc(var(--drift-3, 5dvw) * 0.3) 86dvh; }
-    100%  { translate: 0 calc(100dvh - 20px); }
-  }
-
-  /* Rotation synced to drift: follows the sway direction */
-  @keyframes leaf-rotate {
-    0%    { rotate: 0deg; }
-    12%   { rotate: 8deg; }
-    25%   { rotate: -6deg; }
-    37%   { rotate: 4deg; }
-    50%   { rotate: -8deg; }
-    62%   { rotate: 6deg; }
-    75%   { rotate: -4deg; }
-    87%   { rotate: 3deg; }
-    100%  { rotate: 0deg; }
-  }
-
-  @keyframes leaf-settle {
-    0% { translate: 0 0; }
-    60% { translate: 0 -6px; }
-    100% { translate: 0 0; }
   }
 
   /* Parchment scroll poem card */
