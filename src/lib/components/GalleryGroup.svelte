@@ -1,32 +1,41 @@
----
-// GalleryGroup.astro — a titled cluster within a collage gallery
-// Contains CollageItem children. Groups flow horizontally within Gallery.
-// Props:
-//   title  — heading text (always displayed on top)
-//   tilt   — group-level rotation in degrees for diagonal feel
-//   align  — "start" | "center" | "end" for photo cluster alignment
-interface Props {
-  title: string;
-  tilt?: number;
-  align?: 'start' | 'center' | 'end';
-  area?: string;
-  class?: string;
-}
-const { title, tilt, align = 'start', area, class: className = '' } = Astro.props;
+<script lang="ts">
+  import type { Snippet } from 'svelte';
 
-const groupStyle = [
-  tilt ? `--gg-tilt: ${tilt}deg` : '',
-  area ? `grid-area: ${area}` : '',
-].filter(Boolean).join('; ');
----
+  let {
+    title,
+    tilt,
+    align = 'start',
+    area,
+    class: className = '',
+    children,
+  }: {
+    title: string;
+    tilt?: number;
+    align?: 'start' | 'center' | 'end';
+    area?: string;
+    class?: string;
+    children?: Snippet;
+  } = $props();
 
-<section
-  class:list={['gallery-group', { 'gallery-group--tilted': tilt }, className]}
-  style={groupStyle || undefined}
->
+  const groupStyle = $derived(
+    [tilt ? `--gg-tilt: ${tilt}deg` : '', area ? `grid-area: ${area}` : '']
+      .filter(Boolean)
+      .join('; ') || undefined
+  );
+
+  const classes = $derived(
+    ['gallery-group', tilt ? 'gallery-group--tilted' : '', className]
+      .filter(Boolean)
+      .join(' ')
+  );
+</script>
+
+<section class={classes} style={groupStyle}>
   <h3 class="gallery-group-title">{title}</h3>
-  <div class:list={['gallery-group-items', `gallery-group-items--${align}`]}>
-    <slot />
+  <div class="gallery-group-items gallery-group-items--{align}">
+    {#if children}
+      {@render children()}
+    {/if}
   </div>
 </section>
 

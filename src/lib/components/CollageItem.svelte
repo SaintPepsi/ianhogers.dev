@@ -1,29 +1,44 @@
----
-// CollageItem.astro — photo-effect wrapper for any element
-// Applies rotation, shadow, hover-lift, and positional scatter.
-// Props override defaults; without props, nth-child provides auto-variation.
-interface Props {
-  rotate?: number;    // degrees, e.g. -3, 5, 15
-  offsetX?: string;   // CSS value, e.g. "1rem", "-0.5rem"
-  offsetY?: string;   // CSS value, e.g. "1rem", "-0.5rem"
-  width?: string;     // CSS value, e.g. "280px", "100%"
-  class?: string;     // additional classes
-}
-const { rotate, offsetX, offsetY, width, class: className = '' } = Astro.props;
+<script lang="ts">
+  import type { Snippet } from 'svelte';
 
-const style = [
-  rotate !== undefined ? `--ci-rotate: ${rotate}deg` : '',
-  offsetX ? `--ci-offset-x: ${offsetX}` : '',
-  offsetY ? `--ci-offset-y: ${offsetY}` : '',
-  width ? `--ci-width: ${width}` : '',
-].filter(Boolean).join('; ');
----
+  let {
+    rotate,
+    offsetX,
+    offsetY,
+    width,
+    class: className = '',
+    children,
+  }: {
+    rotate?: number;
+    offsetX?: string;
+    offsetY?: string;
+    width?: string;
+    class?: string;
+    children?: Snippet;
+  } = $props();
 
-<div
-  class:list={['collage-item', { 'collage-item--custom-rotate': rotate !== undefined }, className]}
-  style={style || undefined}
->
-  <slot />
+  const style = $derived(
+    [
+      rotate !== undefined ? `--ci-rotate: ${rotate}deg` : '',
+      offsetX ? `--ci-offset-x: ${offsetX}` : '',
+      offsetY ? `--ci-offset-y: ${offsetY}` : '',
+      width ? `--ci-width: ${width}` : '',
+    ]
+      .filter(Boolean)
+      .join('; ') || undefined
+  );
+
+  const classes = $derived(
+    ['collage-item', rotate !== undefined ? 'collage-item--custom-rotate' : '', className]
+      .filter(Boolean)
+      .join(' ')
+  );
+</script>
+
+<div class={classes} style={style}>
+  {#if children}
+    {@render children()}
+  {/if}
 </div>
 
 <style>
@@ -106,7 +121,7 @@ const style = [
     margin: 0;
   }
 
-  /* ── Responsive sizing ── */
+  /* Responsive sizing */
   @media (min-width: 640px) {
     .collage-item { max-width: var(--ci-width, 240px); }
   }

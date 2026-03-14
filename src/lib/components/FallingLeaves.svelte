@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { page } from '$app/stores';
 
   const BAMBOO_POEMS = [
     "Do not judge a bamboo until it has fully grown.",
@@ -47,6 +48,7 @@
   let openPoem = $state<{ text: string; x: number; y: number } | null>(null);
   let nextLeafId = 0;
   let spawnTimerId: ReturnType<typeof setTimeout> | null = null;
+  let mounted = false;
 
   function safeSetItem(key: string, value: string) {
     try {
@@ -142,9 +144,8 @@
     scheduleNextSpawn();
   }
 
-  function isBambooPage(): boolean {
-    const path = window.location.pathname;
-    return path === BAMBOO_PATH || path === BAMBOO_PATH + '/';
+  function isBambooPage(pathname: string): boolean {
+    return pathname === BAMBOO_PATH || pathname === BAMBOO_PATH + '/';
   }
 
   function handleLeafClick(leaf: Leaf, event: MouseEvent) {
@@ -194,48 +195,29 @@
     }
   }
 
-  onMount(() => {
-    const wasActive = safeGetItem(STORAGE_ACTIVE_KEY) === 'true';
-
-    if ((wasActive || isBambooPage()) && !allPoemsRead()) {
+  // Detect navigation to bamboo page after initial mount.
+  // This replaces the astro:page-load listener - the component lives in
+  // +layout.svelte so it never unmounts, but we still need to activate
+  // when the user navigates TO the bambooboys page.
+  $effect(() => {
+    const pathname = $page.url.pathname;
+    if (!mounted) return;
+    if (!isActive && isBambooPage(pathname) && !allPoemsRead()) {
       safeSetItem(STORAGE_ACTIVE_KEY, 'true');
       isActive = true;
       startTrickleSpawn();
     }
+  });
 
-    // Prevent CSS animation restart during ViewTransition swap.
-    // Capture each falling leaf's elapsed time before swap, then
-    // restore with negative animation-delay to resume from same position.
-    document.addEventListener('astro:before-swap', () => {
-      document.querySelectorAll('.falling-leaf:not(.settled)').forEach(el => {
-        const htmlEl = el as HTMLElement;
-        const anims = el.getAnimations();
-        if (anims.length > 0) {
-          const elapsed = (anims[0].currentTime as number) || 0;
-          htmlEl.dataset.elapsed = String(elapsed);
-        }
-      });
-    });
+  onMount(() => {
+    mounted = true;
+    const wasActive = safeGetItem(STORAGE_ACTIVE_KEY) === 'true';
 
-    document.addEventListener('astro:after-swap', () => {
-      document.querySelectorAll('.falling-leaf:not(.settled)').forEach(el => {
-        const htmlEl = el as HTMLElement;
-        const elapsed = parseFloat(htmlEl.dataset.elapsed || '0');
-        if (elapsed > 0) {
-          // Negative delay skips animation ahead to where it was
-          htmlEl.style.animationDelay = `-${elapsed}ms`;
-          delete htmlEl.dataset.elapsed;
-        }
-      });
-    });
-
-    document.addEventListener('astro:page-load', () => {
-      if (!isActive && isBambooPage() && !allPoemsRead()) {
-        safeSetItem(STORAGE_ACTIVE_KEY, 'true');
-        isActive = true;
-        startTrickleSpawn();
-      }
-    });
+    if ((wasActive || isBambooPage($page.url.pathname)) && !allPoemsRead()) {
+      safeSetItem(STORAGE_ACTIVE_KEY, 'true');
+      isActive = true;
+      startTrickleSpawn();
+    }
 
     document.addEventListener('keydown', handleKeydown);
 
@@ -292,7 +274,7 @@
         style="--click-x: {openPoem.x}px; --click-y: {openPoem.y}px;"
         onclick={(e) => e.stopPropagation()}
       >
-        <button class="poem-close" onclick={closePoem} aria-label="Close poem">✕</button>
+        <button class="poem-close" onclick={closePoem} aria-label="Close poem">&#10005;</button>
         <p class="poem-text">{openPoem.text}</p>
         <img src="/assets/pixel-art/decorative/bamboo-stem.png" alt="" class="stamp-icon pixel-sprite" />
       </div>
