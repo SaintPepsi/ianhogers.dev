@@ -228,7 +228,7 @@ test.describe('Falling Bamboo Leaves', () => {
     expect(scale).toBe('1.3');
   });
 
-  test('poem card centers horizontally on mobile viewport', async ({ page }) => {
+  test('poem card stays within viewport on mobile', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto('/shoutouts/bambooboys');
     await page.waitForTimeout(3000);
@@ -238,10 +238,12 @@ test.describe('Falling Bamboo Leaves', () => {
     const card = page.locator('.poem-card');
     await expect(card).toBeVisible();
 
-    const left = await card.evaluate(el => parseInt(getComputedStyle(el).left));
-    // On 375px viewport with 240px card, centered would be ~67px
-    expect(left).toBeGreaterThanOrEqual(30);
-    expect(left).toBeLessThanOrEqual(100);
+    const box = await card.boundingBox();
+    // Card must be fully within viewport
+    expect(box!.x).toBeGreaterThanOrEqual(0);
+    expect(box!.y).toBeGreaterThanOrEqual(0);
+    expect(box!.x + box!.width).toBeLessThanOrEqual(375);
+    expect(box!.y + box!.height).toBeLessThanOrEqual(667);
   });
 
   test('no more leaves spawn after all poems are read', async ({ page }) => {

@@ -152,20 +152,7 @@
     const readCount = getPoemsReadCount() + 1;
     safeSetItem(STORAGE_READ_KEY, String(readCount));
 
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-
-    let cardX = event.clientX;
-    let cardY = event.clientY;
-
-    if (vw < 480) {
-      cardX = (vw - 240) / 2;
-    } else {
-      cardX = Math.max(16, Math.min(cardX, vw - 256));
-    }
-    cardY = Math.max(48, Math.min(cardY, vh - 200));
-
-    openPoem = { text: poem, x: cardX, y: cardY };
+    openPoem = { text: poem, x: event.clientX, y: event.clientY };
     leaves = leaves.filter(l => l.id !== leaf.id);
   }
 
@@ -276,15 +263,15 @@
       <!-- svelte-ignore a11y_no_static_element_interactions -->
       <div
         class="poem-card"
-        style="left: {openPoem.x}px; top: {openPoem.y}px;"
+        style="--click-x: {openPoem.x}px; --click-y: {openPoem.y}px;"
         onclick={(e) => e.stopPropagation()}
       >
+        <button class="poem-close" onclick={closePoem} aria-label="Close poem">✕</button>
+        <p class="poem-text">{openPoem.text}</p>
         <div class="seal-stamp">
           <img src="/assets/pixel-art/ui/btn-seal.png" alt="" class="seal-img pixel-sprite" />
           <img src="/assets/pixel-art/decorative/bamboo-stem.png" alt="" class="bamboo-overlay pixel-sprite" />
         </div>
-        <button class="poem-close" onclick={closePoem} aria-label="Close poem">✕</button>
-        <p class="poem-text">{openPoem.text}</p>
       </div>
     </div>
   {/if}
@@ -374,14 +361,15 @@
 
   .poem-card {
     position: fixed;
+    left: clamp(16px, var(--click-x), calc(100dvw - 256px));
+    top: clamp(16px, var(--click-y), calc(100dvh - 240px));
     max-width: 240px;
     padding: 24px;
-    padding-left: 80px;
+    padding-bottom: 48px;
     z-index: 51;
     animation: poem-appear 0.2s ease;
     border-style: solid;
     border-width: 24px;
-    /* top right bottom left — larger bottom+left slices to prevent stretching */
     border-image: url('/assets/pixel-art/ui/scroll-frame-02.png') 10 6 16 10 fill / 24px / 0 stretch;
     image-rendering: pixelated;
     box-sizing: border-box;
@@ -389,16 +377,17 @@
 
   .seal-stamp {
     position: absolute;
-    top: 8px;
-    left: 8px;
-    width: 56px;
-    height: 56px;
+    bottom: 4px;
+    right: 4px;
+    width: 32px;
+    height: 32px;
     z-index: 2;
+    pointer-events: none;
   }
 
   .seal-img {
-    width: 56px;
-    height: 56px;
+    width: 32px;
+    height: 32px;
     image-rendering: pixelated;
   }
 
