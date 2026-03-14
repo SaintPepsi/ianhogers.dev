@@ -4,9 +4,9 @@
 
 **Goal:** Add falling pixel-art bamboo leaves that spawn on the bambooboys page, persist across navigations, and reveal fortune-cookie poems on click.
 
-**Architecture:** A single `FallingLeaves.svelte` component mounted in `Base.astro` with `client:only="svelte"` and `transition:persist`. State (activation, seen poems) tracked in sessionStorage. Leaves rendered as fixed-position overlay elements with CSS animations for falling, JS for click interaction and poem cards.
+**Architecture:** A single `FallingLeaves.svelte` component mounted in `Base.astro` with `client:only="svelte"` and `transition:persist`. State (activation, seen poems) tracked in sessionStorage. Leaves rendered as fixed-position overlay elements with pure CSS animations for falling/sway/rotation, JS only for click interaction and poem state.
 
-**Tech Stack:** Astro 5 (`package.json:19`), Svelte 5 runes (`$state`, `$props` — pattern from `src/components/MapleAudioPlayer.svelte`), Tailwind CSS (`package.json:24`), CSS animations with dvw/dvh units.
+**Tech Stack:** Astro 5 (`package.json:19`), Svelte 5 runes (`$state`, `$props` — pattern from `src/components/MapleAudioPlayer.svelte`), Tailwind CSS (`package.json:24`), pure CSS animations with individual transform properties (`translate`, `rotate`, `scale`) and dvw/dvh units.
 
 **Design doc:** `docs/plans/2026-03-14-bambooboys-falling-leaves-design.md`
 
@@ -18,6 +18,18 @@
 - Bambooboys accent color (#4ade80): `src/pages/shoutouts/bambooboys.astro:19`
 - Astro `transition:persist`: [Astro docs](https://docs.astro.build/en/guides/view-transitions/#transition-persist)
 - Astro `client:only`: [Astro docs](https://docs.astro.build/en/guides/framework-components/#hydrating-interactive-components)
+- CSS individual transform properties: [MDN translate](https://developer.mozilla.org/en-US/docs/Web/CSS/translate), [MDN rotate](https://developer.mozilla.org/en-US/docs/Web/CSS/rotate), [MDN scale](https://developer.mozilla.org/en-US/docs/Web/CSS/scale)
+
+**Fixes applied from plan review:**
+- C1: Filter `animationend` by `event.animationName === 'leaf-fall'` to prevent triple-fire
+- C2: Use individual `scale` CSS property for hover instead of `transform: scale()` (avoids animation override)
+- W1: Use `translate` CSS property instead of animating `top` (GPU-accelerated, no layout thrash)
+- W3: Wrap all `sessionStorage.setItem` in try/catch for private browsing
+- W4: Track `fading` state in Leaf interface instead of `document.querySelector` DOM manipulation
+- N3: Center poem card on mobile viewports (< 480px)
+- N7: Add Escape key handler for closing poem card
+- N8: Use exact path match with `startsWith` instead of `includes`
+- N9: Vary settled leaf bottom offsets for pile-up effect
 
 ---
 
@@ -33,11 +45,14 @@
 Use the Media skill to create 3 pixel-art bamboo leaf sprites:
 - 16x16px each
 - Green palette centered on #4ade80 (the bambooboys accent color from `src/pages/shoutouts/bambooboys.astro:19`)
-- Pixel-art style matching existing sprites in `public/assets/pixel-art/`
+- Pixel-art style matching existing sprites in `public/assets/pixel-art/` — use `image-rendering: pixelated`
 - Variant 1: single leaf, angled right
 - Variant 2: single leaf, angled left
 - Variant 3: small cluster of 2 leaves
 - Transparent background (PNG)
+- Reference existing pixel-art assets for style: `public/assets/pixel-art/decorative/carrot-small.png`, `public/assets/pixel-art/game-assets/wow_blue.png`
+
+If generated sprites don't match the pixel-art style, create them manually as 16x16 PNGs with a simple leaf shape using 3-4 shades of green (#22c55e, #4ade80, #86efac, #166534).
 
 **Step 2: Verify sprites exist and are correct size**
 
@@ -86,10 +101,10 @@ This task creates the component shell with poem data, sessionStorage state manag
   ];
 
   const LEAF_COUNT = 8;
+  const MAX_SETTLED = 18;
   const STORAGE_ACTIVE_KEY = 'bamboo-leaves-active';
   const STORAGE_POEMS_KEY = 'bamboo-poems-seen';
-
-  const MAX_SETTLED = 18;
+  const BAMBOO_PATH = '/shoutouts/bambooboys';
 
   interface Leaf {
     id: number;
@@ -100,13 +115,23 @@ This task creates the component shell with poem data, sessionStorage state manag
     opacity: number;
     drift: number;
     settled: boolean;
+    fading: boolean;
     settledRotation: number;
+    settledBottom: number;
   }
 
   let isActive = $state(false);
   let leaves = $state<Leaf[]>([]);
   let openPoem = $state<{ text: string; x: number; y: number } | null>(null);
   let nextLeafId = 0;
+
+  function safeSetItem(key: string, value: string) {
+    try {
+      sessionStorage.setItem(key, value);
+    } catch {
+      // Private browsing or quota exceeded — silently fail
+    }
+  }
 
   function getSeenPoems(): number[] {
     try {
@@ -125,7 +150,7 @@ This task creates the component shell with poem data, sessionStorage state manag
     const available = BAMBOO_POEMS.map((_, i) => i).filter(i => !seen.includes(i));
     const pick = available[Math.floor(Math.random() * available.length)];
     seen.push(pick);
-    sessionStorage.setItem(STORAGE_POEMS_KEY, JSON.stringify(seen));
+    safeSetItem(STORAGE_POEMS_KEY, JSON.stringify(seen));
     return BAMBOO_POEMS[pick];
   }
 
@@ -139,12 +164,19 @@ This task creates the component shell with poem data, sessionStorage state manag
       opacity: 0.6 + Math.random() * 0.2,
       drift: -3 + Math.random() * 6,
       settled: false,
+      fading: false,
       settledRotation: -20 + Math.random() * 40,
+      settledBottom: Math.random() * 12,
     };
   }
 
   function spawnLeaves() {
     leaves = Array.from({ length: LEAF_COUNT }, (_, i) => createLeaf(i * 800));
+  }
+
+  function isBambooPage(): boolean {
+    const path = window.location.pathname;
+    return path === BAMBOO_PATH || path === BAMBOO_PATH + '/';
   }
 
   function handleLeafClick(leaf: Leaf, event: MouseEvent) {
@@ -155,8 +187,14 @@ This task creates the component shell with poem data, sessionStorage state manag
     let cardX = event.clientX;
     let cardY = event.clientY;
 
-    // Clamp to viewport with 16px margin, accounting for card width (280px) and estimated height (120px)
-    cardX = Math.max(16, Math.min(cardX, vw - 296));
+    // On mobile (< 480px), center the card horizontally
+    if (vw < 480) {
+      cardX = (vw - 280) / 2;
+    } else {
+      // Clamp to viewport with 16px margin, accounting for card width (280px)
+      cardX = Math.max(16, Math.min(cardX, vw - 296));
+    }
+    // Clamp vertically with 16px margin, accounting for estimated card height (120px)
     cardY = Math.max(16, Math.min(cardY, vh - 136));
 
     openPoem = { text: poem, x: cardX, y: cardY };
@@ -169,49 +207,60 @@ This task creates the component shell with poem data, sessionStorage state manag
     leaves = [...leaves, createLeaf()];
   }
 
-  function handleLeafAnimationEnd(leaf: Leaf) {
-    // Settle the leaf at the bottom instead of recycling
+  function handleLeafAnimationEnd(leaf: Leaf, event: AnimationEvent) {
+    // Only handle the leaf-fall animation ending — ignore leaf-sway and leaf-rotate
+    // This prevents triple-spawning (one per animation)
+    if (event.animationName !== 'leaf-fall') return;
+    if (leaf.settled) return;
+
+    // Settle the leaf at the bottom
     leaf.settled = true;
     leaves = [...leaves];
 
     // Fade out oldest settled leaves if too many
-    const settled = leaves.filter(l => l.settled);
+    const settled = leaves.filter(l => l.settled && !l.fading);
     if (settled.length > MAX_SETTLED) {
       const toRemove = settled.slice(0, settled.length - MAX_SETTLED);
       toRemove.forEach(l => {
-        const el = document.querySelector(`[data-leaf-id="${l.id}"]`);
-        if (el) {
-          (el as HTMLElement).style.transition = 'opacity 1s';
-          (el as HTMLElement).style.opacity = '0';
-          setTimeout(() => {
-            leaves = leaves.filter(ll => ll.id !== l.id);
-          }, 1000);
-        }
+        l.fading = true;
       });
+      leaves = [...leaves];
+      // Remove faded leaves after the CSS transition completes
+      setTimeout(() => {
+        leaves = leaves.filter(l => !l.fading);
+      }, 1000);
     }
 
     // Spawn a new falling leaf to replace the settled one
     leaves = [...leaves, createLeaf()];
   }
 
+  function handleKeydown(event: KeyboardEvent) {
+    if (event.key === 'Escape' && openPoem) {
+      closePoem();
+    }
+  }
+
   onMount(() => {
     const wasActive = sessionStorage.getItem(STORAGE_ACTIVE_KEY) === 'true';
-    const isBambooPage = window.location.pathname.includes('/shoutouts/bambooboys');
 
-    if (wasActive || isBambooPage) {
-      sessionStorage.setItem(STORAGE_ACTIVE_KEY, 'true');
+    if (wasActive || isBambooPage()) {
+      safeSetItem(STORAGE_ACTIVE_KEY, 'true');
       isActive = true;
       spawnLeaves();
     }
 
     // Listen for navigation events (Astro ViewTransitions) to check activation
     document.addEventListener('astro:page-load', () => {
-      if (!isActive && window.location.pathname.includes('/shoutouts/bambooboys')) {
-        sessionStorage.setItem(STORAGE_ACTIVE_KEY, 'true');
+      if (!isActive && isBambooPage()) {
+        safeSetItem(STORAGE_ACTIVE_KEY, 'true');
         isActive = true;
         spawnLeaves();
       }
     });
+
+    // Escape key to close poem card
+    document.addEventListener('keydown', handleKeydown);
   });
 </script>
 
@@ -237,7 +286,13 @@ git commit -m "feat: FallingLeaves component — poem data and state management"
 **Files:**
 - Modify: `src/components/FallingLeaves.svelte`
 
-Add the template markup and scoped CSS for leaf rendering and the poem card modal.
+Add the template markup and pure CSS animations for leaf rendering and the poem card modal.
+
+**CSS animation strategy (pure CSS, no JS animation):**
+- `translate` individual CSS property for combined fall + sway (GPU-accelerated)
+- `rotate` individual CSS property for rotation (independent, no conflicts)
+- `scale` individual CSS property for hover (independent, no conflicts)
+- All three are independent CSS properties — they compose without overriding each other
 
 **Step 1: Add template markup after the closing `</script>` tag**
 
@@ -252,7 +307,7 @@ Replace `<!-- Rendering added in Task 3 -->` with:
       <div
         class="falling-leaf"
         class:settled={leaf.settled}
-        data-leaf-id={leaf.id}
+        class:fading={leaf.fading}
         style="
           left: {leaf.x}dvw;
           --fall-duration: {leaf.duration}s;
@@ -260,9 +315,10 @@ Replace `<!-- Rendering added in Task 3 -->` with:
           --leaf-opacity: {leaf.opacity};
           --leaf-drift: {leaf.drift}dvw;
           --settled-rotation: {leaf.settledRotation}deg;
+          --settled-bottom: {leaf.settledBottom}px;
         "
         onclick={(e) => handleLeafClick(leaf, e)}
-        onanimationend={() => handleLeafAnimationEnd(leaf)}
+        onanimationend={(e) => handleLeafAnimationEnd(leaf, e)}
       >
         <img
           src={leaf.sprite}
@@ -310,51 +366,68 @@ Add after the template:
     overflow: hidden;
   }
 
+  /* ═══ FALLING LEAF ═══
+     Uses individual CSS transform properties (translate, rotate, scale)
+     so they compose independently without overriding each other.
+     All animation is pure CSS — no JS requestAnimationFrame. */
+
   .falling-leaf {
     position: absolute;
-    top: -5dvh;
+    top: 0;
     pointer-events: auto;
     cursor: pointer;
     opacity: var(--leaf-opacity, 0.7);
     filter: drop-shadow(1px 2px 2px rgba(0, 0, 0, 0.3));
-    will-change: transform;
+    will-change: translate, rotate;
     animation:
       leaf-fall var(--fall-duration, 10s) ease-in var(--fall-delay, 0s) forwards,
       leaf-sway var(--fall-duration, 10s) ease-in-out var(--fall-delay, 0s) forwards,
-      leaf-rotate var(--fall-duration, 10s) ease-in-out var(--fall-delay, 0s) forwards;
-    transition: transform 0.1s;
+      leaf-rotate var(--fall-duration, 10s) ease-in-out var(--fall-delay, 0s) infinite;
+    transition: scale 0.15s ease;
   }
 
   .falling-leaf:hover {
-    transform: scale(1.3);
+    scale: 1.3;
     filter: drop-shadow(1px 2px 2px rgba(0, 0, 0, 0.3)) brightness(1.3);
   }
+
+  /* ═══ SETTLED LEAF ═══
+     Stops at bottom of viewport with a bounce. Varied bottom offset via
+     --settled-bottom creates a natural pile-up effect. */
 
   .falling-leaf.settled {
     animation: leaf-settle 0.3s ease-out forwards;
     top: auto;
-    bottom: 0;
+    bottom: var(--settled-bottom, 0px);
     rotate: var(--settled-rotation, 0deg);
-    cursor: pointer;
+    translate: none;
   }
+
+  .falling-leaf.fading {
+    opacity: 0;
+    transition: opacity 1s ease;
+  }
+
+  /* ═══ KEYFRAMES ═══
+     leaf-fall: vertical movement via translateY (GPU-accelerated, no layout thrash)
+     leaf-sway: horizontal drift via translateX
+     Note: both use the translate property. Since CSS can't compose two
+     animations on the same property, we combine fall + sway into leaf-fall
+     and use leaf-sway as translateX only (layered via translate shorthand). */
 
   @keyframes leaf-fall {
-    0% { top: -5dvh; }
-    100% { top: calc(100dvh - 20px); }
-  }
-
-  @keyframes leaf-settle {
-    0% { transform: translateY(0); }
-    60% { transform: translateY(-6px); }
-    100% { transform: translateY(0); }
+    0% { translate: 0 -5dvh; }
+    25% { translate: var(--leaf-drift, 3dvw) 23dvh; }
+    50% { translate: 0 48dvh; }
+    75% { translate: calc(var(--leaf-drift, 3dvw) * -1) 73dvh; }
+    100% { translate: 0 calc(100dvh - 20px); }
   }
 
   @keyframes leaf-sway {
-    0% { transform: translateX(0); }
-    25% { transform: translateX(var(--leaf-drift, 3dvw)); }
-    50% { transform: translateX(0); }
-    75% { transform: translateX(calc(var(--leaf-drift, 3dvw) * -1)); }
-    100% { transform: translateX(0); }
+    /* Intentionally empty — sway is baked into leaf-fall above.
+       Kept as a named animation so leaf-rotate stays independent.
+       Removing this would change animation shorthand parsing. */
+    0%, 100% { /* no-op */ }
   }
 
   @keyframes leaf-rotate {
@@ -364,6 +437,14 @@ Add after the template:
     75% { rotate: -15deg; }
     100% { rotate: 0deg; }
   }
+
+  @keyframes leaf-settle {
+    0% { translate: 0 0; }
+    60% { translate: 0 -6px; }
+    100% { translate: 0 0; }
+  }
+
+  /* ═══ POEM CARD ═══ */
 
   .poem-backdrop {
     position: fixed;
@@ -406,7 +487,6 @@ Add after the template:
   }
 
   .poem-text {
-    font-family: 'Inter', sans-serif;
     font-style: italic;
     font-size: 0.875rem;
     color: #d1d5db;
@@ -420,8 +500,8 @@ Add after the template:
   }
 
   @keyframes poem-appear {
-    from { opacity: 0; transform: scale(0.9); }
-    to { opacity: 1; transform: scale(1); }
+    from { opacity: 0; scale: 0.9; }
+    to { opacity: 1; scale: 1; }
   }
 </style>
 ```
@@ -430,7 +510,7 @@ Add after the template:
 
 ```bash
 git add src/components/FallingLeaves.svelte
-git commit -m "feat: FallingLeaves rendering — falling animation and poem card"
+git commit -m "feat: FallingLeaves rendering — pure CSS falling animation and poem card"
 ```
 
 ---
@@ -480,22 +560,24 @@ git commit -m "feat: mount FallingLeaves component in Base layout"
 Use browser automation (@superpowers:webapp-testing) to:
 1. Open `http://localhost:4321/shoutouts/bambooboys`
 2. Wait 2 seconds for leaves to appear
-3. Screenshot — verify leaf sprites are visible and falling with subtle drop shadows
+3. Screenshot — verify pixel-art leaf sprites are visible and falling with subtle drop shadows
 4. Verify leaves have `pointer-events: auto` and cursor changes on hover
-5. Wait 15+ seconds for leaves to reach the bottom
-6. Screenshot — verify leaves accumulate at the bottom of the viewport with a settle bounce
-7. Verify oldest settled leaves fade out when count exceeds 18
+5. Verify hover scales the leaf (individual `scale` property, not `transform`)
+6. Wait 15+ seconds for leaves to reach the bottom
+7. Screenshot — verify leaves accumulate at the bottom with varied offsets (pile effect)
+8. Verify oldest settled leaves fade out when count exceeds 18
 
 **Step 2: Click a leaf and verify poem card**
 
 1. Click one of the falling leaf elements
 2. Screenshot — verify poem card appears with:
-   - pixel-box styling with green border
+   - pixel-box styling with green border (#4ade80)
    - 🎋 icon
    - Italic poem text
    - X close button
-3. Click X or backdrop to close
-4. Verify a new leaf spawns after closing
+3. Press Escape — verify card closes
+4. Click another leaf, then click backdrop — verify card closes
+5. Verify a new leaf spawns after closing
 
 **Step 3: Navigate away and verify persistence**
 
@@ -507,8 +589,9 @@ Use browser automation (@superpowers:webapp-testing) to:
 **Step 4: Test mobile viewport**
 
 1. Resize viewport to 375x667 (iPhone SE)
-2. Screenshot — verify leaves are visible and poem card is readable
-3. Verify poem card position clamps correctly on small screens
+2. Screenshot — verify leaves are visible and positioned correctly with dvw/dvh
+3. Click a leaf — verify poem card is centered horizontally (mobile centering logic)
+4. Verify poem card is readable and within viewport bounds
 
 **Step 5: Commit any fixes discovered during testing**
 
@@ -541,7 +624,12 @@ git commit -m "fix: falling leaves adjustments from browser testing"
 2. Verify no duplicates within a cycle
 3. After seeing all 10, click another leaf — verify pool resets and a poem shows
 
-**Step 4: Final commit if any fixes**
+**Step 4: Verify path matching is exact**
+
+1. Confirm leaves activate on `/shoutouts/bambooboys` and `/shoutouts/bambooboys/`
+2. Confirm leaves do NOT activate on hypothetical paths like `/shoutouts/bambooboys-v2`
+
+**Step 5: Final commit if any fixes**
 
 ```bash
 git add -u
