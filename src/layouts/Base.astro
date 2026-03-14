@@ -1,5 +1,6 @@
 ---
 import { ViewTransitions } from 'astro:transitions';
+import FallingLeaves from '../components/FallingLeaves.svelte';
 
 interface Props {
   title: string;
@@ -138,6 +139,8 @@ const currentPath = Astro.url.pathname;
         <span class="text-3xl animate-float-slow">🍁</span>
       </div>
     )}
+    <!-- Falling bamboo leaves (spawned on /shoutouts/bambooboys, persists across pages) -->
+    <FallingLeaves client:only="svelte" transition:persist />
     <!-- Spritesheet cursor (persists across View Transitions) -->
     <script src="/cursor.js" is:inline data-astro-rerun></script>
   </body>
