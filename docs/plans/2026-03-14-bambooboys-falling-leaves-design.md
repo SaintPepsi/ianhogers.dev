@@ -31,11 +31,14 @@ Mounted in `src/layouts/Base.astro` with `client:only="svelte"` and `transition:
 
 **Leaf spawning:**
 - Spawn 6-10 leaves at random horizontal positions (% of dvw)
-- Each falls from -5dvh to 105dvh over 8-15s (randomized)
+- Each falls from -5dvh to ~95dvh (bottom of viewport) over 8-15s (randomized)
 - Horizontal drift: subtle translateX oscillation (+-3dvw)
 - Subtle rotation oscillation (+-15deg) during fall
-- On exit bottom, recycle to top with new random X position
+- On reaching bottom, leaf settles with a slight bounce animation and stays
+- Accumulated leaves pile up at viewport bottom; after 15-20 settle, oldest fade out
+- New leaves continue spawning at the top to replace faded ones
 - Staggered spawn delays
+- Each leaf has a subtle CSS drop-shadow for depth
 
 **Click interaction:**
 - Click leaf: leaf disappears, poem card appears at leaf's coordinates
@@ -48,6 +51,7 @@ Mounted in `src/layouts/Base.astro` with `client:only="svelte"` and `transition:
 - Fixed-position overlay container: `pointer-events: none`
 - Individual leaves: `pointer-events: auto`, `cursor: pointer`
 - Leaf opacity: 0.6-0.8 (ambient, not dominant)
+- Subtle drop-shadow on each leaf: `filter: drop-shadow(1px 2px 2px rgba(0,0,0,0.3))`
 - `will-change: transform` for GPU acceleration
 
 ## Visual Design
