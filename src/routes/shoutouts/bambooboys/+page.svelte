@@ -21,46 +21,7 @@
 
       <p>I streamed back then too. Would love to find those old clips someday.</p>
 
-      <h2 class="text-green-400">The Guild</h2>
     </div>
-
-    <!-- Guild roster grid -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 my-6">
-      {#each [
-        { name: 'Kenneth', ign: 'Kenneth', job: 'Bowmaster', level: 135, avatar: '/assets/bambooboys/kenneth.jpg', role: 'Leader' },
-        { name: 'BlackStealth', ign: 'StealthStory', job: 'Bishop', level: 124, avatar: '/assets/bambooboys/blackstealth.jpg', role: '' },
-        { name: 'Ramenking', ign: 'SaintPepsi', job: 'Hermit', level: 93, avatar: '/assets/bambooboys/ramenking.jpg', role: '' },
-        { name: 'rogierR2', ign: 'Inviper', job: 'Shadower', level: 69, avatar: '/assets/bambooboys/rogierr2.jpg', role: '' },
-        { name: 'Vincekun', ign: 'Susano', job: 'Spearman', level: 51, avatar: '/assets/bambooboys/vincekun.jpg', role: '' },
-        { name: 'Yamato', ign: 'Firion', job: 'Dark Knight', level: null, avatar: '/assets/bambooboys/yamato.jpg', role: '' },
-        { name: 'Losj', ign: 'Losjington', job: 'Dark Knight', level: null, avatar: '/assets/bambooboys/losj.jpg', role: '' },
-        { name: 'Salamander', ign: 'Salamander', job: 'Dark Knight', level: 125, avatar: '/assets/bambooboys/salamander.jpg', role: '' },
-        { name: 'Kawachi', ign: 'DJ Dyna', job: 'Priest', level: null, avatar: '/assets/bambooboys/kawachi.jpg', role: '' },
-        { name: 'NatteHond', ign: 'NatteHond', job: '', level: null, avatar: '/assets/bambooboys/nattehond.jpg', role: '' },
-        { name: 'Poofcakes', ign: 'Poofcakes', job: '', level: null, avatar: '/assets/bambooboys/poofcakes.jpg', role: 'Retired Staff' },
-        { name: 'Aero', ign: 'Aero', job: 'Night Lord', level: 170, avatar: '/assets/bambooboys/aero.jpg', role: '' },
-      ] as member}
-        <div class="guild-member text-center">
-          <div class="relative mx-auto w-16 h-16 sm:w-20 sm:h-20 mb-2 overflow-hidden rounded border-2 border-green-900/50">
-            <img
-              src={member.avatar}
-              alt={member.ign}
-              class="w-full h-full object-cover"
-              loading="lazy"
-            />
-          </div>
-          <p class="text-sm font-bold text-green-400 mb-0 leading-tight">{member.ign}</p>
-          {#if member.job}
-            <p class="text-xs text-gray-500 mb-0">{member.job}{member.level ? ` Lv${member.level}` : ''}</p>
-          {/if}
-          {#if member.role}
-            <p class="text-xs text-amber-400 mb-0">{member.role}</p>
-          {/if}
-        </div>
-      {/each}
-    </div>
-
-    <p class="text-xs text-gray-600 font-mono mb-6 text-center"><em>...and more. If you were in Bambooboys and you're reading this, reach out!</em></p>
 
     <div class="prose">
       <h2 class="text-green-400">Guild Lore</h2>

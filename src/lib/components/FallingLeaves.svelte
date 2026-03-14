@@ -157,10 +157,22 @@
     return BAMBOO_POEMS[pick];
   }
 
+  // Track last spawn zone to avoid consecutive leaves in the same area
+  let lastSpawnZone = -1;
+
+  function spreadX(): number {
+    // Divide viewport into 5 zones, avoid repeating the same zone
+    const zones = [0, 1, 2, 3, 4].filter(z => z !== lastSpawnZone);
+    const zone = zones[Math.floor(Math.random() * zones.length)];
+    lastSpawnZone = zone;
+    // Each zone is ~20% of viewport, with some randomness within
+    return zone * 20 + 2 + Math.random() * 16;
+  }
+
   function createLeaf(): Leaf {
     return {
       id: nextLeafId++,
-      x: 5 + Math.random() * 90,
+      x: spreadX(),
       sprite: LEAF_SPRITES[Math.floor(Math.random() * LEAF_SPRITES.length)],
       duration: 18 + Math.random() * 12,
       opacity: 0.6 + Math.random() * 0.2,
@@ -185,7 +197,7 @@
     if (allPoemsRead()) return;
     const delay = 30_000 + Math.random() * 50_000;
     spawnTimerId = setTimeout(() => {
-      if (!allPoemsRead()) {
+      if (!allPoemsRead() && !document.hidden) {
         leaves = [...leaves, createLeaf()];
       }
       scheduleNextSpawn();
@@ -240,7 +252,7 @@
         target.fading = true;
         setTimeout(() => {
           leaves = leaves.filter(l => l.id !== leafId);
-          if (!allPoemsRead()) {
+          if (!allPoemsRead() && !document.hidden) {
             leaves = [...leaves, createLeaf()];
           }
         }, 1000);
@@ -270,8 +282,9 @@
       leaf.currentRotation = Math.max(-35, Math.min(35, rotation));
       needsUpdate = true;
 
-      if (leaf.currentY >= 100) {
-        leaf.currentY = 100;
+      // Stop when leaf image reaches bottom (~48px = ~5dvh from bottom)
+      if (leaf.currentY >= 95) {
+        leaf.currentY = 95;
         settleLeaf(leaf);
       }
     }
@@ -283,8 +296,27 @@
     rafId = requestAnimationFrame(animationTick);
   }
 
+  function handleVisibilityChange() {
+    if (document.hidden) {
+      // Pause: cancel rAF and spawning while tab is hidden
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
+      stopSpawning();
+    } else {
+      // Resume: reset tick time and restart loops
+      lastTickTime = 0;
+      if (isActive) {
+        if (rafId === null) rafId = requestAnimationFrame(animationTick);
+        if (spawnTimerId === null && !allPoemsRead()) scheduleNextSpawn();
+      }
+    }
+  }
+
   function startAnimationLoop() {
     if (rafId !== null) return;
+    document.addEventListener('visibilitychange', handleVisibilityChange);
     rafId = requestAnimationFrame(animationTick);
   }
 
@@ -293,6 +325,7 @@
       cancelAnimationFrame(rafId);
       rafId = null;
     }
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
   }
 
   function handleKeydown(event: KeyboardEvent) {
@@ -347,8 +380,7 @@
           left: {leaf.x}dvw;
           opacity: {leaf.opacity};
           translate: {leaf.currentX}dvw {leaf.currentY}dvh;
-          rotate: {leaf.settled ? leaf.settledRotation + 'deg' : leaf.currentRotation + 'deg'};
-          {leaf.settled ? 'bottom: ' + leaf.settledBottom + 'px;' : ''}
+          rotate: {leaf.currentRotation}deg;
         "
         onclick={(e) => handleLeafClick(leaf, e)}
       >
@@ -407,7 +439,7 @@
   }
 
   .falling-leaf.settled {
-    top: auto;
+    /* Frozen in place — position stays as last animated values */
   }
 
   .falling-leaf.fading {
