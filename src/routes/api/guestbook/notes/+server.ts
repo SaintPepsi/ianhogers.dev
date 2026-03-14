@@ -86,10 +86,14 @@ function validatePageIndex(pageIndex: unknown): string | null {
 export const GET: RequestHandler = async ({ url }) => {
 	const page = url.searchParams.get('page');
 
-	const notes =
-		page !== null ? await getNotesByPage(parseInt(page, 10)) : await getAllNotes();
+	const result = await (page !== null ? getNotesByPage(parseInt(page, 10)) : getAllNotes())
+		.catch((err: Error) => ({ _error: err.message, _stack: err.stack }));
 
-	return json(notes);
+	if (result && typeof result === 'object' && '_error' in result) {
+		return json({ error: result._error, stack: result._stack }, { status: 500 });
+	}
+
+	return json(result);
 };
 
 export const DELETE: RequestHandler = async () => {
@@ -100,7 +104,14 @@ export const DELETE: RequestHandler = async () => {
 	return json({ cleared: true });
 };
 
-export const POST: RequestHandler = async ({ request, getClientAddress }) => {
+export const POST: RequestHandler = async (event) => {
+	const postResult = await handlePost(event).catch((err: Error) =>
+		json({ error: err.message, stack: err.stack }, { status: 500 })
+	);
+	return postResult;
+};
+
+async function handlePost({ request, getClientAddress }: Parameters<RequestHandler>[0]) {
 	// 1. Check IP cooldown (skip when KV not configured, e.g. local dev)
 	// Prefer Vercel's platform-set header (not spoofable), fall back to clientAddress
 	const ip =
@@ -170,4 +181,4 @@ export const POST: RequestHandler = async ({ request, getClientAddress }) => {
 	await setCooldown(cooldownKey, Date.now(), 300);
 
 	return json(note, { status: 201 });
-};
+}
