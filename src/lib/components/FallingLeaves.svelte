@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { page } from '$app/stores';
+  import { page } from '$app/state';
 
   const BAMBOO_POEMS = [
     "Do not judge a bamboo until it has fully grown.",
@@ -48,7 +48,7 @@
   let openPoem = $state<{ text: string; x: number; y: number } | null>(null);
   let nextLeafId = 0;
   let spawnTimerId: ReturnType<typeof setTimeout> | null = null;
-  let mounted = false;
+  let mounted = $state(false);
 
   function safeSetItem(key: string, value: string) {
     try {
@@ -169,7 +169,6 @@
     if (leaf.settled) return;
 
     leaf.settled = true;
-    leaves = [...leaves];
 
     // Auto-fade settled leaf after delay
     const leafId = leaf.id;
@@ -177,7 +176,6 @@
       const target = leaves.find(l => l.id === leafId);
       if (target && target.settled && !target.fading) {
         target.fading = true;
-        leaves = [...leaves];
         setTimeout(() => {
           leaves = leaves.filter(l => l.id !== leafId);
           // Spawn replacement if poems remain
@@ -200,7 +198,7 @@
   // +layout.svelte so it never unmounts, but we still need to activate
   // when the user navigates TO the bambooboys page.
   $effect(() => {
-    const pathname = $page.url.pathname;
+    const pathname = page.url.pathname;
     if (!mounted) return;
     if (!isActive && isBambooPage(pathname) && !allPoemsRead()) {
       safeSetItem(STORAGE_ACTIVE_KEY, 'true');
@@ -213,7 +211,7 @@
     mounted = true;
     const wasActive = safeGetItem(STORAGE_ACTIVE_KEY) === 'true';
 
-    if ((wasActive || isBambooPage($page.url.pathname)) && !allPoemsRead()) {
+    if ((wasActive || isBambooPage(page.url.pathname)) && !allPoemsRead()) {
       safeSetItem(STORAGE_ACTIVE_KEY, 'true');
       isActive = true;
       startTrickleSpawn();

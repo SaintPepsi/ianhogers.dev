@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { allCategories, progressToNextLevel, levelDescription } from '../../data/skills';
+  import { allCategories, progressToNextLevel, levelDescription } from '$lib/data/skills';
 
   const totalLevel = allCategories.reduce((sum, cat) => sum + cat.skills.reduce((s, sk) => s + sk.level, 0), 0);
 

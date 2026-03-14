@@ -11,5 +11,6 @@
   tags={data.post.metadata.tags}
   side="personal"
 >
-  <data.post.component />
+  {@const PostContent = data.post.component}
+  <PostContent />
 </BlogPostLayout>

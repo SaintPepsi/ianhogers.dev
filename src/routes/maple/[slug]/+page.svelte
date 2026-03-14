@@ -13,5 +13,6 @@
   hasAudio={data.hasAudio}
   audioSlug={data.post.slug}
 >
-  <data.post.component />
+  {@const PostContent = data.post.component}
+  <PostContent />
 </BlogPostLayout>

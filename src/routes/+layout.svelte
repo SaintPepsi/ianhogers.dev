@@ -1,6 +1,6 @@
 <script lang="ts">
   import '../app.css';
-  import { page } from '$app/stores';
+  import { page } from '$app/state';
   import { onMount } from 'svelte';
   import FallingLeaves from '$lib/components/FallingLeaves.svelte';
   import MapleAudioPlayer from '$lib/components/MapleAudioPlayer.svelte';
@@ -24,6 +24,10 @@
   });
 </script>
 
+<svelte:head>
+  <meta name="description" content="Ian Hogers gets stuff DONE. Software engineer, game developer, Dutch-Australian." />
+</svelte:head>
+
 <div class="min-h-screen flex flex-col">
   <!-- Marquee ticker -->
   <div class="overflow-hidden bg-surface/60 border-b border-gray-800/50 py-1">
@@ -45,19 +49,20 @@
       </a>
       <div class="flex items-center gap-2 sm:gap-4 text-sm font-mono">
         <!-- Nav icons: hidden on mobile, shown on sm+ -->
-        <a href="/about" class="no-underline hidden sm:inline-flex nav-icon-link {$page.url.pathname.startsWith('/about') ? 'nav-icon-active' : 'nav-icon-inactive'}" title="About">
+        <a href="/about" class="no-underline hidden sm:inline-flex nav-icon-link {page.url.pathname.startsWith('/about') ? 'nav-icon-active' : 'nav-icon-inactive'}" title="About">
           <img src="/assets/pixel-art/ui/nav-about.png" alt="About" class="pixel-sprite nav-icon" />
         </a>
-        <a href="/skills" class="no-underline hidden sm:inline-flex nav-icon-link {$page.url.pathname.startsWith('/skills') ? 'nav-icon-active' : 'nav-icon-inactive'}" title="Skills">
+        <a href="/skills" class="no-underline hidden sm:inline-flex nav-icon-link {page.url.pathname.startsWith('/skills') ? 'nav-icon-active' : 'nav-icon-inactive'}" title="Skills">
           <img src="/assets/pixel-art/ui/nav-skills.png" alt="Skills" class="pixel-sprite nav-icon" />
         </a>
-        <a href="/shoutouts" class="no-underline hidden sm:inline-flex nav-icon-link {$page.url.pathname.startsWith('/shoutouts') ? 'nav-icon-active' : 'nav-icon-inactive'}" title="Shout Outs">
+        <a href="/shoutouts" class="no-underline hidden sm:inline-flex nav-icon-link {page.url.pathname.startsWith('/shoutouts') ? 'nav-icon-active' : 'nav-icon-inactive'}" title="Shout Outs">
           <img src="/assets/pixel-art/ui/nav-shouts.png" alt="Shout Outs" class="pixel-sprite nav-icon" />
         </a>
-        <a href="/guestbook" class="no-underline hidden sm:inline-flex nav-icon-link {$page.url.pathname.startsWith('/guestbook') ? 'nav-icon-active' : 'nav-icon-inactive'}" title="Guest Book">
+        <!-- TODO: Re-add when guestbook route is implemented -->
+        <!-- <a href="/guestbook" class="no-underline hidden sm:inline-flex nav-icon-link {page.url.pathname.startsWith('/guestbook') ? 'nav-icon-active' : 'nav-icon-inactive'}" title="Guest Book">
           <img src="/assets/pixel-art/ui/nav-guestbook.png" alt="Guest Book" class="pixel-sprite nav-icon" />
-        </a>
-        <a href="/maple" class="no-underline hidden sm:inline-flex nav-icon-link {$page.url.pathname.startsWith('/maple') ? 'nav-icon-active' : 'nav-icon-inactive'}" title="Maple's Corner">
+        </a> -->
+        <a href="/maple" class="no-underline hidden sm:inline-flex nav-icon-link {page.url.pathname.startsWith('/maple') ? 'nav-icon-active' : 'nav-icon-inactive'}" title="Maple's Corner">
           <img src="/assets/pixel-art/ui/nav-menu.png" alt="Maple's Corner" class="pixel-sprite nav-icon" />
         </a>
         <!-- Side toggle pill -->
@@ -77,19 +82,20 @@
     </div>
     <!-- Mobile nav icons -->
     <div class="flex sm:hidden justify-center gap-4 mt-2">
-      <a href="/about" class="no-underline nav-icon-link {$page.url.pathname.startsWith('/about') ? 'nav-icon-active' : 'nav-icon-inactive'}" title="About">
+      <a href="/about" class="no-underline nav-icon-link {page.url.pathname.startsWith('/about') ? 'nav-icon-active' : 'nav-icon-inactive'}" title="About">
         <img src="/assets/pixel-art/ui/nav-about.png" alt="About" class="pixel-sprite nav-icon" />
       </a>
-      <a href="/skills" class="no-underline nav-icon-link {$page.url.pathname.startsWith('/skills') ? 'nav-icon-active' : 'nav-icon-inactive'}" title="Skills">
+      <a href="/skills" class="no-underline nav-icon-link {page.url.pathname.startsWith('/skills') ? 'nav-icon-active' : 'nav-icon-inactive'}" title="Skills">
         <img src="/assets/pixel-art/ui/nav-skills.png" alt="Skills" class="pixel-sprite nav-icon" />
       </a>
-      <a href="/shoutouts" class="no-underline nav-icon-link {$page.url.pathname.startsWith('/shoutouts') ? 'nav-icon-active' : 'nav-icon-inactive'}" title="Shout Outs">
+      <a href="/shoutouts" class="no-underline nav-icon-link {page.url.pathname.startsWith('/shoutouts') ? 'nav-icon-active' : 'nav-icon-inactive'}" title="Shout Outs">
         <img src="/assets/pixel-art/ui/nav-shouts.png" alt="Shout Outs" class="pixel-sprite nav-icon" />
       </a>
-      <a href="/guestbook" class="no-underline nav-icon-link {$page.url.pathname.startsWith('/guestbook') ? 'nav-icon-active' : 'nav-icon-inactive'}" title="Guest Book">
+      <!-- TODO: Re-add when guestbook route is implemented -->
+      <!-- <a href="/guestbook" class="no-underline nav-icon-link {page.url.pathname.startsWith('/guestbook') ? 'nav-icon-active' : 'nav-icon-inactive'}" title="Guest Book">
         <img src="/assets/pixel-art/ui/nav-guestbook.png" alt="Guest Book" class="pixel-sprite nav-icon" />
-      </a>
-      <a href="/maple" class="no-underline nav-icon-link {$page.url.pathname.startsWith('/maple') ? 'nav-icon-active' : 'nav-icon-inactive'}" title="Maple's Corner">
+      </a> -->
+      <a href="/maple" class="no-underline nav-icon-link {page.url.pathname.startsWith('/maple') ? 'nav-icon-active' : 'nav-icon-inactive'}" title="Maple's Corner">
         <img src="/assets/pixel-art/ui/nav-menu.png" alt="Maple's Corner" class="pixel-sprite nav-icon" />
       </a>
     </div>
@@ -110,8 +116,9 @@
       </div>
       <div class="flex items-center gap-3 text-xs">
         <a href="/credits" class="text-gray-500 hover:text-gray-300 no-underline">credits</a>
-        <span class="text-gray-700">&middot;</span>
-        <a href="/dev/rss.xml" class="text-gray-500 hover:text-gray-300 no-underline">rss</a>
+        <!-- TODO: Re-add when RSS routes are implemented -->
+        <!-- <span class="text-gray-700">&middot;</span>
+        <a href="/dev/rss.xml" class="text-gray-500 hover:text-gray-300 no-underline">rss</a> -->
       </div>
     </div>
   </footer>
