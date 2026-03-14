@@ -15,9 +15,6 @@ const config = {
 	],
 	kit: {
 		adapter: adapter(),
-		alias: {
-			$static: 'static'
-		},
 		prerender: {
 			handleHttpError: ({ path, message }) => {
 				// Guestbook and API routes are deferred — suppress prerender errors for them

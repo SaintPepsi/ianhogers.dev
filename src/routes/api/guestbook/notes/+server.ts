@@ -1,7 +1,6 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { dev } from '$app/environment';
-import { kv } from '@vercel/kv';
 import {
 	getNotesByPage,
 	getAllNotes,
@@ -10,17 +9,27 @@ import {
 } from '$lib/components/guestbook/lib/db';
 import { detectProfanity } from '$lib/components/guestbook/lib/profanity';
 import { shrinkBounds } from '$lib/components/guestbook/lib/shrinkBounds';
-import stickerManifest from '$static/assets/stickers/manifest.json';
+import stickerManifest from '$lib/data/sticker-manifest.json';
+
+/** Lazily get KV client — returns null if @vercel/kv is not configured */
+async function getKv() {
+	const mod = await import('@vercel/kv').catch(() => null);
+	return mod?.kv ?? null;
+}
 
 /** Read KV cooldown for an IP, returning null if KV is unavailable or key doesn't exist. */
 async function getCooldown(key: string): Promise<unknown | null> {
-	const result = await kv.get(key).catch(() => null);
+	const kvClient = await getKv();
+	if (!kvClient) return null;
+	const result = await kvClient.get(key).catch(() => null);
 	return result ?? null;
 }
 
 /** Set KV cooldown for an IP. Silently no-ops if KV is unavailable. */
 async function setCooldown(key: string, value: number, ttlSeconds: number): Promise<void> {
-	await kv.set(key, value, { ex: ttlSeconds }).catch(() => {});
+	const kvClient = await getKv();
+	if (!kvClient) return;
+	await kvClient.set(key, value, { ex: ttlSeconds }).catch(() => {});
 }
 
 function validateText(text: unknown): string | null {
