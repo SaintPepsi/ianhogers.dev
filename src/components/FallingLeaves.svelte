@@ -20,10 +20,10 @@
     '/assets/pixel-art/decorative/bamboo-leaf-3.png',
   ];
 
-  const LEAF_COUNT = 8;
-  const MAX_SETTLED = 18;
+  const SETTLE_FADE_DELAY = 30_000;
   const STORAGE_ACTIVE_KEY = 'bamboo-leaves-active';
   const STORAGE_POEMS_KEY = 'bamboo-poems-seen';
+  const STORAGE_READ_KEY = 'bamboo-poems-read';
   const BAMBOO_PATH = '/shoutouts/bambooboys';
 
   interface Leaf {
@@ -31,9 +31,11 @@
     x: number;
     sprite: string;
     duration: number;
-    delay: number;
     opacity: number;
-    drift: number;
+    drift1: number;
+    drift2: number;
+    drift3: number;
+    drift4: number;
     settled: boolean;
     fading: boolean;
     settledRotation: number;
@@ -44,22 +46,40 @@
   let leaves = $state<Leaf[]>([]);
   let openPoem = $state<{ text: string; x: number; y: number } | null>(null);
   let nextLeafId = 0;
+  let spawnTimerId: ReturnType<typeof setTimeout> | null = null;
 
   function safeSetItem(key: string, value: string) {
     try {
       sessionStorage.setItem(key, value);
     } catch {
-      // Private browsing or quota exceeded — silently fail
+      // Private browsing or quota exceeded
+    }
+  }
+
+  function safeGetItem(key: string): string | null {
+    try {
+      return sessionStorage.getItem(key);
+    } catch {
+      return null;
     }
   }
 
   function getSeenPoems(): number[] {
     try {
-      const raw = sessionStorage.getItem(STORAGE_POEMS_KEY);
+      const raw = safeGetItem(STORAGE_POEMS_KEY);
       return raw ? JSON.parse(raw) : [];
     } catch {
       return [];
     }
+  }
+
+  function getPoemsReadCount(): number {
+    const raw = safeGetItem(STORAGE_READ_KEY);
+    return raw ? parseInt(raw, 10) || 0 : 0;
+  }
+
+  function allPoemsRead(): boolean {
+    return getPoemsReadCount() >= BAMBOO_POEMS.length;
   }
 
   function pickPoem(): string {
@@ -74,15 +94,22 @@
     return BAMBOO_POEMS[pick];
   }
 
-  function createLeaf(delayMs = 0): Leaf {
+  function randomDrift(): number {
+    const magnitude = 4 + Math.random() * 2;
+    return Math.random() > 0.5 ? magnitude : -magnitude;
+  }
+
+  function createLeaf(): Leaf {
     return {
       id: nextLeafId++,
       x: 5 + Math.random() * 90,
       sprite: LEAF_SPRITES[Math.floor(Math.random() * LEAF_SPRITES.length)],
-      duration: 8 + Math.random() * 7,
-      delay: delayMs / 1000,
+      duration: 18 + Math.random() * 12,
       opacity: 0.6 + Math.random() * 0.2,
-      drift: -3 + Math.random() * 6,
+      drift1: randomDrift(),
+      drift2: randomDrift(),
+      drift3: randomDrift(),
+      drift4: randomDrift(),
       settled: false,
       fading: false,
       settledRotation: -20 + Math.random() * 40,
@@ -90,8 +117,29 @@
     };
   }
 
-  function spawnLeaves() {
-    leaves = Array.from({ length: LEAF_COUNT }, (_, i) => createLeaf(i * 800));
+  function scheduleNextSpawn() {
+    if (allPoemsRead()) return;
+    const delay = 1000 + Math.random() * 4000;
+    spawnTimerId = setTimeout(() => {
+      if (!allPoemsRead()) {
+        leaves = [...leaves, createLeaf()];
+      }
+      scheduleNextSpawn();
+    }, delay);
+  }
+
+  function stopSpawning() {
+    if (spawnTimerId !== null) {
+      clearTimeout(spawnTimerId);
+      spawnTimerId = null;
+    }
+  }
+
+  function startTrickleSpawn() {
+    stopSpawning();
+    // Spawn first leaf immediately
+    leaves = [...leaves, createLeaf()];
+    scheduleNextSpawn();
   }
 
   function isBambooPage(): boolean {
@@ -101,21 +149,21 @@
 
   function handleLeafClick(leaf: Leaf, event: MouseEvent) {
     const poem = pickPoem();
+    const readCount = getPoemsReadCount() + 1;
+    safeSetItem(STORAGE_READ_KEY, String(readCount));
+
     const vw = window.innerWidth;
     const vh = window.innerHeight;
 
     let cardX = event.clientX;
     let cardY = event.clientY;
 
-    // On mobile (< 480px), center the card horizontally
     if (vw < 480) {
-      cardX = (vw - 280) / 2;
+      cardX = (vw - 240) / 2;
     } else {
-      // Clamp to viewport with 16px margin, accounting for card width (280px)
-      cardX = Math.max(16, Math.min(cardX, vw - 296));
+      cardX = Math.max(16, Math.min(cardX, vw - 256));
     }
-    // Clamp vertically with 16px margin, accounting for estimated card height (120px)
-    cardY = Math.max(16, Math.min(cardY, vh - 136));
+    cardY = Math.max(48, Math.min(cardY, vh - 200));
 
     openPoem = { text: poem, x: cardX, y: cardY };
     leaves = leaves.filter(l => l.id !== leaf.id);
@@ -123,36 +171,34 @@
 
   function closePoem() {
     openPoem = null;
-    // Spawn a replacement leaf
-    leaves = [...leaves, createLeaf()];
+    if (!allPoemsRead()) {
+      leaves = [...leaves, createLeaf()];
+    }
   }
 
   function handleLeafAnimationEnd(leaf: Leaf, event: AnimationEvent) {
-    // Only handle the leaf-fall animation ending — ignore leaf-rotate
-    // This prevents double-spawning (one per animation)
     if (event.animationName !== 'leaf-fall') return;
     if (leaf.settled) return;
 
-    // Settle the leaf at the bottom
     leaf.settled = true;
     leaves = [...leaves];
 
-    // Fade out oldest settled leaves if too many
-    const settled = leaves.filter(l => l.settled && !l.fading);
-    if (settled.length > MAX_SETTLED) {
-      const toRemove = settled.slice(0, settled.length - MAX_SETTLED);
-      toRemove.forEach(l => {
-        l.fading = true;
-      });
-      leaves = [...leaves];
-      // Remove faded leaves after the CSS transition completes
-      setTimeout(() => {
-        leaves = leaves.filter(l => !l.fading);
-      }, 1000);
-    }
-
-    // Spawn a new falling leaf to replace the settled one
-    leaves = [...leaves, createLeaf()];
+    // Auto-fade settled leaf after delay
+    const leafId = leaf.id;
+    setTimeout(() => {
+      const target = leaves.find(l => l.id === leafId);
+      if (target && target.settled && !target.fading) {
+        target.fading = true;
+        leaves = [...leaves];
+        setTimeout(() => {
+          leaves = leaves.filter(l => l.id !== leafId);
+          // Spawn replacement if poems remain
+          if (!allPoemsRead()) {
+            leaves = [...leaves, createLeaf()];
+          }
+        }, 1000);
+      }
+    }, SETTLE_FADE_DELAY);
   }
 
   function handleKeydown(event: KeyboardEvent) {
@@ -162,25 +208,28 @@
   }
 
   onMount(() => {
-    const wasActive = sessionStorage.getItem(STORAGE_ACTIVE_KEY) === 'true';
+    const wasActive = safeGetItem(STORAGE_ACTIVE_KEY) === 'true';
 
-    if (wasActive || isBambooPage()) {
+    if ((wasActive || isBambooPage()) && !allPoemsRead()) {
       safeSetItem(STORAGE_ACTIVE_KEY, 'true');
       isActive = true;
-      spawnLeaves();
+      startTrickleSpawn();
     }
 
-    // Listen for navigation events (Astro ViewTransitions) to check activation
     document.addEventListener('astro:page-load', () => {
-      if (!isActive && isBambooPage()) {
+      if (!isActive && isBambooPage() && !allPoemsRead()) {
         safeSetItem(STORAGE_ACTIVE_KEY, 'true');
         isActive = true;
-        spawnLeaves();
+        startTrickleSpawn();
       }
     });
 
-    // Escape key to close poem card
     document.addEventListener('keydown', handleKeydown);
+
+    return () => {
+      stopSpawning();
+      document.removeEventListener('keydown', handleKeydown);
+    };
   });
 </script>
 
@@ -196,9 +245,11 @@
         style="
           left: {leaf.x}dvw;
           --fall-duration: {leaf.duration}s;
-          --fall-delay: {leaf.delay}s;
           --leaf-opacity: {leaf.opacity};
-          --leaf-drift: {leaf.drift}dvw;
+          --drift-1: {leaf.drift1}dvw;
+          --drift-2: {leaf.drift2}dvw;
+          --drift-3: {leaf.drift3}dvw;
+          --drift-4: {leaf.drift4}dvw;
           --settled-rotation: {leaf.settledRotation}deg;
           --settled-bottom: {leaf.settledBottom}px;
         "
@@ -224,10 +275,13 @@
       <!-- svelte-ignore a11y_click_events_have_key_events -->
       <!-- svelte-ignore a11y_no_static_element_interactions -->
       <div
-        class="poem-card pixel-box"
-        style="left: {openPoem.x}px; top: {openPoem.y}px; --box-color: #4ade80;"
+        class="poem-card"
+        style="left: {openPoem.x}px; top: {openPoem.y}px;"
         onclick={(e) => e.stopPropagation()}
       >
+        <div class="seal-wrapper">
+          <img src="/assets/pixel-art/ui/btn-seal.png" alt="" class="seal-img pixel-sprite" />
+        </div>
         <button class="poem-close" onclick={closePoem} aria-label="Close poem">✕</button>
         <img src="/assets/pixel-art/decorative/bamboo-stem.png" alt="" class="poem-icon pixel-sprite" width="48" height="48" draggable="false" />
         <p class="poem-text">{openPoem.text}</p>
@@ -245,10 +299,6 @@
     overflow: hidden;
   }
 
-  /* Uses individual CSS transform properties (translate, rotate, scale)
-     so they compose independently without overriding each other.
-     All animation is pure CSS. */
-
   .falling-leaf {
     position: absolute;
     top: 0;
@@ -258,8 +308,8 @@
     filter: drop-shadow(1px 2px 2px rgba(0, 0, 0, 0.3));
     will-change: translate, rotate;
     animation:
-      leaf-fall var(--fall-duration, 10s) ease-in var(--fall-delay, 0s) forwards,
-      leaf-rotate var(--fall-duration, 10s) ease-in-out var(--fall-delay, 0s) infinite;
+      leaf-fall var(--fall-duration, 20s) ease-in-out forwards,
+      leaf-rotate var(--fall-duration, 20s) ease-in-out forwards;
     transition: scale 0.15s ease;
   }
 
@@ -268,7 +318,6 @@
     filter: drop-shadow(1px 2px 2px rgba(0, 0, 0, 0.3)) brightness(1.3);
   }
 
-  /* Settled leaf: stops at bottom with bounce, varied offset for pile effect */
   .falling-leaf.settled {
     animation: leaf-settle 0.3s ease-out forwards;
     top: auto;
@@ -282,21 +331,30 @@
     transition: opacity 1s ease;
   }
 
-  /* Fall + sway combined into translate property (GPU-accelerated) */
+  /* Lazy float: 8-point organic curve with per-leaf random drift values */
   @keyframes leaf-fall {
-    0% { translate: 0 -5dvh; }
-    25% { translate: var(--leaf-drift, 3dvw) 23dvh; }
-    50% { translate: 0 48dvh; }
-    75% { translate: calc(var(--leaf-drift, 3dvw) * -1) 73dvh; }
-    100% { translate: 0 calc(100dvh - 20px); }
+    0%    { translate: 0 -5dvh; }
+    12%   { translate: var(--drift-1, 4dvw) 10dvh; }
+    25%   { translate: var(--drift-2, -3dvw) 22dvh; }
+    37%   { translate: calc(var(--drift-1, 4dvw) * 0.5) 35dvh; }
+    50%   { translate: var(--drift-3, 5dvw) 48dvh; }
+    62%   { translate: calc(var(--drift-2, -3dvw) * -0.7) 60dvh; }
+    75%   { translate: var(--drift-4, -4dvw) 73dvh; }
+    87%   { translate: calc(var(--drift-3, 5dvw) * 0.3) 86dvh; }
+    100%  { translate: 0 calc(100dvh - 20px); }
   }
 
+  /* Rotation synced to drift: follows the sway direction */
   @keyframes leaf-rotate {
-    0% { rotate: 0deg; }
-    25% { rotate: 15deg; }
-    50% { rotate: 0deg; }
-    75% { rotate: -15deg; }
-    100% { rotate: 0deg; }
+    0%    { rotate: 0deg; }
+    12%   { rotate: 8deg; }
+    25%   { rotate: -6deg; }
+    37%   { rotate: 4deg; }
+    50%   { rotate: -8deg; }
+    62%   { rotate: 6deg; }
+    75%   { rotate: -4deg; }
+    87%   { rotate: 3deg; }
+    100%  { rotate: 0deg; }
   }
 
   @keyframes leaf-settle {
@@ -305,7 +363,7 @@
     100% { translate: 0 0; }
   }
 
-  /* Poem card */
+  /* Parchment scroll poem card */
   .poem-backdrop {
     position: fixed;
     inset: 0;
@@ -316,41 +374,69 @@
 
   .poem-card {
     position: fixed;
-    max-width: 280px;
-    padding: 1.25rem;
+    max-width: 240px;
+    padding: 40px 24px 24px;
     z-index: 51;
     animation: poem-appear 0.2s ease;
+    border-style: solid;
+    border-width: 24px;
+    border-image: url('/assets/pixel-art/ui/scroll-frame-02.png') 8 fill / 24px / 0 stretch;
+    image-rendering: pixelated;
+    box-sizing: border-box;
+  }
+
+  .seal-wrapper {
+    position: absolute;
+    top: -32px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #1e1a28;
+    border: 3px solid #4ade80;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+  }
+
+  .seal-img {
+    width: 48px;
+    height: 48px;
+    image-rendering: pixelated;
   }
 
   .poem-close {
     position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
+    top: 4px;
+    right: 8px;
     background: none;
     border: none;
-    color: #6b7280;
+    color: #7c5a3a;
     cursor: pointer;
-    font-size: 0.75rem;
+    font-size: 0.875rem;
     line-height: 1;
     padding: 0.25rem;
     transition: color 0.1s;
   }
 
   .poem-close:hover {
-    color: #4ade80;
+    color: #3d2b1f;
   }
 
   .poem-icon {
     display: block;
-    margin-bottom: 0.5rem;
+    margin: 0 auto 0.5rem;
   }
 
   .poem-text {
     font-style: italic;
     font-size: 0.875rem;
-    color: #d1d5db;
+    color: #3d2b1f;
     line-height: 1.6;
     margin: 0;
+    text-align: center;
   }
 
   @keyframes fade-in {

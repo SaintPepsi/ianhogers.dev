@@ -2,26 +2,26 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Falling Bamboo Leaves', () => {
   test.beforeEach(async ({ page }) => {
-    // Clear sessionStorage to start fresh each test
     await page.goto('/');
     await page.evaluate(() => sessionStorage.clear());
   });
 
   test('no leaves appear on non-bamboo pages before activation', async ({ page }) => {
     await page.goto('/');
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(3000);
 
     const leaves = page.locator('.falling-leaf');
     await expect(leaves).toHaveCount(0);
   });
 
-  test('leaves spawn when visiting bambooboys page', async ({ page }) => {
+  test('leaves trickle in when visiting bambooboys page', async ({ page }) => {
     await page.goto('/shoutouts/bambooboys');
-    // Wait for staggered spawns (8 leaves * 800ms delay = 6.4s max)
-    await page.waitForTimeout(7000);
+    // First leaf spawns immediately, more trickle in over 1-5s intervals
+    await page.waitForTimeout(8000);
 
-    const leaves = page.locator('.falling-leaf');
-    await expect(leaves).toHaveCount(8);
+    const count = await page.locator('.falling-leaf').count();
+    expect(count).toBeGreaterThanOrEqual(2);
+    expect(count).toBeLessThanOrEqual(10);
   });
 
   test('leaves use pixel-art bamboo leaf sprites', async ({ page }) => {
@@ -58,7 +58,6 @@ test.describe('Falling Bamboo Leaves', () => {
 
     const leaf = page.locator('.falling-leaf').first();
     const translate = await leaf.evaluate(el => getComputedStyle(el).translate);
-    // translate should be set (not 'none') during animation
     expect(translate).not.toBe('none');
   });
 
@@ -88,7 +87,7 @@ test.describe('Falling Bamboo Leaves', () => {
     expect(knownPoems).toContain(poemText!.trim());
   });
 
-  test('poem card has pixel-box styling with green accent', async ({ page }) => {
+  test('poem card uses parchment scroll frame border-image', async ({ page }) => {
     await page.goto('/shoutouts/bambooboys');
     await page.waitForTimeout(3000);
 
@@ -96,12 +95,11 @@ test.describe('Falling Bamboo Leaves', () => {
 
     const card = page.locator('.poem-card');
     await expect(card).toBeVisible();
-    await expect(card).toHaveClass(/pixel-box/);
 
-    const boxColor = await card.evaluate(
-      el => getComputedStyle(el).getPropertyValue('--box-color').trim()
+    const borderImage = await card.evaluate(
+      el => getComputedStyle(el).borderImageSource
     );
-    expect(boxColor).toBe('#4ade80');
+    expect(borderImage).toContain('scroll-frame-02.png');
   });
 
   test('poem card shows bamboo icon', async ({ page }) => {
@@ -112,6 +110,19 @@ test.describe('Falling Bamboo Leaves', () => {
 
     const icon = page.locator('.poem-icon');
     await expect(icon).toHaveAttribute('src', '/assets/pixel-art/decorative/bamboo-stem.png');
+  });
+
+  test('poem card has wax seal overlapping top border', async ({ page }) => {
+    await page.goto('/shoutouts/bambooboys');
+    await page.waitForTimeout(3000);
+
+    await page.locator('.falling-leaf').first().click({ force: true });
+
+    const seal = page.locator('.seal-wrapper');
+    await expect(seal).toBeVisible();
+
+    const sealImg = seal.locator('.seal-img');
+    await expect(sealImg).toHaveAttribute('src', '/assets/pixel-art/ui/btn-seal.png');
   });
 
   test('clicking backdrop closes poem card', async ({ page }) => {
@@ -138,31 +149,30 @@ test.describe('Falling Bamboo Leaves', () => {
 
   test('closing poem card spawns a replacement leaf', async ({ page }) => {
     await page.goto('/shoutouts/bambooboys');
-    await page.waitForTimeout(7000);
+    await page.waitForTimeout(6000);
 
     const countBefore = await page.locator('.falling-leaf').count();
     await page.locator('.falling-leaf').first().click({ force: true });
-    // One leaf removed for poem
+
     const countDuringPoem = await page.locator('.falling-leaf').count();
     expect(countDuringPoem).toBe(countBefore - 1);
 
     await page.keyboard.press('Escape');
     await page.waitForTimeout(500);
-    // New leaf spawned
+
     const countAfter = await page.locator('.falling-leaf').count();
-    expect(countAfter).toBe(countBefore);
+    expect(countAfter).toBeGreaterThanOrEqual(countBefore);
   });
 
   test('leaves persist after navigating to another page', async ({ page }) => {
     await page.goto('/shoutouts/bambooboys');
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(4000);
 
     const leafCount = await page.locator('.falling-leaf').count();
     expect(leafCount).toBeGreaterThan(0);
 
-    // Navigate via link click (uses ViewTransitions)
     await page.locator('a[href="/about"]').first().click();
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(3000);
 
     const leavesOnAbout = await page.locator('.falling-leaf').count();
     expect(leavesOnAbout).toBeGreaterThan(0);
@@ -179,9 +189,8 @@ test.describe('Falling Bamboo Leaves', () => {
   });
 
   test('activation only triggers on exact bambooboys path', async ({ page }) => {
-    // Visit a path that contains 'bambooboys' as substring but isn't exact
     await page.goto('/shoutouts');
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(3000);
 
     const isActive = await page.evaluate(
       () => sessionStorage.getItem('bamboo-leaves-active')
@@ -194,21 +203,19 @@ test.describe('Falling Bamboo Leaves', () => {
 
   test('poems do not repeat within a cycle', async ({ page }) => {
     await page.goto('/shoutouts/bambooboys');
-    await page.waitForTimeout(7000);
+    await page.waitForTimeout(8000);
 
     const seenPoems: string[] = [];
 
-    // Click 5 leaves and collect poems (enough to check no-repeat)
     for (let i = 0; i < 5; i++) {
       const leaf = page.locator('.falling-leaf').first();
       await leaf.click({ force: true });
       const text = await page.locator('.poem-text').textContent();
       seenPoems.push(text!.trim());
       await page.keyboard.press('Escape');
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(1500);
     }
 
-    // All poems should be unique (no repeats)
     const uniquePoems = new Set(seenPoems);
     expect(uniquePoems.size).toBe(seenPoems.length);
   });
@@ -219,9 +226,7 @@ test.describe('Falling Bamboo Leaves', () => {
 
     const leaf = page.locator('.falling-leaf').first();
     const box = await leaf.boundingBox();
-    // Move mouse to the element's center to trigger real CSS :hover
     await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2);
-    // Wait for the CSS transition (0.15s)
     await page.waitForTimeout(200);
 
     const scale = await leaf.evaluate(el => getComputedStyle(el).scale);
@@ -239,9 +244,37 @@ test.describe('Falling Bamboo Leaves', () => {
     await expect(card).toBeVisible();
 
     const left = await card.evaluate(el => parseInt(getComputedStyle(el).left));
-    // On 375px viewport with 280px card, centered would be ~47px
-    // Allow margin: should be roughly centered (30-60px range)
-    expect(left).toBeGreaterThanOrEqual(20);
-    expect(left).toBeLessThanOrEqual(80);
+    // On 375px viewport with 240px card, centered would be ~67px
+    expect(left).toBeGreaterThanOrEqual(30);
+    expect(left).toBeLessThanOrEqual(100);
+  });
+
+  test('no more leaves spawn after all poems are read', async ({ page }) => {
+    await page.goto('/shoutouts/bambooboys');
+    // Pre-set poems-read to 10 (all read)
+    await page.evaluate(() => {
+      sessionStorage.setItem('bamboo-poems-read', '10');
+    });
+    // Reload to pick up the state
+    await page.reload();
+    await page.waitForTimeout(5000);
+
+    const leaves = page.locator('.falling-leaf');
+    await expect(leaves).toHaveCount(0);
+  });
+
+  test('poem text is dark colored for parchment readability', async ({ page }) => {
+    await page.goto('/shoutouts/bambooboys');
+    await page.waitForTimeout(3000);
+
+    await page.locator('.falling-leaf').first().click({ force: true });
+
+    const color = await page.locator('.poem-text').evaluate(
+      el => getComputedStyle(el).color
+    );
+    // #3d2b1f = rgb(61, 43, 31) — dark brown
+    expect(color).toContain('61');
+    expect(color).toContain('43');
+    expect(color).toContain('31');
   });
 });
