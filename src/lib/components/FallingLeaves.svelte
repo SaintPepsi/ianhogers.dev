@@ -3,16 +3,27 @@
   import { page } from '$app/state';
 
   const BAMBOO_POEMS = [
+    // Guild lore
+    "Even when you don't love Bamboo, Bamboo will love you. — BlackStealth",
+    "Bamboo is really simple, but we insist on making it complicated. — Inviper",
+    "We live by our own rules, we play by our own rules. That makes us Bamboo. — Inviper",
+    "The world is hard. Bamboo brings peace. Become one. — Losj",
+    "Bamboo guide you, Spirit bless you. — Bamboo Genesis 420:69",
+    "A sproutling in the soil. Bamboo, strong and deep rooted. Will rise above.",
+    "BAMBOO IS LOVE. BAMBOO IS LIFE. — Shinks",
+    "MY BAMBOO IS YOURS. — Vincekun",
+    "Rip BambooBoys we had a good run. — BlackStealth",
+    // Bamboo proverbs
     "Do not judge a bamboo until it has fully grown.",
     "Bamboo that bends is stronger than the oak that resists.",
     "The bamboo that is alone stands no chance against the wind.",
     "Be like bamboo. The higher you grow, the deeper you bow.",
     "A single bamboo pole does not make a raft.",
-    "When the wind blows, the bamboo bends — and rises again.",
+    "When the wind blows, the bamboo bends, and rises again.",
     "The green reed which bends in the wind is stronger than the mighty oak which breaks in a storm.",
-    "Bamboo is not a weed, it is a flowering plant that flowers once every hundred years.",
     "After the rain, the bamboo grove stands taller.",
     "Even the tallest bamboo started as a small shoot.",
+    "Once you taste the power of Bamboo you will understand. — Losj",
   ];
 
   const LEAF_SPRITES = [

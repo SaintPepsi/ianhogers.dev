@@ -11,29 +11,87 @@
     <span class="text-4xl">&#127811;</span>
     <div>
       <h1 class="text-2xl sm:text-3xl md:text-5xl text-green-400 mb-0">Bambooboys</h1>
-      <p class="text-sm font-mono text-gray-500">MapleLegends &middot; ~2015</p>
+      <p class="text-sm font-mono text-gray-500">MapleLegends &middot; est. ~Aug 2015</p>
     </div>
   </div>
 
   <div class="pixel-box p-6 mb-8" style="--box-color: #4ade80;">
     <div class="prose">
-      <p>The <strong class="text-green-400">Bambooboys</strong> were a guild on <strong>MapleLegends</strong>, a MapleStory private server. This was around 2015 - good times, good people, a lot of grinding and hanging out.</p>
+      <p>The <strong class="text-green-400">Bambooboys</strong> were a guild on <a href="https://forum.maplelegends.com/index.php?threads/bambooboys.5813/" class="text-green-400 hover:underline">MapleLegends</a>, a pre-Big Bang MapleStory private server. Founded around August 2015, the guild became known for its energy, spam-heavy culture, and the legendary voice recordings of members shouting "BAMBOO BOYS!" in various styles.</p>
 
       <p>I streamed back then too. Would love to find those old clips someday.</p>
 
-      <h2 class="text-green-400">The crew</h2>
-      <p>Some of the people I remember (this page is a living document - I'll add more as memory serves):</p>
+      <h2 class="text-green-400">The Guild</h2>
+    </div>
 
-      <ul>
-        <li><strong>Inviper</strong></li>
-        <li><strong>Kenneth</strong></li>
-        <li><strong>ice pack</strong></li>
-        <li><strong>Vincekun</strong></li>
-        <li><strong>Yamato</strong> (aka Firion secks, aka Cecil) - Fawaka mi man kaasboer!</li>
-        <li><strong>Poofcakes</strong></li>
-        <li><strong>SgtUber</strong></li>
-        <li><em>...and more. If you were in Bambooboys and you're reading this, reach out!</em></li>
-      </ul>
+    <!-- Guild roster grid -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 my-6">
+      {#each [
+        { name: 'Kenneth', ign: 'Kenneth', job: 'Bowmaster', level: 135, avatar: '/assets/bambooboys/kenneth.jpg', role: 'Leader' },
+        { name: 'BlackStealth', ign: 'StealthStory', job: 'Bishop', level: 124, avatar: '/assets/bambooboys/blackstealth.jpg', role: '' },
+        { name: 'Ramenking', ign: 'SaintPepsi', job: 'Hermit', level: 93, avatar: '/assets/bambooboys/ramenking.jpg', role: '' },
+        { name: 'rogierR2', ign: 'Inviper', job: 'Shadower', level: 69, avatar: '/assets/bambooboys/rogierr2.jpg', role: '' },
+        { name: 'Vincekun', ign: 'Susano', job: 'Spearman', level: 51, avatar: '/assets/bambooboys/vincekun.jpg', role: '' },
+        { name: 'Yamato', ign: 'Firion', job: 'Dark Knight', level: null, avatar: '/assets/bambooboys/yamato.jpg', role: '' },
+        { name: 'Losj', ign: 'Losjington', job: 'Dark Knight', level: null, avatar: '/assets/bambooboys/losj.jpg', role: '' },
+        { name: 'Salamander', ign: 'Salamander', job: 'Dark Knight', level: 125, avatar: '/assets/bambooboys/salamander.jpg', role: '' },
+        { name: 'Kawachi', ign: 'DJ Dyna', job: 'Priest', level: null, avatar: '/assets/bambooboys/kawachi.jpg', role: '' },
+        { name: 'NatteHond', ign: 'NatteHond', job: '', level: null, avatar: '/assets/bambooboys/nattehond.jpg', role: '' },
+        { name: 'Poofcakes', ign: 'Poofcakes', job: '', level: null, avatar: '/assets/bambooboys/poofcakes.jpg', role: 'Retired Staff' },
+        { name: 'Aero', ign: 'Aero', job: 'Night Lord', level: 170, avatar: '/assets/bambooboys/aero.jpg', role: '' },
+      ] as member}
+        <div class="guild-member text-center">
+          <div class="relative mx-auto w-16 h-16 sm:w-20 sm:h-20 mb-2 overflow-hidden rounded border-2 border-green-900/50">
+            <img
+              src={member.avatar}
+              alt={member.ign}
+              class="w-full h-full object-cover"
+              loading="lazy"
+            />
+          </div>
+          <p class="text-sm font-bold text-green-400 mb-0 leading-tight">{member.ign}</p>
+          {#if member.job}
+            <p class="text-xs text-gray-500 mb-0">{member.job}{member.level ? ` Lv${member.level}` : ''}</p>
+          {/if}
+          {#if member.role}
+            <p class="text-xs text-amber-400 mb-0">{member.role}</p>
+          {/if}
+        </div>
+      {/each}
+    </div>
+
+    <p class="text-xs text-gray-600 font-mono mb-6 text-center"><em>...and more. If you were in Bambooboys and you're reading this, reach out!</em></p>
+
+    <div class="prose">
+      <h2 class="text-green-400">Guild Lore</h2>
+
+      <blockquote class="border-l-2 border-green-600 pl-4 text-gray-400 italic">
+        "Even when you don't love Bamboo, Bamboo will love you."
+        <span class="block text-xs text-gray-600 mt-1 not-italic">— BlackStealth, Guild Motto</span>
+      </blockquote>
+
+      <blockquote class="border-l-2 border-green-600 pl-4 text-gray-400 italic">
+        "Bamboo is really simple, but we insist on making it complicated."
+        <span class="block text-xs text-gray-600 mt-1 not-italic">— Inviper</span>
+      </blockquote>
+
+      <blockquote class="border-l-2 border-green-600 pl-4 text-gray-400 italic">
+        "We live by our own rules, we play by our own rules. That makes us Bamboo."
+        <span class="block text-xs text-gray-600 mt-1 not-italic">— Inviper</span>
+      </blockquote>
+
+      <blockquote class="border-l-2 border-green-600 pl-4 text-gray-400 italic">
+        "The world is hard. Bamboo brings peace. Become one."
+        <span class="block text-xs text-gray-600 mt-1 not-italic">— Losj</span>
+      </blockquote>
+
+      <blockquote class="border-l-2 border-green-600 pl-4 text-gray-400 italic">
+        "Bamboo guide you, Spirit bless you."
+        <span class="block text-xs text-gray-600 mt-1 not-italic">— Bamboo Genesis 420:69 (rogierR2)</span>
+      </blockquote>
+
+      <h2 class="text-green-400">The Bamboo PQ</h2>
+      <p>BlackStealth designed a Party Quest concept for the guild (credited to Inviper for the idea). Set in the bamboo forests of Mu Lung, players would help a panda spirit animal find its way home. Completing it gave bamboo leaves that could be exchanged for the "Spirit of Bamboo" hat (+10 all stats, +200 HP/MP). It never made it into the game, but the concept art lives on.</p>
 
       <h2 class="text-green-400">Art by the crew</h2>
       <div class="pixel-box p-3 max-w-sm" style="--box-color: #4ade80;">
@@ -45,10 +103,15 @@
         <p class="text-xs font-mono text-gray-500 mt-2 text-center">SAINT PEPSI - art by <strong>SgtUber</strong></p>
       </div>
 
-      <h2 class="text-green-400">What the BambooBoys did</h2>
-      <p>The usual MapleStory things - bossing, grinding, chilling in Henesys. But the guild was more than that. It was a community. One of those online groups that just clicked.</p>
+      <h2 class="text-green-400">What happened</h2>
+      <p>The guild was most active from August to October 2015. NatteHond revived the thread in June 2017, and BlackStealth eventually asked Kenneth for guild leadership as members drifted away. BlackStealth's final word: <em>"Rip BambooBoys we had a good run."</em></p>
 
-      <p>If you have screenshots, clips, or memories from this era - I'd love to hear from you.</p>
+      <p>In August 2024, I posted a haiku to the thread after 7 years of silence:</p>
+      <blockquote class="border-l-2 border-green-600 pl-4 text-gray-400 italic">
+        "A sproutling in the soil. Bamboo, strong and deep rooted. Will rise above."
+      </blockquote>
+
+      <p>If you have screenshots, clips, or memories from this era, I'd love to hear from you.</p>
     </div>
   </div>
 

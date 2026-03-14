@@ -44,6 +44,14 @@
     </div>
 
     <div class="pixel-box p-5">
+      <h2 class="text-xl text-amber-400 mb-2">Crusenho - Complete UI Essential Pack</h2>
+      <p class="text-sm text-gray-400">800+ pixel art UI elements across 13 themes. Frames, banners, buttons, scroll frames, and more. Purchased the full pack and using it across this site and future projects. Licensed under CC BY 4.0.</p>
+      <p class="text-xs font-mono text-gray-500 mt-2">
+        <a href="https://crusenho.itch.io/complete-ui-essential-pack" class="text-amber-400 hover:underline">itch.io</a>
+      </p>
+    </div>
+
+    <div class="pixel-box p-5">
       <h2 class="text-xl text-amber-400 mb-2">Pixel Art</h2>
       <p class="text-sm text-gray-400">Decorative pixel art, UI elements, and game assets created by Ian or collected from personal projects.</p>
     </div>

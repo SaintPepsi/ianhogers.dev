@@ -39,6 +39,16 @@
       <p class="text-sm text-gray-400">CC0 pixel art flag assets and more. Open source everything, the right way.</p>
       <span class="text-xs font-mono text-gray-600 mt-2 block">read more &rarr;</span>
     </a>
+
+    <!-- Crusenho -->
+    <a href="/shoutouts/crusenho" class="pixel-box p-6 block no-underline hover:bg-surface-light transition-all group">
+      <div class="flex items-center gap-3 mb-2">
+        <span class="text-2xl">&#127922;</span>
+        <h2 class="text-2xl text-amber-400 mb-0 group-hover:text-amber-300 transition-colors">Crusenho</h2>
+      </div>
+      <p class="text-sm text-gray-400">Complete UI Essential Pack. 800+ pixel art UI elements across 13 themes.</p>
+      <span class="text-xs font-mono text-gray-600 mt-2 block">read more &rarr;</span>
+    </a>
   </div>
 
   <div class="pixel-divider mt-10 mb-6" style="--divider-color: #2a2438;"></div>
