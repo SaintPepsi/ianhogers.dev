@@ -111,7 +111,7 @@ test.describe('Falling Bamboo Leaves', () => {
     await page.locator('.falling-leaf').first().click({ force: true });
 
     const icon = page.locator('.poem-icon');
-    await expect(icon).toHaveText('🎋');
+    await expect(icon).toHaveAttribute('src', '/assets/pixel-art/decorative/bamboo-stem.png');
   });
 
   test('clicking backdrop closes poem card', async ({ page }) => {

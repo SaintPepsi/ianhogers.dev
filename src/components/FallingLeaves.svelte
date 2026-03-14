@@ -209,8 +209,8 @@
           src={leaf.sprite}
           alt=""
           class="pixel-sprite"
-          width="16"
-          height="16"
+          width="48"
+          height="48"
           draggable="false"
         />
       </div>
@@ -229,7 +229,7 @@
         onclick={(e) => e.stopPropagation()}
       >
         <button class="poem-close" onclick={closePoem} aria-label="Close poem">✕</button>
-        <span class="poem-icon">🎋</span>
+        <img src="/assets/pixel-art/decorative/bamboo-stem.png" alt="" class="poem-icon pixel-sprite" width="48" height="48" draggable="false" />
         <p class="poem-text">{openPoem.text}</p>
       </div>
     </div>
@@ -342,7 +342,6 @@
 
   .poem-icon {
     display: block;
-    font-size: 1.5rem;
     margin-bottom: 0.5rem;
   }
 
