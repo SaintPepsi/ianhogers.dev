@@ -3,7 +3,7 @@ import {
   englishDataset,
   englishRecommendedTransformers,
 } from "obscenity";
-import type { ProfanityFlag } from "./types";
+import type { ProfanityFlag } from "$lib/components/guestbook/lib/types";
 
 const matcher = new RegExpMatcher({
   ...englishDataset.build(),

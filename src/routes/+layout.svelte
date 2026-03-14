@@ -60,10 +60,9 @@
         <a href="/shoutouts" class="no-underline hidden sm:inline-flex nav-icon-link {page.url.pathname.startsWith('/shoutouts') ? 'nav-icon-active' : 'nav-icon-inactive'}" title="Shout Outs">
           <img src="/assets/pixel-art/ui/nav-shouts.png" alt="Shout Outs" class="pixel-sprite nav-icon" />
         </a>
-        <!-- TODO: Re-add when guestbook route is implemented -->
-        <!-- <a href="/guestbook" class="no-underline hidden sm:inline-flex nav-icon-link {page.url.pathname.startsWith('/guestbook') ? 'nav-icon-active' : 'nav-icon-inactive'}" title="Guest Book">
+        <a href="/guestbook" class="no-underline hidden sm:inline-flex nav-icon-link {page.url.pathname.startsWith('/guestbook') ? 'nav-icon-active' : 'nav-icon-inactive'}" title="Guest Book">
           <img src="/assets/pixel-art/ui/nav-guestbook.png" alt="Guest Book" class="pixel-sprite nav-icon" />
-        </a> -->
+        </a>
         <a href="/maple" class="no-underline hidden sm:inline-flex nav-icon-link {page.url.pathname.startsWith('/maple') ? 'nav-icon-active' : 'nav-icon-inactive'}" title="Maple's Corner">
           <img src="/assets/pixel-art/ui/nav-menu.png" alt="Maple's Corner" class="pixel-sprite nav-icon" />
         </a>
@@ -93,10 +92,9 @@
       <a href="/shoutouts" class="no-underline nav-icon-link {page.url.pathname.startsWith('/shoutouts') ? 'nav-icon-active' : 'nav-icon-inactive'}" title="Shout Outs">
         <img src="/assets/pixel-art/ui/nav-shouts.png" alt="Shout Outs" class="pixel-sprite nav-icon" />
       </a>
-      <!-- TODO: Re-add when guestbook route is implemented -->
-      <!-- <a href="/guestbook" class="no-underline nav-icon-link {page.url.pathname.startsWith('/guestbook') ? 'nav-icon-active' : 'nav-icon-inactive'}" title="Guest Book">
+      <a href="/guestbook" class="no-underline nav-icon-link {page.url.pathname.startsWith('/guestbook') ? 'nav-icon-active' : 'nav-icon-inactive'}" title="Guest Book">
         <img src="/assets/pixel-art/ui/nav-guestbook.png" alt="Guest Book" class="pixel-sprite nav-icon" />
-      </a> -->
+      </a>
       <a href="/maple" class="no-underline nav-icon-link {page.url.pathname.startsWith('/maple') ? 'nav-icon-active' : 'nav-icon-inactive'}" title="Maple's Corner">
         <img src="/assets/pixel-art/ui/nav-menu.png" alt="Maple's Corner" class="pixel-sprite nav-icon" />
       </a>

@@ -1,5 +1,6 @@
 import { neon } from "@neondatabase/serverless";
-import type { GuestbookNote } from "./types";
+import type { GuestbookNote } from "$lib/components/guestbook/lib/types";
+import { env } from "$env/dynamic/private";
 
 // In-memory store for local dev (no DATABASE_URL)
 const memoryStore: GuestbookNote[] = [];
@@ -10,7 +11,7 @@ export function clearMemoryStore(): void {
 }
 
 export function getDb() {
-  const url = import.meta.env.DATABASE_URL;
+  const url = env.DATABASE_URL;
   if (!url) return null;
   return neon(url);
 }
