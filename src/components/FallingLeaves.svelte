@@ -268,10 +268,7 @@
       >
         <button class="poem-close" onclick={closePoem} aria-label="Close poem">✕</button>
         <p class="poem-text">{openPoem.text}</p>
-        <div class="seal-stamp">
-          <img src="/assets/pixel-art/ui/btn-seal.png" alt="" class="seal-img pixel-sprite" />
-          <img src="/assets/pixel-art/decorative/bamboo-stem.png" alt="" class="bamboo-overlay pixel-sprite" />
-        </div>
+        <img src="/assets/pixel-art/decorative/bamboo-stem.png" alt="" class="stamp-icon pixel-sprite" />
       </div>
     </div>
   {/if}
@@ -370,35 +367,19 @@
     animation: poem-appear 0.2s ease;
     border-style: solid;
     border-width: 22px;
-    border-image: url('/assets/pixel-art/ui/scroll-frame-02.png') 22 fill / 22px / 0 stretch;
+    border-image: url('/assets/pixel-art/ui/scroll-frame-02.png') 22 fill / 22px / 0 round;
     image-rendering: pixelated;
     box-sizing: border-box;
   }
 
-  .seal-stamp {
+  .stamp-icon {
     position: absolute;
     bottom: 4px;
     right: 4px;
     width: 32px;
     height: 32px;
-    z-index: 2;
+    image-rendering: pixelated;
     pointer-events: none;
-  }
-
-  .seal-img {
-    width: 32px;
-    height: 32px;
-    image-rendering: pixelated;
-  }
-
-  .bamboo-overlay {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 32px;
-    height: 32px;
-    image-rendering: pixelated;
   }
 
   .poem-close {

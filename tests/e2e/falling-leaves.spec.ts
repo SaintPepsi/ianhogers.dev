@@ -101,20 +101,15 @@ test.describe('Falling Bamboo Leaves', () => {
     expect(borderImage).toContain('scroll-frame-02.png');
   });
 
-  test('poem card has seal stamp with bamboo overlay', async ({ page }) => {
+  test('poem card has bamboo stamp icon', async ({ page }) => {
     await page.goto('/shoutouts/bambooboys');
     await page.waitForTimeout(3000);
 
     await page.locator('.falling-leaf').first().click({ force: true });
 
-    const stamp = page.locator('.seal-stamp');
-    await expect(stamp).toBeVisible();
-
-    const sealImg = stamp.locator('.seal-img');
-    await expect(sealImg).toHaveAttribute('src', '/assets/pixel-art/ui/btn-seal.png');
-
-    const bamboo = stamp.locator('.bamboo-overlay');
-    await expect(bamboo).toHaveAttribute('src', '/assets/pixel-art/decorative/bamboo-stem.png');
+    const icon = page.locator('.stamp-icon');
+    await expect(icon).toBeVisible();
+    await expect(icon).toHaveAttribute('src', '/assets/pixel-art/decorative/bamboo-stem.png');
   });
 
   test('clicking backdrop closes poem card', async ({ page }) => {
