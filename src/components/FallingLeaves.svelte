@@ -366,8 +366,8 @@
     z-index: 51;
     animation: poem-appear 0.2s ease;
     border-style: solid;
-    border-width: 22px;
-    border-image: url('/assets/pixel-art/ui/scroll-frame-02.png') 22 fill / 22px / 0 round;
+    border-width: 44px;
+    border-image: url('/assets/pixel-art/ui/scroll-frame-02.png') 22 fill / 44px / 0 round;
     image-rendering: pixelated;
     box-sizing: border-box;
   }
