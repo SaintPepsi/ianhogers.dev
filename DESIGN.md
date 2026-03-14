@@ -4,8 +4,10 @@
 A personal space online — not a standard blog. Inspired by Neocities/personal web revival (prismatic.pink, poemdoll.neocities.org, luvstarkei.com). Pixel art, GIFs, quirky layouts. A place that feels lived in.
 
 ## Stack
-- Astro + Tailwind CSS + Markdown content
-- Vercel deployment (later)
+- SvelteKit + Tailwind CSS + mdsvex (Markdown content)
+- Vercel deployment via @sveltejs/adapter-vercel
+- Neon Postgres (guestbook data) + Vercel KV (rate limiting, optional)
+- Vitest (unit tests) + Playwright (e2e tests, port 5173)
 - Weiholmir font (custom, supported by Ian during creator's school project)
 
 ## Two Sides

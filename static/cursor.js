@@ -1,12 +1,14 @@
 // Spritesheet cursor: interaction_hand.png (128x16, 8 frames of 16x16)
 // Frames 0-2: click animation, Frames 0-3: pointer wiggle, Frames 4-6: grab/drag
-// Persists across Astro View Transitions
+// Uses background-position shifting on a single sprite sheet (no per-frame image reloads)
 (function() {
   // Prevent double-init (View Transitions re-run inline scripts)
   if (window.__pixelCursorInit) return;
   window.__pixelCursorInit = true;
 
   const FRAME_SIZE = 16;
+  const FRAME_COUNT = 8;
+  const DISPLAY_SIZE = FRAME_SIZE * 2;
   const POINTER_FRAMES = [0, 1, 2, 3];
   const CLICK_DOWN_FRAMES = [0, 1, 2];
   const CLICK_UP_FRAMES = [2, 1, 0];
@@ -14,14 +16,7 @@
   const GRAB_UP_FRAMES = [6, 5, 4];
   const ANIM_SPEED = 150;
   const CLICK_SPEED = 75;
-
-  const canvas = document.createElement('canvas');
-  canvas.width = FRAME_SIZE;
-  canvas.height = FRAME_SIZE;
-  const ctx = canvas.getContext('2d');
-
-  const sheet = new Image();
-  sheet.src = '/assets/pixel-art/ui/interaction_hand.png';
+  const SPRITE_URL = '/assets/pixel-art/ui/interaction_hand.png';
 
   let currentFrames = POINTER_FRAMES;
   let frameIndex = 0;
@@ -35,7 +30,6 @@
   let ready = false;
   let lastX = -100;
   let lastY = -100;
-  let frameDataURLs = [];
 
   // Hide the default cursor globally
   const style = document.createElement('style');
@@ -45,20 +39,23 @@
     document.head.appendChild(style);
   }
 
-  // Create cursor element
+  // Create cursor element — uses sprite sheet directly with background-position
   const cursorEl = document.createElement('div');
   cursorEl.id = 'pixel-cursor';
   cursorEl.style.cssText = `
     position: fixed;
     top: 0; left: 0;
-    width: ${FRAME_SIZE * 2}px;
-    height: ${FRAME_SIZE * 2}px;
+    width: ${DISPLAY_SIZE}px;
+    height: ${DISPLAY_SIZE}px;
     pointer-events: none;
     z-index: 99999;
     image-rendering: pixelated;
     display: none;
     transform: translate(${lastX}px, ${lastY}px);
     will-change: transform;
+    background-image: url(${SPRITE_URL});
+    background-size: ${DISPLAY_SIZE * FRAME_COUNT}px ${DISPLAY_SIZE}px;
+    background-repeat: no-repeat;
   `;
 
   // schedulePositionUpdate function removed - direct positioning now used
@@ -75,23 +72,17 @@
 
   document.body.appendChild(cursorEl);
 
+  // Preload sprite sheet, then show cursor
+  var sheet = new Image();
   sheet.onload = function() {
     ready = true;
-    // Pre-render all frames
-    for (let i = 0; i < 8; i++) {
-      ctx.clearRect(0, 0, FRAME_SIZE, FRAME_SIZE);
-      ctx.drawImage(sheet, i * FRAME_SIZE, 0, FRAME_SIZE, FRAME_SIZE, 0, 0, FRAME_SIZE, FRAME_SIZE);
-      frameDataURLs[i] = canvas.toDataURL();
-    }
     drawFrame(0);
     cursorEl.style.display = 'block';
   };
+  sheet.src = SPRITE_URL;
 
   function drawFrame(frameIdx) {
-    if (frameDataURLs[frameIdx]) {
-      cursorEl.style.backgroundImage = 'url(' + frameDataURLs[frameIdx] + ')';
-      cursorEl.style.backgroundSize = 'contain';
-    }
+    cursorEl.style.backgroundPosition = (-frameIdx * DISPLAY_SIZE) + 'px 0';
   }
 
   function startAnim(frames, loop, speed) {

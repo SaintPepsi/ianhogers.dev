@@ -64,7 +64,7 @@
           <img src="/assets/pixel-art/ui/nav-guestbook.png" alt="Guest Book" class="pixel-sprite nav-icon" />
         </a>
         <a href="/maple" class="no-underline hidden sm:inline-flex nav-icon-link {page.url.pathname.startsWith('/maple') ? 'nav-icon-active' : 'nav-icon-inactive'}" title="Maple's Corner">
-          <img src="/assets/pixel-art/ui/nav-menu.png" alt="Maple's Corner" class="pixel-sprite nav-icon" />
+          <img src="/assets/pixel-art/ui/maple-icon.png" alt="Maple's Corner" class="pixel-sprite nav-icon" />
         </a>
         <!-- Side toggle pill -->
         <div class="side-toggle flex items-center gap-0 rounded-full border-2 border-gray-700 transition-all p-0.5">
@@ -96,7 +96,7 @@
         <img src="/assets/pixel-art/ui/nav-guestbook.png" alt="Guest Book" class="pixel-sprite nav-icon" />
       </a>
       <a href="/maple" class="no-underline nav-icon-link {page.url.pathname.startsWith('/maple') ? 'nav-icon-active' : 'nav-icon-inactive'}" title="Maple's Corner">
-        <img src="/assets/pixel-art/ui/nav-menu.png" alt="Maple's Corner" class="pixel-sprite nav-icon" />
+        <img src="/assets/pixel-art/ui/maple-icon.png" alt="Maple's Corner" class="pixel-sprite nav-icon" />
       </a>
     </div>
   </nav>

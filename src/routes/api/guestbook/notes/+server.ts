@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { dev } from '$app/environment';
+import { env } from '$env/dynamic/private';
 import {
 	getNotesByPage,
 	getAllNotes,
@@ -13,6 +14,7 @@ import stickerManifest from '$lib/data/sticker-manifest.json';
 
 /** Lazily get KV client — returns null if @vercel/kv is not configured */
 async function getKv() {
+	if (!env.KV_REST_API_URL || !env.KV_REST_API_TOKEN) return null;
 	const mod = await import('@vercel/kv').catch(() => null);
 	return mod?.kv ?? null;
 }
