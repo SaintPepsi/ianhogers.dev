@@ -143,7 +143,7 @@
 
       <div class="player-content">
         <div class="player-label">
-          <span class="maple-leaf">🍁</span>
+          <img src="/assets/pixel-art/ui/maple-icon.png" alt="" class="pixel-sprite maple-leaf" />
           <span class="label-text">{isPlaying ? 'Maple is reading...' : 'Paused'}</span>
         </div>
 
@@ -245,7 +245,8 @@
   }
 
   .maple-leaf {
-    font-size: 0.75rem;
+    width: 12px;
+    height: 12px;
   }
 
   .label-text {

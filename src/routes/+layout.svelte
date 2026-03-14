@@ -2,9 +2,18 @@
   import '../app.css';
   import { page } from '$app/state';
   import { onMount } from 'svelte';
+  import { Tooltip } from 'bits-ui';
   import FallingLeaves from '$lib/components/FallingLeaves.svelte';
 
   let { data, children } = $props();
+
+  const navItems = [
+    { href: '/about', icon: '/assets/pixel-art/ui/nav-about.png', label: 'About' },
+    { href: '/skills', icon: '/assets/pixel-art/ui/nav-skills.png', label: 'Skills' },
+    { href: '/shoutouts', icon: '/assets/pixel-art/ui/nav-shouts.png', label: 'Shout Outs' },
+    { href: '/guestbook', icon: '/assets/pixel-art/ui/nav-guestbook.png', label: 'Guest Book' },
+    { href: '/maple', icon: '/assets/pixel-art/ui/maple-icon.png', label: "Maple's Corner" },
+  ];
 
   // Set <html> class based on current side
   $effect(() => {
@@ -51,53 +60,73 @@
       </a>
       <div class="flex items-center gap-2 sm:gap-4 text-sm font-mono">
         <!-- Nav icons: hidden on mobile, shown on sm+ -->
-        <a href="/about" class="no-underline hidden sm:inline-flex nav-icon-link {page.url.pathname.startsWith('/about') ? 'nav-icon-active' : 'nav-icon-inactive'}" title="About">
-          <img src="/assets/pixel-art/ui/nav-about.png" alt="About" class="pixel-sprite nav-icon" />
-        </a>
-        <a href="/skills" class="no-underline hidden sm:inline-flex nav-icon-link {page.url.pathname.startsWith('/skills') ? 'nav-icon-active' : 'nav-icon-inactive'}" title="Skills">
-          <img src="/assets/pixel-art/ui/nav-skills.png" alt="Skills" class="pixel-sprite nav-icon" />
-        </a>
-        <a href="/shoutouts" class="no-underline hidden sm:inline-flex nav-icon-link {page.url.pathname.startsWith('/shoutouts') ? 'nav-icon-active' : 'nav-icon-inactive'}" title="Shout Outs">
-          <img src="/assets/pixel-art/ui/nav-shouts.png" alt="Shout Outs" class="pixel-sprite nav-icon" />
-        </a>
-        <a href="/guestbook" class="no-underline hidden sm:inline-flex nav-icon-link {page.url.pathname.startsWith('/guestbook') ? 'nav-icon-active' : 'nav-icon-inactive'}" title="Guest Book">
-          <img src="/assets/pixel-art/ui/nav-guestbook.png" alt="Guest Book" class="pixel-sprite nav-icon" />
-        </a>
-        <a href="/maple" class="no-underline hidden sm:inline-flex nav-icon-link {page.url.pathname.startsWith('/maple') ? 'nav-icon-active' : 'nav-icon-inactive'}" title="Maple's Corner">
-          <img src="/assets/pixel-art/ui/maple-icon.png" alt="Maple's Corner" class="pixel-sprite nav-icon" />
-        </a>
+        {#each navItems as item}
+          <Tooltip.Provider>
+            <Tooltip.Root delayDuration={200}>
+              <Tooltip.Trigger asChild>
+                {#snippet child({ props })}
+                  <a {...props} href={item.href} class="no-underline hidden sm:inline-flex nav-icon-link {page.url.pathname.startsWith(item.href) ? 'nav-icon-active' : 'nav-icon-inactive'}">
+                    <img src={item.icon} alt={item.label} class="pixel-sprite nav-icon" />
+                  </a>
+                {/snippet}
+              </Tooltip.Trigger>
+              <Tooltip.Portal>
+                <Tooltip.Content sideOffset={8} class="nav-tooltip">
+                  {item.label}
+                </Tooltip.Content>
+              </Tooltip.Portal>
+            </Tooltip.Root>
+          </Tooltip.Provider>
+        {/each}
         <!-- Side toggle pill -->
         <div class="side-toggle flex items-center gap-0 rounded-full border-2 border-gray-700 transition-all p-0.5">
-          <a
-            href="/personal"
-            class="no-underline inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full text-sm transition-all hover:opacity-80 {data.side === 'personal' ? 'bg-amber-500/25 text-amber-400 shadow-inner' : 'text-gray-500'}"
-            title="Personal side"
-          >&#128522;</a>
-          <a
-            href="/dev"
-            class="no-underline inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full text-xs font-bold transition-all hover:opacity-80 {data.side === 'dev' ? 'bg-purple-500/25 text-purple-300 shadow-inner' : 'text-gray-500'}"
-            title="Dev side"
-          >&lt;/&gt;</a>
+          <Tooltip.Provider>
+            <Tooltip.Root delayDuration={200}>
+              <Tooltip.Trigger asChild>
+                {#snippet child({ props })}
+                  <a {...props} href="/personal" class="no-underline inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full text-sm transition-all hover:opacity-80 {data.side === 'personal' ? 'bg-amber-500/25 text-amber-400 shadow-inner' : 'text-gray-500'}">&#128522;</a>
+                {/snippet}
+              </Tooltip.Trigger>
+              <Tooltip.Portal>
+                <Tooltip.Content sideOffset={8} class="nav-tooltip">Personal side</Tooltip.Content>
+              </Tooltip.Portal>
+            </Tooltip.Root>
+          </Tooltip.Provider>
+          <Tooltip.Provider>
+            <Tooltip.Root delayDuration={200}>
+              <Tooltip.Trigger asChild>
+                {#snippet child({ props })}
+                  <a {...props} href="/dev" class="no-underline inline-flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-full text-xs font-bold transition-all hover:opacity-80 {data.side === 'dev' ? 'bg-purple-500/25 text-purple-300 shadow-inner' : 'text-gray-500'}">&lt;/&gt;</a>
+                {/snippet}
+              </Tooltip.Trigger>
+              <Tooltip.Portal>
+                <Tooltip.Content sideOffset={8} class="nav-tooltip">Dev side</Tooltip.Content>
+              </Tooltip.Portal>
+            </Tooltip.Root>
+          </Tooltip.Provider>
         </div>
       </div>
     </div>
     <!-- Mobile nav icons -->
     <div class="flex sm:hidden justify-center gap-4 mt-2">
-      <a href="/about" class="no-underline nav-icon-link {page.url.pathname.startsWith('/about') ? 'nav-icon-active' : 'nav-icon-inactive'}" title="About">
-        <img src="/assets/pixel-art/ui/nav-about.png" alt="About" class="pixel-sprite nav-icon" />
-      </a>
-      <a href="/skills" class="no-underline nav-icon-link {page.url.pathname.startsWith('/skills') ? 'nav-icon-active' : 'nav-icon-inactive'}" title="Skills">
-        <img src="/assets/pixel-art/ui/nav-skills.png" alt="Skills" class="pixel-sprite nav-icon" />
-      </a>
-      <a href="/shoutouts" class="no-underline nav-icon-link {page.url.pathname.startsWith('/shoutouts') ? 'nav-icon-active' : 'nav-icon-inactive'}" title="Shout Outs">
-        <img src="/assets/pixel-art/ui/nav-shouts.png" alt="Shout Outs" class="pixel-sprite nav-icon" />
-      </a>
-      <a href="/guestbook" class="no-underline nav-icon-link {page.url.pathname.startsWith('/guestbook') ? 'nav-icon-active' : 'nav-icon-inactive'}" title="Guest Book">
-        <img src="/assets/pixel-art/ui/nav-guestbook.png" alt="Guest Book" class="pixel-sprite nav-icon" />
-      </a>
-      <a href="/maple" class="no-underline nav-icon-link {page.url.pathname.startsWith('/maple') ? 'nav-icon-active' : 'nav-icon-inactive'}" title="Maple's Corner">
-        <img src="/assets/pixel-art/ui/maple-icon.png" alt="Maple's Corner" class="pixel-sprite nav-icon" />
-      </a>
+      {#each navItems as item}
+        <Tooltip.Provider>
+          <Tooltip.Root delayDuration={200}>
+            <Tooltip.Trigger asChild>
+              {#snippet child({ props })}
+                <a {...props} href={item.href} class="no-underline nav-icon-link {page.url.pathname.startsWith(item.href) ? 'nav-icon-active' : 'nav-icon-inactive'}">
+                  <img src={item.icon} alt={item.label} class="pixel-sprite nav-icon" />
+                </a>
+              {/snippet}
+            </Tooltip.Trigger>
+            <Tooltip.Portal>
+              <Tooltip.Content sideOffset={8} class="nav-tooltip">
+                {item.label}
+              </Tooltip.Content>
+            </Tooltip.Portal>
+          </Tooltip.Root>
+        </Tooltip.Provider>
+      {/each}
     </div>
   </nav>
 
@@ -136,7 +165,7 @@
   {/if}
   {#if data.side === 'maple'}
     <div class="fixed bottom-4 right-4 opacity-20 pointer-events-none hidden lg:block">
-      <span class="text-3xl animate-float-slow">&#127809;</span>
+      <img src="/assets/pixel-art/ui/maple-icon.png" alt="" class="pixel-sprite w-8 h-8 animate-float-slow" />
     </div>
   {/if}
 

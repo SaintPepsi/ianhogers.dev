@@ -334,3 +334,14 @@ html {
 .nav-icon-active {
   filter: drop-shadow(0 0 4px rgba(179, 136, 255, 0.5));
 }
+
+.nav-tooltip {
+  white-space: nowrap;
+  background: #1e1a28;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.75rem;
+  padding: 0.375rem 0.75rem;
+  z-index: 50;
+  border: 1px dashed #fb923c;
+  color: #fb923c;
+}

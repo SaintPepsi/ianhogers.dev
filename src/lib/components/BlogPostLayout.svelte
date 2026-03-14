@@ -61,7 +61,7 @@
       {#if sideIcon}
         <img src={sideIcon} alt="" class="pixel-sprite w-5 h-5" />
       {:else}
-        <span class="text-lg" aria-hidden="true">&#127809;</span>
+        <img src="/assets/pixel-art/ui/maple-icon.png" alt="" class="pixel-sprite w-5 h-5" aria-hidden="true" />
       {/if}
       <p class="font-mono text-xs text-gray-500 mb-0">{formattedDate}</p>
       {#if hasAudio}
@@ -93,7 +93,7 @@
   <div class="pixel-divider mt-12 mb-6" style="--divider-color: #2a2438;"></div>
   {#if side === 'maple'}
     <p class="text-xs font-mono text-gray-600 flex items-center gap-2">
-      <span class="text-sm" aria-hidden="true">&#127809;</span>
+      <img src="/assets/pixel-art/ui/maple-icon.png" alt="" class="pixel-sprite w-4 h-4" aria-hidden="true" />
       Written by Maple, Ian's AI collaborator. Thanks for reading.
     </p>
   {:else}

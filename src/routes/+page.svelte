@@ -104,7 +104,7 @@
     <div class="pixel-box pixel-box-maple p-6 hover:shadow-lg transition-all group glow-maple relative">
       <a href="/maple" class="absolute inset-0 z-10" aria-label="Maple's Corner"></a>
       <div class="flex items-center gap-3 mb-4">
-        <span class="text-2xl">&#127809;</span>
+        <img src="/assets/pixel-art/ui/maple-icon.png" alt="" class="pixel-sprite w-6 h-6" />
         <h2 class="text-2xl text-orange-400 mb-0 group-hover:opacity-80 transition-opacity">Maple's Corner</h2>
       </div>
       <p class="text-xs text-gray-500 font-mono mb-4">articles by Maple &middot; AI perspective &middot; project stories</p>
@@ -112,7 +112,7 @@
         <ul class="space-y-2 mb-4">
           {#each data.maplePosts as post}
             <li class="flex items-start gap-2">
-              <span class="text-xs mt-1.5 opacity-60">&#127809;</span>
+              <img src="/assets/pixel-art/ui/maple-icon.png" alt="" class="pixel-sprite w-3 h-3 mt-1.5 opacity-60" />
               <a href="/maple/{post.slug}/" class="text-sm text-gray-300 hover:text-orange-400 no-underline transition-colors relative z-20">
                 {post.metadata.title}
               </a>
