@@ -14,7 +14,9 @@ export interface Post {
   component: Component;
 }
 
-export function loadPosts(modules: Record<string, { metadata: PostMetadata; default: Component }>): Post[] {
+export type PostModule = { metadata: PostMetadata; default: Component };
+
+export function loadPosts(modules: Record<string, PostModule>): Post[] {
   return Object.entries(modules)
     .map(([path, mod]) => ({
       slug: path.split('/').pop()?.replace(/\.mdx?$/, '') ?? '',

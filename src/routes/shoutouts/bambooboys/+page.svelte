@@ -1,0 +1,59 @@
+<svelte:head>
+  <title>Bambooboys - Shoutouts - Ian Hogers</title>
+</svelte:head>
+
+<section class="py-6">
+  <p class="font-mono text-sm mb-6">
+    <a href="/shoutouts" class="text-gray-400 hover:text-white no-underline">&larr; back to shoutouts</a>
+  </p>
+
+  <div class="flex items-center gap-4 mb-6">
+    <span class="text-4xl">&#127811;</span>
+    <div>
+      <h1 class="text-2xl sm:text-3xl md:text-5xl text-green-400 mb-0">Bambooboys</h1>
+      <p class="text-sm font-mono text-gray-500">MapleLegends &middot; ~2015</p>
+    </div>
+  </div>
+
+  <div class="pixel-box p-6 mb-8" style="--box-color: #4ade80;">
+    <div class="prose">
+      <p>The <strong class="text-green-400">Bambooboys</strong> were a guild on <strong>MapleLegends</strong>, a MapleStory private server. This was around 2015 - good times, good people, a lot of grinding and hanging out.</p>
+
+      <p>I streamed back then too. Would love to find those old clips someday.</p>
+
+      <h2 class="text-green-400">The crew</h2>
+      <p>Some of the people I remember (this page is a living document - I'll add more as memory serves):</p>
+
+      <ul>
+        <li><strong>Inviper</strong></li>
+        <li><strong>Kenneth</strong></li>
+        <li><strong>ice pack</strong></li>
+        <li><strong>Vincekun</strong></li>
+        <li><strong>Yamato</strong> (aka Firion secks, aka Cecil) - Fawaka mi man kaasboer!</li>
+        <li><strong>Poofcakes</strong></li>
+        <li><strong>SgtUber</strong></li>
+        <li><em>...and more. If you were in Bambooboys and you're reading this, reach out!</em></li>
+      </ul>
+
+      <h2 class="text-green-400">Art by the crew</h2>
+      <div class="pixel-box p-3 max-w-sm" style="--box-color: #4ade80;">
+        <img
+          src="/assets/pixel-art/commissions/SAINTPEPSI.png"
+          alt="SAINT PEPSI by SgtUber"
+          class="w-full rounded"
+        />
+        <p class="text-xs font-mono text-gray-500 mt-2 text-center">SAINT PEPSI - art by <strong>SgtUber</strong></p>
+      </div>
+
+      <h2 class="text-green-400">What the BambooBoys did</h2>
+      <p>The usual MapleStory things - bossing, grinding, chilling in Henesys. But the guild was more than that. It was a community. One of those online groups that just clicked.</p>
+
+      <p>If you have screenshots, clips, or memories from this era - I'd love to hear from you.</p>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-2 text-xs text-gray-600 font-mono">
+    <span class="star-sprite w-4 h-4 animate-sparkle opacity-40" aria-hidden="true"></span>
+    <span>This page will grow as I remember things. Check back sometime.</span>
+  </div>
+</section>

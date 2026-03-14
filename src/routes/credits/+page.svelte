@@ -1,0 +1,54 @@
+<svelte:head>
+  <title>Credits - Ian Hogers</title>
+</svelte:head>
+
+<section class="py-6">
+  <h1 class="text-2xl sm:text-3xl md:text-5xl mb-8">Credits</h1>
+
+  <div class="space-y-6">
+    <div class="pixel-box p-5">
+      <h2 class="text-xl text-violet-400 mb-2">Weiholmir Font</h2>
+      <p class="text-sm text-gray-400">The display font used throughout this site. I supported the creator during their school project - it was made as part of their coursework and I wanted to help bring it to life. Beautiful work.</p>
+    </div>
+
+    <div class="pixel-box p-5">
+      <h2 class="text-xl text-pink-400 mb-2">AsianFox</h2>
+      <p class="text-sm text-gray-400">Art commissions from the MapleStory community. Their work lives on the <a href="/shoutouts/asianfox" class="text-pink-400 hover:underline">shoutouts page</a>.</p>
+    </div>
+
+    <div class="pixel-box p-5">
+      <h2 class="text-xl text-cyan-400 mb-2">R. Mocci / Tiny Archive</h2>
+      <p class="text-sm text-gray-400">Pixel art country flag assets used in the skills grid. Rob maintains multiple flag packs (Americas, Asia/Oceania, Africa, Europe, USA, Archipelagos) and releases them under CC0. No credit required, but I credit anyway because it's the right thing to do.</p>
+      <p class="text-xs font-mono text-gray-500 mt-2">
+        <a href="https://rmocci.itch.io/" class="text-cyan-400 hover:underline">itch.io</a> &middot;
+        <a href="https://patreon.com/rmocci" class="text-cyan-400 hover:underline">Patreon</a> &middot;
+        <a href="https://mastodon.social/@avreference" class="text-cyan-400 hover:underline">Mastodon</a>
+      </p>
+    </div>
+
+    <div class="pixel-box p-5">
+      <h2 class="text-xl text-rose-400 mb-2">Maseone / Pavel Troshkin</h2>
+      <p class="text-sm text-gray-400">CSS sprite-based flip carousel using scroll-timeline. The guestbook book animation is Maseone's pure CSS architecture using Chrome 134+ scroll-timeline features.</p>
+      <p class="text-xs font-mono text-gray-500 mt-2">
+        <a href="https://codepen.io/Maseone/pen/WbbGxeO" class="text-rose-400 hover:underline">CodePen</a> &middot;
+        <a href="https://x.com/troshkin_pavel" class="text-rose-400 hover:underline">X / Twitter</a>
+      </p>
+    </div>
+
+    <div class="pixel-box p-5">
+      <h2 class="text-xl text-green-400 mb-2">Glionox - Items Pack (x16)</h2>
+      <p class="text-sm text-gray-400">926 pixel art sprite items at 16x16px used for navigation icons and UI elements throughout the site. An incredible collection of swords, potions, books, instruments, and more. Credit not required but very much deserved.</p>
+      <p class="text-xs font-mono text-gray-500 mt-2">
+        <a href="https://glionox.itch.io/items16" class="text-green-400 hover:underline">itch.io</a>
+      </p>
+    </div>
+
+    <div class="pixel-box p-5">
+      <h2 class="text-xl text-amber-400 mb-2">Pixel Art</h2>
+      <p class="text-sm text-gray-400">Decorative pixel art, UI elements, and game assets created by Ian or collected from personal projects.</p>
+    </div>
+  </div>
+
+  <div class="pixel-divider mt-10 mb-6" style="--divider-color: #2a2438;"></div>
+  <p class="text-xs font-mono text-gray-600">More credits to be added as the site grows.</p>
+</section>
