@@ -119,7 +119,7 @@
 
   function scheduleNextSpawn() {
     if (allPoemsRead()) return;
-    const delay = 1000 + Math.random() * 4000;
+    const delay = 30_000 + Math.random() * 50_000;
     spawnTimerId = setTimeout(() => {
       if (!allPoemsRead()) {
         leaves = [...leaves, createLeaf()];
@@ -279,11 +279,11 @@
         style="left: {openPoem.x}px; top: {openPoem.y}px;"
         onclick={(e) => e.stopPropagation()}
       >
-        <div class="seal-wrapper">
+        <div class="seal-stamp">
           <img src="/assets/pixel-art/ui/btn-seal.png" alt="" class="seal-img pixel-sprite" />
+          <img src="/assets/pixel-art/decorative/bamboo-stem.png" alt="" class="bamboo-overlay pixel-sprite" />
         </div>
         <button class="poem-close" onclick={closePoem} aria-label="Close poem">✕</button>
-        <img src="/assets/pixel-art/decorative/bamboo-stem.png" alt="" class="poem-icon pixel-sprite" width="48" height="48" draggable="false" />
         <p class="poem-text">{openPoem.text}</p>
       </div>
     </div>
@@ -375,35 +375,40 @@
   .poem-card {
     position: fixed;
     max-width: 240px;
-    padding: 40px 24px 24px;
+    padding: 24px;
+    padding-left: 80px;
     z-index: 51;
     animation: poem-appear 0.2s ease;
     border-style: solid;
     border-width: 24px;
-    border-image: url('/assets/pixel-art/ui/scroll-frame-02.png') 8 fill / 24px / 0 stretch;
+    /* top right bottom left — larger bottom+left slices to prevent stretching */
+    border-image: url('/assets/pixel-art/ui/scroll-frame-02.png') 10 6 16 10 fill / 24px / 0 stretch;
     image-rendering: pixelated;
     box-sizing: border-box;
   }
 
-  .seal-wrapper {
+  .seal-stamp {
     position: absolute;
-    top: -32px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    background: #1e1a28;
-    border: 3px solid #4ade80;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    top: 8px;
+    left: 8px;
+    width: 56px;
+    height: 56px;
     z-index: 2;
   }
 
   .seal-img {
-    width: 48px;
-    height: 48px;
+    width: 56px;
+    height: 56px;
+    image-rendering: pixelated;
+  }
+
+  .bamboo-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 32px;
+    height: 32px;
     image-rendering: pixelated;
   }
 
@@ -423,11 +428,6 @@
 
   .poem-close:hover {
     color: #3d2b1f;
-  }
-
-  .poem-icon {
-    display: block;
-    margin: 0 auto 0.5rem;
   }
 
   .poem-text {

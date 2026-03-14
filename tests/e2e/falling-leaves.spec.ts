@@ -14,14 +14,13 @@ test.describe('Falling Bamboo Leaves', () => {
     await expect(leaves).toHaveCount(0);
   });
 
-  test('leaves trickle in when visiting bambooboys page', async ({ page }) => {
+  test('first leaf spawns immediately when visiting bambooboys page', async ({ page }) => {
     await page.goto('/shoutouts/bambooboys');
-    // First leaf spawns immediately, more trickle in over 1-5s intervals
-    await page.waitForTimeout(8000);
+    // First leaf spawns immediately on activation
+    await page.waitForTimeout(3000);
 
     const count = await page.locator('.falling-leaf').count();
-    expect(count).toBeGreaterThanOrEqual(2);
-    expect(count).toBeLessThanOrEqual(10);
+    expect(count).toBeGreaterThanOrEqual(1);
   });
 
   test('leaves use pixel-art bamboo leaf sprites', async ({ page }) => {
@@ -102,27 +101,20 @@ test.describe('Falling Bamboo Leaves', () => {
     expect(borderImage).toContain('scroll-frame-02.png');
   });
 
-  test('poem card shows bamboo icon', async ({ page }) => {
+  test('poem card has seal stamp with bamboo overlay', async ({ page }) => {
     await page.goto('/shoutouts/bambooboys');
     await page.waitForTimeout(3000);
 
     await page.locator('.falling-leaf').first().click({ force: true });
 
-    const icon = page.locator('.poem-icon');
-    await expect(icon).toHaveAttribute('src', '/assets/pixel-art/decorative/bamboo-stem.png');
-  });
+    const stamp = page.locator('.seal-stamp');
+    await expect(stamp).toBeVisible();
 
-  test('poem card has wax seal overlapping top border', async ({ page }) => {
-    await page.goto('/shoutouts/bambooboys');
-    await page.waitForTimeout(3000);
-
-    await page.locator('.falling-leaf').first().click({ force: true });
-
-    const seal = page.locator('.seal-wrapper');
-    await expect(seal).toBeVisible();
-
-    const sealImg = seal.locator('.seal-img');
+    const sealImg = stamp.locator('.seal-img');
     await expect(sealImg).toHaveAttribute('src', '/assets/pixel-art/ui/btn-seal.png');
+
+    const bamboo = stamp.locator('.bamboo-overlay');
+    await expect(bamboo).toHaveAttribute('src', '/assets/pixel-art/decorative/bamboo-stem.png');
   });
 
   test('clicking backdrop closes poem card', async ({ page }) => {
@@ -149,19 +141,20 @@ test.describe('Falling Bamboo Leaves', () => {
 
   test('closing poem card spawns a replacement leaf', async ({ page }) => {
     await page.goto('/shoutouts/bambooboys');
-    await page.waitForTimeout(6000);
+    // First leaf spawns immediately
+    await page.waitForTimeout(3000);
 
-    const countBefore = await page.locator('.falling-leaf').count();
+    await expect(page.locator('.falling-leaf')).toHaveCount(1);
     await page.locator('.falling-leaf').first().click({ force: true });
 
-    const countDuringPoem = await page.locator('.falling-leaf').count();
-    expect(countDuringPoem).toBe(countBefore - 1);
+    // Leaf removed during poem
+    await expect(page.locator('.falling-leaf')).toHaveCount(0);
 
     await page.keyboard.press('Escape');
     await page.waitForTimeout(500);
 
-    const countAfter = await page.locator('.falling-leaf').count();
-    expect(countAfter).toBeGreaterThanOrEqual(countBefore);
+    // Replacement spawned
+    await expect(page.locator('.falling-leaf')).toHaveCount(1);
   });
 
   test('leaves persist after navigating to another page', async ({ page }) => {
@@ -203,17 +196,19 @@ test.describe('Falling Bamboo Leaves', () => {
 
   test('poems do not repeat within a cycle', async ({ page }) => {
     await page.goto('/shoutouts/bambooboys');
-    await page.waitForTimeout(8000);
+    await page.waitForTimeout(3000);
 
     const seenPoems: string[] = [];
 
+    // Each close spawns a replacement, so we can click sequentially
     for (let i = 0; i < 5; i++) {
+      await page.waitForSelector('.falling-leaf', { timeout: 5000 });
       const leaf = page.locator('.falling-leaf').first();
       await leaf.click({ force: true });
       const text = await page.locator('.poem-text').textContent();
       seenPoems.push(text!.trim());
       await page.keyboard.press('Escape');
-      await page.waitForTimeout(1500);
+      await page.waitForTimeout(1000);
     }
 
     const uniquePoems = new Set(seenPoems);
