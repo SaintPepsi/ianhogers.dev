@@ -203,6 +203,32 @@
       startTrickleSpawn();
     }
 
+    // Prevent CSS animation restart during ViewTransition swap.
+    // Capture each falling leaf's elapsed time before swap, then
+    // restore with negative animation-delay to resume from same position.
+    document.addEventListener('astro:before-swap', () => {
+      document.querySelectorAll('.falling-leaf:not(.settled)').forEach(el => {
+        const htmlEl = el as HTMLElement;
+        const anims = el.getAnimations();
+        if (anims.length > 0) {
+          const elapsed = (anims[0].currentTime as number) || 0;
+          htmlEl.dataset.elapsed = String(elapsed);
+        }
+      });
+    });
+
+    document.addEventListener('astro:after-swap', () => {
+      document.querySelectorAll('.falling-leaf:not(.settled)').forEach(el => {
+        const htmlEl = el as HTMLElement;
+        const elapsed = parseFloat(htmlEl.dataset.elapsed || '0');
+        if (elapsed > 0) {
+          // Negative delay skips animation ahead to where it was
+          htmlEl.style.animationDelay = `-${elapsed}ms`;
+          delete htmlEl.dataset.elapsed;
+        }
+      });
+    });
+
     document.addEventListener('astro:page-load', () => {
       if (!isActive && isBambooPage() && !allPoemsRead()) {
         safeSetItem(STORAGE_ACTIVE_KEY, 'true');
