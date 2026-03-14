@@ -1,0 +1,336 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ═══════════════════════════════════════
+   CSS @property for scroll-timeline sprite animation (Chrome 134+)
+   Required for animatable custom properties in the guestbook book carousel.
+   ═══════════════════════════════════════ */
+@property --sprite-fs {
+  syntax: "<integer>";
+  initial-value: 0;
+  inherits: true;
+}
+@property --_progress {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 0%;
+}
+
+@font-face {
+  font-family: 'Weiholmir';
+  src: url('/assets/fonts/Weiholmir_regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Grand9KPixel';
+  src: url('/assets/fonts/Grand9KPixel.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+@layer base {
+  /* Custom cursor handled via JS spritesheet animation - see cursor.js */
+
+  body {
+    @apply bg-bg text-gray-200 font-sans antialiased;
+    background-image:
+      radial-gradient(ellipse at 20% 50%, rgba(179, 136, 255, 0.03) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(245, 158, 11, 0.03) 0%, transparent 50%);
+  }
+  h1, h2, h3 {
+    font-family: 'Weiholmir', cursive;
+    @apply text-white;
+    letter-spacing: 0.02em;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+  h4, h5, h6 {
+    @apply font-mono font-bold text-white;
+  }
+  a {
+    @apply transition-colors;
+  }
+  code {
+    @apply font-mono bg-surface px-1.5 py-0.5 rounded text-sm;
+  }
+  pre {
+    @apply bg-surface p-4 rounded-lg overflow-x-auto my-6;
+  }
+  pre code {
+    @apply bg-transparent p-0;
+  }
+}
+
+/* ═══════════════════════════════════════
+   PIXEL ART BORDER BOX
+   ═══════════════════════════════════════ */
+.pixel-box {
+  @apply relative;
+  background-color: var(--tw-surface, #1e1a28);
+  border: none;
+  image-rendering: pixelated;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.05);
+  /* Pixel-dashed border using 4 background gradients (one per edge).
+     Unlike border-image, these don't clip or misalign. */
+  background-image:
+    repeating-linear-gradient(90deg, var(--box-color, #4a4458) 0px 4px, transparent 4px 8px),
+    repeating-linear-gradient(90deg, var(--box-color, #4a4458) 0px 4px, transparent 4px 8px),
+    linear-gradient(var(--box-color, #4a4458), var(--box-color, #4a4458)),
+    linear-gradient(var(--box-color, #4a4458), var(--box-color, #4a4458));
+  background-size:
+    100% 3px,
+    100% 3px,
+    3px 100%,
+    3px 100%;
+  background-position:
+    top left,
+    bottom left,
+    top left,
+    top right;
+  background-repeat: no-repeat;
+  background-color: #1e1a28;
+}
+
+.pixel-box-amber { --box-color: #f59e0b; }
+.pixel-box-lavender { --box-color: #b388ff; }
+.pixel-box-crimson { --box-color: #ef5350; }
+.pixel-box-maple { --box-color: #fb923c; }
+
+/* ═══════════════════════════════════════
+   PIXEL DIVIDER
+   ═══════════════════════════════════════ */
+.pixel-divider {
+  height: 4px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--divider-color, #4a4458) 0px,
+    var(--divider-color, #4a4458) 4px,
+    transparent 4px,
+    transparent 8px
+  );
+  image-rendering: pixelated;
+}
+
+/* ═══════════════════════════════════════
+   SIDE-SPECIFIC ACCENTS
+   ═══════════════════════════════════════ */
+.side-dev {
+  --accent: #b388ff;
+  --accent-hover: #ce93d8;
+  --accent-secondary: #ef5350;
+  --accent-secondary-hover: #e57373;
+  --accent-glow: rgba(179, 136, 255, 0.15);
+}
+.side-personal {
+  --accent: #f59e0b;
+  --accent-hover: #fbbf24;
+  --accent-secondary: #f59e0b;
+  --accent-glow: rgba(245, 158, 11, 0.15);
+}
+.side-maple {
+  --accent: #D4845A;
+  --accent-hover: #E09B75;
+  --accent-secondary: #B45A2B;
+  --accent-secondary-hover: #C87245;
+  --accent-glow: rgba(180, 90, 43, 0.15);
+}
+.side-neutral {
+  --accent: #a78bfa;
+  --accent-hover: #c4b5fd;
+  --accent-glow: rgba(167, 139, 250, 0.1);
+}
+
+.accent-text { color: var(--accent); }
+.accent-text-hover:hover { color: var(--accent); }
+.accent-bg { background-color: var(--accent); }
+.accent-border { border-color: var(--accent); }
+
+/* ═══════════════════════════════════════
+   SIDE TOGGLE PILL
+   ═══════════════════════════════════════ */
+.side-toggle {
+  @apply relative;
+  image-rendering: pixelated;
+}
+.side-toggle::after {
+  content: '';
+  @apply absolute inset-0 rounded-full opacity-0 transition-opacity pointer-events-none;
+  box-shadow: 0 0 12px var(--accent-glow, rgba(167,139,250,0.2));
+}
+.side-toggle:hover::after {
+  @apply opacity-100;
+}
+
+/* ═══════════════════════════════════════
+   DECORATIVE PIXEL SPRITE
+   ═══════════════════════════════════════ */
+.pixel-sprite {
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  object-fit: contain;
+}
+img[src*="pixel-art"] {
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  object-fit: contain;
+}
+
+/* ═══════════════════════════════════════
+   STAR SPRITESHEET (70x13, 5 frames of 14x13)
+   ═══════════════════════════════════════ */
+.star-sprite {
+  display: inline-block;
+  background: url('/assets/pixel-art/decorative/star_grow.png') left center no-repeat;
+  background-size: 500% 100%;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+  aspect-ratio: 14 / 13;
+}
+
+/* ═══════════════════════════════════════
+   GLOW EFFECTS
+   ═══════════════════════════════════════ */
+.glow-amber {
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.15), 0 0 40px rgba(245, 158, 11, 0.05);
+}
+.glow-lavender {
+  box-shadow: 0 0 20px rgba(179, 136, 255, 0.15), 0 0 40px rgba(179, 136, 255, 0.05);
+}
+.glow-crimson {
+  box-shadow: 0 0 20px rgba(239, 83, 80, 0.15), 0 0 40px rgba(239, 83, 80, 0.05);
+}
+.glow-maple {
+  box-shadow: 0 0 20px rgba(251, 146, 60, 0.15), 0 0 40px rgba(251, 146, 60, 0.05);
+}
+
+/* ═══════════════════════════════════════
+   MARQUEE / TICKER
+   ═══════════════════════════════════════ */
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.marquee-track {
+  animation: marquee 20s linear infinite;
+}
+
+/* ═══════════════════════════════════════
+   PROSE STYLING
+   ═══════════════════════════════════════ */
+.prose {
+  @apply text-gray-300 leading-relaxed;
+}
+.prose h2 {
+  @apply text-2xl mt-10 mb-4;
+}
+.prose h3 {
+  @apply text-xl mt-8 mb-3;
+}
+.prose p {
+  @apply mb-4;
+}
+.prose ul {
+  @apply list-disc pl-6 mb-4;
+}
+.prose ol {
+  @apply list-decimal pl-6 mb-4;
+}
+.prose blockquote {
+  @apply border-l-4 pl-4 italic text-gray-400 my-6;
+  border-color: var(--accent);
+}
+.prose a {
+  color: var(--accent-secondary, var(--accent));
+}
+.prose a:hover {
+  @apply underline;
+}
+.prose img {
+  @apply rounded-lg my-6;
+  image-rendering: auto;
+}
+.prose img.pixel {
+  image-rendering: pixelated;
+}
+
+/* ═══════════════════════════════════════
+   SCROLLBAR
+   ═══════════════════════════════════════ */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-bg;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--accent, #4a4458);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-hover, #6a6478);
+}
+
+/* ═══════════════════════════════════════
+   SELECTION
+   ═══════════════════════════════════════ */
+::selection {
+  background: var(--accent, #a78bfa);
+  color: #0f0f0f;
+}
+
+/* ═══════════════════════════════════════
+   MOBILE RESPONSIVE
+   ═══════════════════════════════════════ */
+html {
+  overflow-x: hidden;
+}
+
+@media (max-width: 640px) {
+  .pixel-box {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  .prose h2 {
+    @apply text-xl mt-8 mb-3;
+  }
+  .prose h3 {
+    @apply text-lg mt-6 mb-2;
+  }
+}
+
+/* ═══════════════════════════════════════
+   NAV ICONS
+   ═══════════════════════════════════════ */
+.nav-icon-link {
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s, filter 0.15s;
+}
+
+.nav-icon-link:hover {
+  transform: scale(1.25);
+}
+
+.nav-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.nav-icon-active {
+  filter: drop-shadow(0 0 4px rgba(179, 136, 255, 0.5));
+}
