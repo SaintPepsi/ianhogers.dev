@@ -130,6 +130,7 @@ function stripMarkdown(md: string): string {
     .replace(/^>\s*/gm, '')
     .replace(/^\|.*\|$/gm, '')
     .replace(/^[-|:\s]+$/gm, '')
+    .replace(/:\s/g, '... ')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
 }
