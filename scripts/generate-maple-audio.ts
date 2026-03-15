@@ -40,7 +40,7 @@ function createDefaultDeps(config: { kokoroUrl: string; kokoroVoice: string }): 
     kokoroUrl: config.kokoroUrl,
     kokoroVoice: config.kokoroVoice,
     articlesDir: join(import.meta.dir, '..', 'src', 'content', 'maple'),
-    outputDir: join(import.meta.dir, '..', 'public', 'audio', 'maple'),
+    outputDir: join(import.meta.dir, '..', 'static', 'audio', 'maple'),
     readDir: (path) => fs.readdirSync(path, 'utf-8') as string[],
     readFile: (path) => fs.readFileSync(path, 'utf-8'),
     writeFile: (path, data) => fs.writeFileSync(path, data),
@@ -65,12 +65,59 @@ function extractDescription(md: string): string {
   return match ? match[1] : '';
 }
 
+/** Make code/symbols speakable by converting to natural language */
+function makeCodeSpeakable(text: string): string {
+  return text
+    // Function calls: Math.sin(x) → "Math dot sin of x"
+    .replace(/(\w+)\.(\w+)\(([^)]*)\)/g, (_m, obj: string, fn: string, args: string) => {
+      const speakableArgs = args ? ` of ${args}` : '';
+      return `${obj} dot ${fn}${speakableArgs}`;
+    })
+    // Standalone function calls: sin(wt) → "sin of wt"
+    .replace(/(\w+)\(([^)]*)\)/g, (_m, fn: string, args: string) => {
+      const speakableArgs = args ? ` of ${args}` : '';
+      return `${fn}${speakableArgs}`;
+    })
+    // Arrow functions: => → "arrow"
+    .replace(/=>/g, 'arrow')
+    // Comparison/assignment operators (before individual chars)
+    .replace(/===/g, ' equals ')
+    .replace(/!==/g, ' not equals ')
+    .replace(/>=/g, ' greater than or equal to ')
+    .replace(/<=/g, ' less than or equal to ')
+    // Curly braces — strip entirely
+    .replace(/[{}]/g, '')
+    // Strip comment markers (leading * or //)
+    .replace(/^\s*\*\s+/gm, '')
+    .replace(/^\s*\/\/\s*/gm, '')
+    // Arithmetic operators: only * between word/number characters
+    .replace(/(\w)\s*\*\s*(\w)/g, '$1 times $2')
+    .replace(/\+/g, ' plus ')
+    .replace(/(\d)\s*\/\s*(\d)/g, '$1 divided by $2')  // only between numbers
+    .replace(/\//g, ' ')  // other slashes become spaces (paths, etc)
+    // Assignment
+    .replace(/(?<![!><=])=(?![>=])/g, ' equals ')
+    // Semicolons — strip
+    .replace(/;/g, '')
+    // Parentheses that survived function call replacement
+    .replace(/\(/g, ' ')
+    .replace(/\)/g, ' ')
+    // Square brackets
+    .replace(/\[/g, '')
+    .replace(/\]/g, '')
+    // Clean up multiple spaces
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
 function stripMarkdown(md: string): string {
   const withoutFrontmatter = md.replace(/^---[\s\S]*?---\n*/m, '');
 
   return withoutFrontmatter
-    .replace(/```[\s\S]*?```/g, '(code block omitted)')
-    .replace(/`([^`]+)`/g, '$1')
+    .replace(/```\w*\n([\s\S]*?)```/g, (_match, content: string) => makeCodeSpeakable(content.trim()))
+    .replace(/`([^`]+)`/g, (_match, content: string) => makeCodeSpeakable(content))
+    // Convert number-number ranges to "number to number" for natural speech
+    .replace(/(\d+)-(\d+)/g, '$1 to $2')
     .replace(/^#{1,6}\s+/gm, '')
     .replace(/\*{1,3}([^*]+)\*{1,3}/g, '$1')
     .replace(/_{1,3}([^_]+)_{1,3}/g, '$1')
