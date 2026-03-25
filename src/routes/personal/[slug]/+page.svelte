@@ -15,6 +15,7 @@
   date={data.metadata.date}
   tags={data.metadata.tags}
   side="personal"
+  slug={data.slug}
 >
   {#if PostContent}
     <PostContent />
