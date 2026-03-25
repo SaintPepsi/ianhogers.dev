@@ -15,6 +15,7 @@
   date={data.metadata.date}
   tags={data.metadata.tags}
   side="maple"
+  slug={data.slug}
   hasAudio={data.hasAudio}
   audioSlug={data.slug}
 >

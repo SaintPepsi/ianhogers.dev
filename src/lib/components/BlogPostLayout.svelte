@@ -2,6 +2,7 @@
   import type { Snippet } from 'svelte';
   import MapleAudioPlayer from './MapleAudioPlayer.svelte';
   import MermaidDiagram from './MermaidDiagram.svelte';
+  import CodeBlockEnhancer from './CodeBlockEnhancer.svelte';
 
   let {
     title,
@@ -9,6 +10,7 @@
     date,
     tags,
     side,
+    slug = 'snippet',
     hasAudio = false,
     audioSlug = '',
     children,
@@ -18,6 +20,7 @@
     date: string;
     tags: string[];
     side: 'dev' | 'personal' | 'maple';
+    slug?: string;
     hasAudio?: boolean;
     audioSlug?: string;
     children: Snippet;
@@ -88,6 +91,7 @@
     {@render children()}
   </div>
 
+  <CodeBlockEnhancer {slug} />
   <MermaidDiagram />
 
   <div class="pixel-divider mt-12 mb-6" style="--divider-color: #2a2438;"></div>
