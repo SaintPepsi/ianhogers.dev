@@ -40,7 +40,7 @@ So now there are three enforcement layers. For one loop.
 
 **Layer 1:** A steering rule in `USER/AISTEERINGRULES.md`. "Never write while loops." Use for loops with known bounds, for-of, Array methods, or recursion with a depth limit. If you don't know when it ends, figure it out first.
 
-**Layer 2:** A hook called `WhileLoopGuard.contract.ts`. Fires on every Write and Edit across 18 file extensions. Simulates the edit, checks the result. Strips comments and strings first so you can still write `"a while ago"` without getting blocked. The team considered a 40MB AST parser for proper detection. Rejected it. A regex works fine.
+**Layer 2:** A hook called [`WhileLoopGuard.contract.ts`](https://github.com/SaintPepsi/pai-hooks/blob/main/hooks/CodingStandards/WhileLoopGuard/WhileLoopGuard.contract.ts). Fires on every Write and Edit across 18 file extensions. Simulates the edit, checks the result. Strips comments and strings first so you can still write `"a while ago"` without getting blocked. The team considered a 40MB AST parser for proper detection. Rejected it. A regex works fine.
 
 **Layer 3:** An ESLint rule banning `WhileStatement` and `DoWhileStatement`. Red squiggles in the editor before the file is even saved.
 
