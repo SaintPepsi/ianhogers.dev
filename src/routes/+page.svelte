@@ -130,6 +130,31 @@
   </div>
 </section>
 
+<!-- Shipped: playable game -->
+<section class="mb-12">
+  <div class="pixel-divider mb-8" style="--divider-color: #2a2438;"></div>
+  <div class="flex items-center gap-3 mb-4">
+    <img src="/assets/pixel-art/game-assets/wow_blue.png" alt="" class="pixel-sprite w-6 h-6 animate-float-slow" />
+    <h2 class="text-2xl mb-0">Play something I made</h2>
+  </div>
+  <p class="text-gray-400 text-sm mb-4 max-w-lg">
+    <span class="text-purple-300">Hey Siri, Summarise this</span> — a satirical idle game where Siri
+    summarises things you can already read, then summarises the summary. Numbers go up forever; it
+    never gets better. That's the joke.
+  </p>
+  <div class="pixel-box pixel-box-lavender glow-lavender p-3 inline-block max-w-full overflow-x-auto">
+    <iframe
+      title="Hey Siri, Summarise this (The Idle Game) on itch.io"
+      loading="lazy"
+      frameborder="0"
+      src="https://itch.io/embed/4671393?bg_color=1e1a28&amp;fg_color=ffffff&amp;link_color=b388ff&amp;border_color=2a2438"
+      width="552"
+      height="167"
+      class="block max-w-full"
+    ><a href="https://sancoca.itch.io/hey-siri-summarise-this">Hey Siri, Summarise this (The Idle Game) by SanCoca</a></iframe>
+  </div>
+</section>
+
 <!-- Quick shoutouts teaser -->
 <section class="mb-12">
   <div class="pixel-divider mb-8" style="--divider-color: #2a2438;"></div>
