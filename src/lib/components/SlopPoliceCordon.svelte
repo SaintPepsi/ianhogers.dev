@@ -10,7 +10,8 @@
     seed,
     minTapes,
     maxTapes,
-  }: { seed?: string; minTapes?: number; maxTapes?: number } = $props();
+    clipVertical,
+  }: { seed?: string; minTapes?: number; maxTapes?: number; clipVertical?: boolean } = $props();
 
   let host = $state<HTMLDivElement>();
   let cordon: TapeCordon | null = null;
@@ -24,6 +25,7 @@
     };
     if (minTapes !== undefined) opts.minTapes = minTapes;
     if (maxTapes !== undefined) opts.maxTapes = maxTapes;
+    if (clipVertical !== undefined) opts.clipVertical = clipVertical;
     cordon = new TapeCordon(host, opts);
     cordon.mount();
     return () => {

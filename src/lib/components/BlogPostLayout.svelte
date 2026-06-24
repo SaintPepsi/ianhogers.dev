@@ -54,7 +54,7 @@
 
 <article class="py-4 {side === 'maple' ? 'relative' : ''}">
   {#if side === 'maple'}
-    <SlopPoliceCordon />
+    <SlopPoliceCordon clipVertical={false} />
   {/if}
   <p class="font-mono text-sm mb-6">
     <a href={`/${side}`} class="accent-text no-underline hover:underline inline-flex items-center gap-2">
