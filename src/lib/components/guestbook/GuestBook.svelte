@@ -199,9 +199,10 @@
 
   // Fetch notes on mount + mobile detection
   $effect(() => {
-    mobileQuery = window.matchMedia('(max-width: 799px)');
-    untrack(() => handleMobileChange(mobileQuery));
-    mobileQuery.addEventListener('change', handleMobileChange);
+    const mq = window.matchMedia('(max-width: 799px)');
+    mobileQuery = mq;
+    untrack(() => handleMobileChange(mq));
+    mq.addEventListener('change', handleMobileChange);
     window.addEventListener('resize', handleResize);
     // Compute after layout settles
     requestAnimationFrame(() => requestAnimationFrame(() => computeMobileBookSize()));

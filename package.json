@@ -23,6 +23,7 @@
     "obscenity": "^0.4.6",
     "postcss": "^8.4.0",
     "rehype-external-links": "^3.0.0",
+    "slop-tape": "github:SaintPepsi/slop-tape",
     "tailwindcss": "^3.4.0"
   },
   "devDependencies": {

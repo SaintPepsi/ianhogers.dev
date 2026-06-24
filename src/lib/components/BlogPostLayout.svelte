@@ -3,6 +3,7 @@
   import MapleAudioPlayer from './MapleAudioPlayer.svelte';
   import MermaidDiagram from './MermaidDiagram.svelte';
   import CodeBlockEnhancer from './CodeBlockEnhancer.svelte';
+  import SlopPoliceCordon from './SlopPoliceCordon.svelte';
 
   let {
     title,
@@ -51,7 +52,10 @@
   <meta property="og:type" content="article" />
 </svelte:head>
 
-<article class="py-4">
+<article class="py-4 {side === 'maple' ? 'relative' : ''}">
+  {#if side === 'maple'}
+    <SlopPoliceCordon clipVertical={false} />
+  {/if}
   <p class="font-mono text-sm mb-6">
     <a href={`/${side}`} class="accent-text no-underline hover:underline inline-flex items-center gap-2">
       <img src="/assets/pixel-art/ui/green_up_arrow_tiny.png" alt="" class="pixel-sprite w-3 h-3 -rotate-90" />

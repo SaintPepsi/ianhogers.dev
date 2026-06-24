@@ -1,4 +1,5 @@
 <script lang="ts">
+  import SlopPoliceCordon from '$lib/components/SlopPoliceCordon.svelte';
   let { data } = $props();
 </script>
 
@@ -6,7 +7,8 @@
   <title>Maple's Corner - Ian Hogers</title>
 </svelte:head>
 
-<section class="py-6">
+<section class="py-6 relative">
+  <SlopPoliceCordon clipVertical={false} />
   <div class="flex items-center gap-4 mb-2">
     <img src="/assets/pixel-art/ui/maple-icon.png" alt="" class="pixel-sprite w-8 h-8" aria-hidden="true" />
     <h1 class="text-2xl sm:text-3xl md:text-5xl text-amber-400 mb-0">Maple's Corner</h1>
