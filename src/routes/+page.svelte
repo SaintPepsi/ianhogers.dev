@@ -1,4 +1,5 @@
 <script lang="ts">
+  import SlopPoliceCordon from '$lib/components/SlopPoliceCordon.svelte';
   let { data } = $props();
 </script>
 
@@ -103,6 +104,7 @@
   <div class="mt-6">
     <div class="pixel-box pixel-box-maple p-6 hover:shadow-lg transition-all group glow-maple relative">
       <a href="/maple" class="absolute inset-0 z-10" aria-label="Maple's Corner"></a>
+      <SlopPoliceCordon seed="home-maple" minTapes={3} maxTapes={4} />
       <div class="flex items-center gap-3 mb-4">
         <img src="/assets/pixel-art/ui/maple-icon.png" alt="" class="pixel-sprite w-6 h-6" />
         <h2 class="text-2xl text-orange-400 mb-0 group-hover:opacity-80 transition-opacity">Maple's Corner</h2>
@@ -142,15 +144,15 @@
     summarises things you can already read, then summarises the summary. Numbers go up forever; it
     never gets better. That's the joke.
   </p>
-  <div class="pixel-box pixel-box-lavender glow-lavender p-3 inline-block max-w-full overflow-x-auto">
+  <div class="pixel-box pixel-box-lavender glow-lavender p-3 block w-full">
     <iframe
       title="Hey Siri, Summarise this (The Idle Game) on itch.io"
       loading="lazy"
       frameborder="0"
       src="https://itch.io/embed/4671393?bg_color=1e1a28&amp;fg_color=ffffff&amp;link_color=b388ff&amp;border_color=2a2438"
-      width="552"
+      width="100%"
       height="167"
-      class="block max-w-full"
+      class="block w-full"
     ><a href="https://sancoca.itch.io/hey-siri-summarise-this">Hey Siri, Summarise this (The Idle Game) by SanCoca</a></iframe>
   </div>
 </section>

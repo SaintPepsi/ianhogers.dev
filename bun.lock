@@ -10,12 +10,12 @@
         "@vercel/kv": "^3.0.0",
         "autoprefixer": "^10.4.0",
         "bits-ui": "^2.16.3",
-        "slop-tape": "github:SaintPepsi/slop-tape",
         "mdsvex": "^0.12.0",
         "mermaid": "^11.12.3",
         "obscenity": "^0.4.6",
         "postcss": "^8.4.0",
         "rehype-external-links": "^3.0.0",
+        "slop-tape": "github:SaintPepsi/slop-tape",
         "tailwindcss": "^3.4.0",
       },
       "devDependencies": {
@@ -745,7 +745,7 @@
 
     "sirv": ["sirv@3.0.2", "", { "dependencies": { "@polka/url": "^1.0.0-next.24", "mrmime": "^2.0.0", "totalist": "^3.0.0" } }, "sha512-2wcC/oGxHis/BoHkkPwldgiPSYcpZK3JU28WoMVv55yHJgcZ8rlXvuG9iZggz+sU1d4bRgIGASwyWqjxu3FM0g=="],
 
-    "slop-tape": ["slop-tape@github:SaintPepsi/slop-tape#df0c363", {}, "SaintPepsi-slop-tape-df0c363"],
+    "slop-tape": ["slop-tape@github:SaintPepsi/slop-tape#e80c313", {}, "SaintPepsi-slop-tape-e80c313"],
 
     "source-map-js": ["source-map-js@1.2.1", "", {}, "sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA=="],
 

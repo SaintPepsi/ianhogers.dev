@@ -1,19 +1,30 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { page } from '$app/state';
-  import { TapeCordon } from 'slop-tape';
+  import { TapeCordon, type TapeCordonOptions } from 'slop-tape';
 
   // Overlays its (relative) parent — drop inside a `position: relative` container.
+  // `seed` defaults to the route; pass a fixed seed (e.g. on the home teaser) to
+  // give a section its own stable, independent layout.
+  let {
+    seed,
+    minTapes,
+    maxTapes,
+  }: { seed?: string; minTapes?: number; maxTapes?: number } = $props();
+
   let host = $state<HTMLDivElement>();
   let cordon: TapeCordon | null = null;
 
   onMount(() => {
     if (!host) return;
-    cordon = new TapeCordon(host, {
-      seed: page.url.pathname, // stable per post, query params stripped
+    const opts: TapeCordonOptions = {
+      seed: seed ?? page.url.pathname, // stable per route, query params stripped
       zIndex: 30,
       colors: { scrim: 'rgba(13,10,18,0.6)' },
-    });
+    };
+    if (minTapes !== undefined) opts.minTapes = minTapes;
+    if (maxTapes !== undefined) opts.maxTapes = maxTapes;
+    cordon = new TapeCordon(host, opts);
     cordon.mount();
     return () => {
       cordon?.destroy();
@@ -21,10 +32,10 @@
     };
   });
 
-  // Re-lay the cordon when navigating between Maple pages.
+  // Re-lay on navigation only when seeding from the route (fixed seeds stay put).
   $effect(() => {
     const path = page.url.pathname;
-    cordon?.setSeed(path);
+    if (seed === undefined) cordon?.setSeed(path);
   });
 </script>
 
