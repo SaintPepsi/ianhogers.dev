@@ -15,6 +15,7 @@ const config = {
 	],
 	kit: {
 		adapter: adapter(),
+		inlineStyleThreshold: 32768,
 		prerender: {
 			handleHttpError: ({ path, message }) => {
 				// Guestbook and API routes are deferred — suppress prerender errors for them
