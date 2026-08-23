@@ -2,7 +2,7 @@
 title: "I Thought I Was Cursed. It Was a Privacy Checkbox."
 description: "A tale of broken everything, USB interference, and a 116x latency improvement."
 date: 2026-03-25
-tags: ["debugging", "macos", "networking", "wifi", "scripts"]
+tags: ["debugging", "macos", "networking", "wifi", "scripts", "ai-written"]
 ---
 
 Let me paint you a picture of my Wednesday.
