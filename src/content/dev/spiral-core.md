@@ -2,7 +2,7 @@
 title: "Spiral Core: The Agent System I Almost Built"
 description: "I tried to build my own AI agent orchestrator. Then burnout hit. Here's what happened."
 date: 2026-02-17
-tags: ["rust", "ai", "agents", "burnout", "spiral-core"]
+tags: ["rust", "ai", "agents", "burnout", "spiral-core", "ai-written"]
 ---
 
 Last year, around mid-2025, I was building something ambitious. An AI agent orchestration system, written in Rust, powered by Claude Code. I called it [spiral-core](https://github.com/SaintPepsi/spiral-core).
