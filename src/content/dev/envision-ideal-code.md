@@ -16,10 +16,15 @@ There's never going to be time to refactor code that's been written poorly, even
 I'm a tireless idealist, it's a very unfortunate trait to live by, it's a double edged sword that has the sharpest edge aimed towards yourself. this also means that as a developer i've always strived to write the best code I could with the knowledge I had. and at this point that means that If I touch front-end code, it has to be of a certain quality or else I will take self-inflicted mental health _dot_ 
 
 How AI x Dev conversations often go:
+
 Human: "Build a toast notification component/system"
+
 AI: "No problem!"
+
 AI: "Blaberoodering..."
+
 AI: "Churned for 15 minutes"
+
 Human: "Wow this is absolute dog shit code but it's done now, time to move on!"
 
 And this problem gets worse the more complex the codebase is, unit tests, end to end tests, design systems, custom ui components, compound components, you name it, every addition makes it more likely for an ai to just fail.
@@ -29,14 +34,20 @@ And you don't want to spend 15 minutes writing a prompt every time you want to c
 I realised the problem is the ai doesn't know what to _Envision_. and converting your internal "Tacit Model" (internal intuitive know how) into a real tangable SKILL the agent can rely upon.
 
 My standards are something like this:
+
 very low quality code: Scattered markup, random classes, incoherent implementations
+
 passable quality code: some shared components, scattered markup, looking at it you go "They made it work"
+
 Good code: Coherent markup, reussed components, compound components, easy to read, glancable, no random classes or markup, looking at it you go "Wow I can see the ui in my brain without even having to render the page"
 
 I have my ai get to the "Good code" by having it "Envision" the good code as if there were not constraints. not looking at existing code, just an idealist version of what you wantn to make:
+
 This gist contiains 2 things.
+
 1. A skill to help you write a model yourself that you can use as skill.
 2. Example Svelte ui component envision to see what it looks like. (and the envision.md is human readable, minimal noise, or at least it should be)
+
 [envision/SKILL.md](https://gist.github.com/SaintPepsi/bbbecfab6e5ce9e5b8244c77edac0b40)
 
 Use the main skill to help construct an envisioning model for your ai to use so it writes code like this:
