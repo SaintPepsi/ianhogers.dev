@@ -2,7 +2,7 @@
 title: "AI Agents = Math.random()"
 description: "A conversation about determinism changed how I think about AI coding. Then I found PAI."
 date: 2026-02-22
-tags: ["ai", "agents", "pai", "workflow", "claude-code"]
+tags: ["ai", "agents", "pai", "workflow", "claude-code", "ai-written"]
 ---
 
 A tech lead on my team said something that stuck with me. We were talking about AI agents, how they work, whether they're actually reliable. His take was simple: "It's `Math.random()`."
