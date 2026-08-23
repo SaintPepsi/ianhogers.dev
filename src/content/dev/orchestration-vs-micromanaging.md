@@ -2,7 +2,7 @@
 title: "Three Tabs and a Headache"
 description: "How I went from babysitting AI agents to just talking."
 date: 2026-02-20
-tags: ["ai", "agents", "orchestration", "workflow"]
+tags: ["ai", "agents", "orchestration", "workflow", "ai-written"]
 ---
 
 Three separate Claude instances running on different projects. I'm tabbing between them. I think I'm keeping up. I slept poorly. My head is hurting. The insomnia has been bad this week and I'm running on coffee and stubbornness.
