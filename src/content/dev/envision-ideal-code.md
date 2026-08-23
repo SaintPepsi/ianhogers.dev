@@ -2,7 +2,7 @@
 title: "How to envision ideal code instead of fixing afterwards"
 description: "A skill that writes a skill for your agent to write code exactly how you want"
 date: 2026-08-23
-tags: ["claude code", "skill", "svelte", "ui", "llm", "hand-written"]
+tags: ["claude code", "skill", "svelte", "ui", "llm", "human-written"]
 ---
 
 AI sucks at writing code, especially desired standards. and that's probably because everyone just has it wing it and then fix things afterwards.
