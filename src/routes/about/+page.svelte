@@ -11,7 +11,7 @@
   <div class="pixel-box p-6 mb-8">
     <div class="prose">
       <p>I'm <strong>Ian</strong> - also known as <strong class="text-violet-400">SanCoca</strong> online. Software engineer, game dev, bunny rescuer, Dutch-Australian based in Melbourne. I build things, bake things, fix things, and get stuff done.</p>
-      <p>I built <strong>Katana</strong>, a website builder, from scratch. My own site runs on it. When I'm not coding, I'm baking cinnamon scrolls, Dutch Danish (apple, cinnamon, raisins, almond, lemon icing), or pepernoten. I also do voice acting, because why not do everything?</p>
+      <p>When I'm not coding, I'm baking cinnamon scrolls, Dutch Danish (apple, cinnamon, raisins, almond, lemon icing), or pepernoten. I also do voice acting, because why not do everything?</p>
       <p class="text-lg font-bold text-violet-400">Make, Admire, Talk, Eat, Build, Test, Lift, Haul - I get it DONE.</p>
     </div>
   </div>
