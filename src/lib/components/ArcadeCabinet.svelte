@@ -106,11 +106,6 @@
 
       <!-- Control panel -->
       <footer class="panel">
-        <div class="joystick" aria-hidden="true">
-          <span class="stick"></span>
-          <span class="ball"></span>
-        </div>
-
         <div class="buttons">
           <button type="button" class="arcade-btn" onclick={insertCoin}>
             <span class="cap cap-yellow"></span>
@@ -289,48 +284,6 @@
     background: linear-gradient(180deg, #2a2438, #1e1a28);
     border-top: 3px solid #0f0d14;
   }
-  .joystick {
-    position: relative;
-    width: 44px;
-    height: 44px;
-    flex: none;
-    border-radius: 50%;
-    background: radial-gradient(circle at 50% 50%, #0f0d14 0 30%, #2a2438 31% 100%);
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.8);
-  }
-  .stick {
-    position: absolute;
-    left: 50%;
-    bottom: 50%;
-    width: 6px;
-    height: 26px;
-    margin-left: -3px;
-    background: linear-gradient(90deg, #3a3448, #6b6480, #3a3448);
-    transform: rotate(-12deg);
-    transform-origin: bottom center;
-    animation: wiggle 3s ease-in-out infinite;
-  }
-  .ball {
-    position: absolute;
-    left: 50%;
-    top: -12px;
-    width: 22px;
-    height: 22px;
-    margin-left: -11px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 35% 30%, #ff8a80, #ef5350 55%, #8a1f1d);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
-    animation: wiggle-ball 3s ease-in-out infinite;
-  }
-  @keyframes wiggle {
-    0%, 100% { transform: rotate(-12deg); }
-    50% { transform: rotate(12deg); }
-  }
-  @keyframes wiggle-ball {
-    0%, 100% { transform: translateX(-5px); }
-    50% { transform: translateX(5px); }
-  }
-
   .buttons {
     display: flex;
     gap: 1.25rem;
@@ -434,9 +387,6 @@
       border-bottom: 4px solid var(--accent);
       border-image: repeating-linear-gradient(90deg, var(--accent) 0 6px, transparent 6px 12px) 4;
     }
-    .joystick {
-      display: none;
-    }
     .buttons {
       justify-content: space-around;
       gap: 0.5rem;
@@ -454,7 +404,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .screen, .stick, .ball, .arcade-backdrop {
+    .screen, .arcade-backdrop {
       animation: none;
     }
   }
