@@ -132,15 +132,44 @@
   </div>
 </section>
 
-<!-- Shipped: playable game -->
+<!-- Shipped: playable games -->
 <section class="mb-12">
   <div class="pixel-divider mb-8" style="--divider-color: #2a2438;"></div>
   <div class="flex items-center gap-3 mb-4">
     <img src="/assets/pixel-art/game-assets/wow_blue.png" alt="" class="pixel-sprite w-6 h-6 animate-float-slow" />
     <h2 class="text-2xl mb-0">Play something I made</h2>
   </div>
+
+  <!-- Clank-lit -->
   <p class="text-gray-400 text-sm mb-4 max-w-lg">
-    <span class="text-purple-300">Hey Siri, Summarise this</span> — a satirical idle game where Siri
+    <span class="text-crimson">Clank-lit</span> - an interactive piece about AI coding agents. You ask
+    for a wellness app. It talks you down to "just a simple todo app to start". Then you add features
+    and it beams <span class="text-green-400 font-mono text-xs">All 52 tests passing &#9989;</span>
+    every single time, while search, delete and checkboxes quietly stop doing what you asked. Report a bug
+    and it can't reproduce it. Maybe you misremembered. That feeling is the game.
+  </p>
+  <div class="pixel-box pixel-box-crimson glow-crimson p-3 block w-full">
+    <iframe
+      title="Clank-lit, an interactive piece about AI coding agents"
+      loading="lazy"
+      frameborder="0"
+      src="https://saintpepsi.github.io/clank-lit/"
+      width="100%"
+      class="block w-full bg-black h-[640px] sm:h-[560px]"
+    ><a href="https://saintpepsi.github.io/clank-lit/">Play Clank-lit</a></iframe>
+  </div>
+  <div class="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 mb-10 text-xs font-mono">
+    <a href="https://saintpepsi.github.io/clank-lit/" target="_blank" rel="noopener" class="text-crimson hover:underline no-underline inline-flex items-center gap-1">
+      play fullscreen
+      <img src="/assets/pixel-art/ui/green_up_arrow_tiny.png" alt="" class="pixel-sprite w-3 h-3 rotate-90" />
+    </a>
+    <a href="https://github.com/SaintPepsi/clank-lit" target="_blank" rel="noopener" class="text-gray-500 hover:text-gray-300 no-underline">source</a>
+    <span class="text-gray-600">press <code class="text-gray-400">`</code> in-game to see which bugs are live</span>
+  </div>
+
+  <!-- Hey Siri, Summarise this -->
+  <p class="text-gray-400 text-sm mb-4 max-w-lg">
+    <span class="text-purple-300">Hey Siri, Summarise this</span> - a satirical idle game where Siri
     summarises things you can already read, then summarises the summary. Numbers go up forever; it
     never gets better. That's the joke.
   </p>
