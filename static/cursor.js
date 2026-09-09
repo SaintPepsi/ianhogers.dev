@@ -143,6 +143,9 @@
     lastY = e.clientY;
     ensureCursorInDOM();
     cursorEl.style.transform = 'translate(' + lastX + 'px,' + lastY + 'px)';
+    clearTimeout(bridgeLeaveTimer);
+    lastPageMoveAt = performance.now();
+    if (ready && cursorEl.style.display === 'none') cursorEl.style.display = 'block';
 
     var el = document.elementFromPoint(e.clientX, e.clientY);
     var clickable = el && (
@@ -176,12 +179,71 @@
   document.addEventListener('mouseleave', function() {
     cursorEl.style.display = 'none';
   });
+
+  // Iframes swallow pointer events, so the sprite would freeze at the frame's edge.
+  // Hide it on entry; a cooperating frame (see the bridge below) brings it back.
+  document.addEventListener('mouseover', function(e) {
+    if (e.target && e.target.tagName === 'IFRAME') cursorEl.style.display = 'none';
+  });
+
+  // Cursor bridge: an embedded page posts { type: 'pixel-cursor', kind, x, y, clickable, draggable }
+  // with coordinates relative to its own viewport. Offset by the frame's position and drive
+  // the same state machine the page's own mouse events use.
+  function frameForSource(source) {
+    // Walk up to the window that is a direct child of ours (games can be nested in embeds).
+    var w = source;
+    try { while (w && w.parent !== window && w.parent !== w) w = w.parent; } catch (err) { return null; }
+    var frames = document.querySelectorAll('iframe');
+    for (var i = 0; i < frames.length; i++) {
+      if (frames[i].contentWindow === w) return frames[i];
+    }
+    return null;
+  }
+
+  window.addEventListener('message', function(e) {
+    var d = e.data;
+    if (!d || d.type !== 'pixel-cursor') return;
+    var frame = frameForSource(e.source);
+    if (!frame) return;
+
+    if (d.kind === 'leave') {
+      // The frame's leave lands just after our own mousemove when the pointer crosses back
+      // onto the page. Hide only if no page mousemove follows shortly.
+      if (performance.now() - lastPageMoveAt < 150) return;
+      clearTimeout(bridgeLeaveTimer);
+      bridgeLeaveTimer = setTimeout(function() { cursorEl.style.display = 'none'; }, 120);
+      return;
+    }
+
+    var rect = frame.getBoundingClientRect();
+    lastX = rect.left + d.x;
+    lastY = rect.top + d.y;
+    ensureCursorInDOM();
+    cursorEl.style.transform = 'translate(' + lastX + 'px,' + lastY + 'px)';
+    if (ready) cursorEl.style.display = 'block';
+
+    if (d.kind === 'down') {
+      isGrabbing = true;
+      isReleasingClick = false;
+    } else if (d.kind === 'up') {
+      isGrabbing = false;
+      isReleasingClick = true;
+      releaseIsDrag = isOverDraggable;
+    }
+
+    var changed = d.kind !== 'move';
+    if (!!d.clickable !== isOverClickable) { isOverClickable = !!d.clickable; changed = true; }
+    if (!!d.draggable !== isOverDraggable) { isOverDraggable = !!d.draggable; changed = true; }
+    if (changed) updateState();
+  });
   document.addEventListener('mouseenter', function() {
     if (ready) cursorEl.style.display = 'block';
   });
 
   // Touch support — cursor follows finger
   let touchHideTimeout = null;
+  var bridgeLeaveTimer = null;
+  var lastPageMoveAt = 0;
 
   document.addEventListener('touchstart', function(e) {
     const t = e.touches[0];
