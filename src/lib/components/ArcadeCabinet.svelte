@@ -166,7 +166,6 @@
     box-shadow:
       0 0 0 3px #0f0d14,
       0 0 0 4px var(--accent),
-      0 0 40px color-mix(in srgb, var(--accent) 35%, transparent),
       0 40px 80px -20px rgba(0, 0, 0, 0.9);
     image-rendering: pixelated;
   }
