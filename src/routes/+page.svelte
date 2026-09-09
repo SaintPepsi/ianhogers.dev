@@ -1,5 +1,7 @@
 <script lang="ts">
   import SlopPoliceCordon from '$lib/components/SlopPoliceCordon.svelte';
+  import GameTile from '$lib/components/GameTile.svelte';
+  import { games } from '$lib/data/games';
   let { data } = $props();
 </script>
 
@@ -135,54 +137,17 @@
 <!-- Shipped: playable games -->
 <section class="mb-12">
   <div class="pixel-divider mb-8" style="--divider-color: #2a2438;"></div>
-  <div class="flex items-center gap-3 mb-4">
+  <div class="flex items-center gap-3 mb-2">
     <img src="/assets/pixel-art/game-assets/wow_blue.png" alt="" class="pixel-sprite w-6 h-6 animate-float-slow" />
     <h2 class="text-2xl mb-0">Play something I made</h2>
   </div>
+  <p class="text-gray-500 font-mono text-xs mb-4">small games, big opinions &middot; the shelf scrolls sideways</p>
 
-  <!-- Clank-lit -->
-  <p class="text-gray-400 text-sm mb-4 max-w-lg">
-    <span class="text-crimson">Clank-lit</span> - an interactive piece about AI coding agents. You ask
-    for a wellness app. It talks you down to "just a simple todo app to start". Then you add features
-    and it beams <span class="text-green-400 font-mono text-xs">All 52 tests passing &#9989;</span>
-    every single time, while search, delete and checkboxes quietly stop doing what you asked. Report a bug
-    and it can't reproduce it. Maybe you misremembered. That feeling is the game.
-  </p>
-  <div class="pixel-box pixel-box-crimson glow-crimson p-3 block w-full">
-    <iframe
-      title="Clank-lit, an interactive piece about AI coding agents"
-      loading="lazy"
-      frameborder="0"
-      src="https://saintpepsi.github.io/clank-lit/"
-      width="100%"
-      class="block w-full bg-black h-[640px] sm:h-[560px]"
-    ><a href="https://saintpepsi.github.io/clank-lit/">Play Clank-lit</a></iframe>
-  </div>
-  <div class="flex flex-wrap items-center gap-x-4 gap-y-1 mt-3 mb-10 text-xs font-mono">
-    <a href="https://saintpepsi.github.io/clank-lit/" target="_blank" rel="noopener" class="text-crimson hover:underline no-underline inline-flex items-center gap-1">
-      play fullscreen
-      <img src="/assets/pixel-art/ui/green_up_arrow_tiny.png" alt="" class="pixel-sprite w-3 h-3 rotate-90" />
-    </a>
-    <a href="https://github.com/SaintPepsi/clank-lit" target="_blank" rel="noopener" class="text-gray-500 hover:text-gray-300 no-underline">source</a>
-    <span class="text-gray-600">press <code class="text-gray-400">`</code> in-game to see which bugs are live</span>
-  </div>
-
-  <!-- Hey Siri, Summarise this -->
-  <p class="text-gray-400 text-sm mb-4 max-w-lg">
-    <span class="text-purple-300">Hey Siri, Summarise this</span> - a satirical idle game where Siri
-    summarises things you can already read, then summarises the summary. Numbers go up forever; it
-    never gets better. That's the joke.
-  </p>
-  <div class="pixel-box pixel-box-lavender glow-lavender p-3 block w-full">
-    <iframe
-      title="Hey Siri, Summarise this (The Idle Game) on itch.io"
-      loading="lazy"
-      frameborder="0"
-      src="https://itch.io/embed/4671393?bg_color=1e1a28&amp;fg_color=ffffff&amp;link_color=b388ff&amp;border_color=2a2438"
-      width="100%"
-      height="167"
-      class="block w-full"
-    ><a href="https://sancoca.itch.io/hey-siri-summarise-this">Hey Siri, Summarise this (The Idle Game) by SanCoca</a></iframe>
+  <!-- Full-bleed shelf: first tile lines up with the content column, the rest hang off the right edge -->
+  <div class="game-shelf">
+    {#each games as game (game.slug)}
+      <GameTile {game} />
+    {/each}
   </div>
 </section>
 
@@ -206,3 +171,30 @@
     </a>
   </div>
 </section>
+
+<style>
+  /* Break out of the max-w-3xl column. Left padding lands the first tile on the column edge. */
+  .game-shelf {
+    --col: 48rem;
+    --gutter: 1rem;
+    position: relative;
+    left: 50%;
+    width: 100vw;
+    margin-left: -50vw;
+    display: flex;
+    gap: 1.5rem;
+    padding: 0.75rem max(var(--gutter), calc((100vw - var(--col)) / 2 + 1.5rem)) 1.5rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: max(var(--gutter), calc((100vw - var(--col)) / 2 + 1.5rem));
+    scrollbar-width: none;
+  }
+  .game-shelf::-webkit-scrollbar {
+    display: none;
+  }
+  @media (min-width: 640px) {
+    .game-shelf {
+      --gutter: 1.5rem;
+    }
+  }
+</style>
