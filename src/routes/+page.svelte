@@ -1,6 +1,7 @@
 <script lang="ts">
   import SlopPoliceCordon from '$lib/components/SlopPoliceCordon.svelte';
   import GameTile from '$lib/components/GameTile.svelte';
+  import ArcadeCabinet from '$lib/components/ArcadeCabinet.svelte';
   import { games } from '$lib/data/games';
   let { data } = $props();
 </script>
@@ -150,6 +151,8 @@
     {/each}
   </div>
 </section>
+
+<ArcadeCabinet />
 
 <!-- Quick shoutouts teaser -->
 <section class="mb-12">

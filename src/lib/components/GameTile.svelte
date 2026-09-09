@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Game } from '$lib/data/games';
+  import { openArcade } from '$lib/arcade.svelte';
 
   let { game }: { game: Game } = $props();
 
@@ -18,11 +19,11 @@
 </script>
 
 <article class="game-tile pixel-box pixel-box-{game.accent} glow-{game.accent} group relative">
-  <a href={game.play} target="_blank" rel="noopener" class="absolute inset-0 z-10" aria-label="Play {game.title}"></a>
+  <button type="button" class="absolute inset-0 z-10 w-full h-full" onclick={() => openArcade(game)} aria-label="Play {game.title} in the arcade"></button>
 
   <div class="game-cover">
     <img src={game.cover} alt="" loading="lazy" decoding="async" />
-    <span class="game-play-badge font-mono">&#9654; play</span>
+    <span class="game-play-badge font-mono">&#9654; insert coin</span>
   </div>
 
   <div class="p-5 pt-4">
@@ -34,10 +35,11 @@
       {/each}
     </div>
     <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs font-mono relative z-20">
-      <a href={game.play} target="_blank" rel="noopener" class="no-underline hover:underline inline-flex items-center gap-1 {text[game.accent]}">
-        play it
+      <button type="button" onclick={() => openArcade(game)} class="hover:underline inline-flex items-center gap-1 bg-transparent border-0 p-0 font-mono {text[game.accent]}">
+        insert coin
         <img src="/assets/pixel-art/ui/green_up_arrow_tiny.png" alt="" class="pixel-sprite w-3 h-3 rotate-90" />
-      </a>
+      </button>
+      <a href={game.play} target="_blank" rel="noopener" class="text-gray-500 hover:text-gray-300 no-underline">new tab</a>
       {#if game.source}
         <a href={game.source} target="_blank" rel="noopener" class="text-gray-500 hover:text-gray-300 no-underline">source</a>
       {/if}
