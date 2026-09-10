@@ -51,9 +51,9 @@
     };
   });
 
-  // Coin sequence: flash over the screen while the old game is dropped, fade to black,
-  // hold the void, then grow the new picture in fast with a wobble.
-  //   flash 700ms -> void 600ms -> on 1000ms -> idle
+  // Coin sequence: flash over the screen while the old game is dropped, the flash fades
+  // and collapses into a white blip, hold the void, then grow the new picture in fast.
+  //   flash 1000ms -> void 500ms -> on 1000ms -> idle
   let crt = $state<'idle' | 'flash' | 'void' | 'on'>('idle');
   let crtTimer: ReturnType<typeof setTimeout> | undefined;
   const sequencing = $derived(crt !== 'idle');
@@ -77,8 +77,8 @@
     clearTimeout(crtTimer);
     crtTimer = setTimeout(() => {
       crt = 'void';
-      crtTimer = setTimeout(powerOn, 600);
-    }, 700);
+      crtTimer = setTimeout(powerOn, 500);
+    }, 1000);
   }
 
   function toggleScanlines() {
@@ -317,18 +317,28 @@
   }
   .glow {
     position: absolute;
-    inset: 0;
+    /* Oversized ellipse: covers the screen corners at full size, collapses into a blob
+       of light instead of a shrinking rectangle. The screen clips the overflow. */
+    inset: -30%;
+    border-radius: 50%;
     pointer-events: none;
-    background: #fff;
+    background: radial-gradient(closest-side, #fff 70%, rgba(255, 255, 255, 0.6) 88%, transparent);
     opacity: 0;
+    transform-origin: center;
+    will-change: transform, opacity;
   }
+  /* Flash fills the screen, fades, then what is left collapses into a blip that winks out. */
   .screen.flash .glow {
-    animation: flash-out 0.7s ease-out both;
+    animation: flash-out 1s ease-in both;
   }
   @keyframes flash-out {
-    0% { opacity: 0; }
-    8% { opacity: 0.75; }
-    100% { opacity: 0; }
+    0% { opacity: 0; transform: none; }
+    4% { opacity: 0.9; transform: none; }
+    18% { opacity: 0.75; transform: none; }
+    45% { opacity: 0.4; transform: scale(1, 0.5); }
+    70% { opacity: 0.9; transform: scale(0.18, 0.04); }
+    84% { opacity: 1; transform: scale(0.025, 0.02); }
+    100% { opacity: 0; transform: scale(0.005); }
   }
 
   /* Power on: grow in fast from a line, then a magnetic wobble on both axes that settles. */
