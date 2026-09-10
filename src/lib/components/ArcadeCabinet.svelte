@@ -161,9 +161,12 @@
               <span class="label font-pixel">{expanded ? 'WINDOW' : 'FULL SCREEN'}</span>
             </button>
           {/if}
-          <button type="button" class="arcade-btn" onclick={toggleScanlines} aria-pressed={scanlines.current}>
-            <span class="cap cap-blue" class:lit={scanlines.current}></span>
-            <span class="label font-pixel">CRT {scanlines.current ? 'ON' : 'OFF'}</span>
+          <button type="button" class="arcade-btn" onclick={toggleScanlines} aria-pressed={scanlines.current} aria-label="CRT scanlines">
+            <span class="toggle" class:on={scanlines.current}>
+              <span class="toggle-nut"></span>
+              <span class="toggle-bat"></span>
+            </span>
+            <span class="label font-pixel">CRT</span>
           </button>
           <button type="button" class="arcade-btn" onclick={leave}>
             <span class="cap cap-red"></span>
@@ -446,13 +449,70 @@
   .cap-yellow { background: radial-gradient(circle at 40% 35%, #fde68a, #f59e0b 60%, #b45309); }
   .cap-green { background: radial-gradient(circle at 40% 35%, #86efac, #22c55e 60%, #15803d); }
   .cap-red { background: radial-gradient(circle at 40% 35%, #fca5a5, #ef5350 60%, #991b1b); }
-  .cap-blue { background: radial-gradient(circle at 40% 35%, #93c5fd, #3b82f6 60%, #1e40af); }
-  .cap-blue.lit { box-shadow:
-      inset 0 -6px 0 rgba(0, 0, 0, 0.35),
-      inset 0 3px 0 rgba(255, 255, 255, 0.35),
-      0 4px 0 #0f0d14,
-      0 6px 12px rgba(0, 0, 0, 0.6),
-      0 0 14px #60a5fa; }
+  /* Old-school bat toggle: lever up is on, down is off */
+  .toggle {
+    position: relative;
+    width: 26px;
+    height: 44px;
+    border-radius: 3px;
+    border: 2px solid #0f0d14;
+    background: linear-gradient(90deg, #4b4560, #7d7591 45%, #57506b);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.25),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.4),
+      0 3px 0 #0f0d14,
+      0 5px 10px rgba(0, 0, 0, 0.6);
+    transition: filter 0.06s ease;
+  }
+  .toggle-nut {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle at 50% 50%, #0f0d14 30%, #3a3448 32%, #1a1624 60%, #5e5673 62%);
+  }
+  .toggle-bat {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 6px;
+    height: 18px;
+    margin-left: -3px;
+    border-radius: 3px 3px 2px 2px;
+    background: linear-gradient(90deg, #a49cb8, #f1edf8 40%, #8f86a5);
+    box-shadow: 0 0 0 1px #0f0d14, 0 2px 3px rgba(0, 0, 0, 0.6);
+    transform-origin: 50% 100%;
+    transform: translateY(-100%) rotate(180deg) scaleY(0.9);
+    transition: transform 0.12s cubic-bezier(0.3, 1.4, 0.6, 1);
+  }
+  .toggle-bat::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #fff, #b8b0cc 70%);
+    box-shadow: 0 0 0 1px #0f0d14;
+  }
+  .toggle.on .toggle-bat {
+    transform: translateY(-100%) rotate(0deg) scaleY(1);
+  }
+  .toggle.on .toggle-bat::before {
+    background: radial-gradient(circle at 35% 35%, #fff, #93c5fd 70%);
+    box-shadow: 0 0 0 1px #0f0d14, 0 0 6px #60a5fa;
+  }
+  .arcade-btn:hover .toggle {
+    filter: brightness(1.15);
+  }
+  .arcade-btn:focus-visible .toggle {
+    outline: 2px solid #fff;
+    outline-offset: 3px;
+  }
   .label {
     font-size: 0.6rem;
     white-space: nowrap;
@@ -521,6 +581,13 @@
     .cap {
       width: 36px;
       height: 36px;
+    }
+    .toggle {
+      width: 22px;
+      height: 36px;
+    }
+    .toggle-bat {
+      height: 14px;
     }
     .label {
       font-size: 0.5rem;
