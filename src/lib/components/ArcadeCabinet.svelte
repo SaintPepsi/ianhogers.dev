@@ -1,5 +1,6 @@
 <script lang="ts">
   import { untrack } from 'svelte';
+  import { PersistedState } from 'runed';
   import { page } from '$app/state';
   import { arcade, closeArcade, setFullscreenParam } from '$lib/arcade.svelte';
   import { games } from '$lib/data/games';
@@ -39,31 +40,49 @@
     session = 0;
     credits = 1;
     loaded = false;
-    crt = 'idle';
-    clearTimeout(crtTimer);
+    powerOn();
     expanded = untrack(() => page.url.searchParams.get('fullscreen') === '1');
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => {
       document.body.style.overflow = prev;
+      clearTimeout(crtTimer);
+      crt = 'idle';
     };
   });
 
-  // CRT power cycle on coin: collapse to a white dot, black void, then come back wobbling.
-  let crt = $state<'idle' | 'off' | 'on'>('idle');
+  // Coin sequence: flash over the screen while the old game is dropped, fade to black,
+  // hold the void, then grow the new picture in fast with a wobble.
+  //   flash 700ms -> void 600ms -> on 1000ms -> idle
+  let crt = $state<'idle' | 'flash' | 'void' | 'on'>('idle');
   let crtTimer: ReturnType<typeof setTimeout> | undefined;
+  const sequencing = $derived(crt !== 'idle');
+
+  // Scanlines always show while a sequence plays; during play they are the player's call.
+  const scanlines = new PersistedState('arcade.scanlines', false);
+  const showScanlines = $derived(sequencing || scanlines.current);
+
+  function powerOn() {
+    crt = 'on';
+    clearTimeout(crtTimer);
+    crtTimer = setTimeout(() => (crt = 'idle'), 1000);
+  }
 
   function insertCoin() {
-    if (crt === 'off') return;
+    if (crt === 'flash' || crt === 'void') return;
     credits += 1;
-    crt = 'off';
+    loaded = false;
+    session += 1;
+    crt = 'flash';
     clearTimeout(crtTimer);
     crtTimer = setTimeout(() => {
-      loaded = false;
-      session += 1;
-      crt = 'on';
-      crtTimer = setTimeout(() => (crt = 'idle'), 1200);
-    }, 720);
+      crt = 'void';
+      crtTimer = setTimeout(powerOn, 600);
+    }, 700);
+  }
+
+  function toggleScanlines() {
+    scanlines.current = !scanlines.current;
   }
 
   function leave() {
@@ -103,7 +122,7 @@
 
       <!-- Screen -->
       <div class="bezel">
-        <div class="screen" class:booted={loaded} class:off={crt === 'off'} class:on={crt === 'on'}>
+        <div class="screen" class:booted={loaded} class:flash={crt === 'flash'} class:void={crt === 'void'} class:on={crt === 'on'}>
           {#key session}
             <iframe
               bind:this={frame}
@@ -113,13 +132,15 @@
               onload={onLoad}
             ></iframe>
           {/key}
-          {#if !loaded}
+          {#if !loaded && crt !== 'flash' && crt !== 'void'}
             <div class="attract font-pixel" aria-hidden="true">
               <span class="blink">INSERT COIN</span>
               <span class="dim">loading {game.title.toLowerCase()}...</span>
             </div>
           {/if}
-          <div class="scanlines" aria-hidden="true"></div>
+          {#if showScanlines}
+            <div class="scanlines" aria-hidden="true"></div>
+          {/if}
           <div class="glow" aria-hidden="true"></div>
           {#if crt === 'on'}
             <div class="static" aria-hidden="true"></div>
@@ -140,6 +161,10 @@
               <span class="label font-pixel">{expanded ? 'WINDOW' : 'FULL SCREEN'}</span>
             </button>
           {/if}
+          <button type="button" class="arcade-btn" onclick={toggleScanlines} aria-pressed={scanlines.current}>
+            <span class="cap cap-blue" class:lit={scanlines.current}></span>
+            <span class="label font-pixel">CRT {scanlines.current ? 'ON' : 'OFF'}</span>
+          </button>
           <button type="button" class="arcade-btn" onclick={leave}>
             <span class="cap cap-red"></span>
             <span class="label font-pixel">LEAVE</span>
@@ -260,15 +285,9 @@
     overflow: hidden;
     transform-origin: center;
     will-change: transform;
-    animation: crt-on 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
   }
   /* Only transforms and opacity animate in here. Filters or blend modes over a live
      iframe force full repaints every frame and made the open stutter. */
-  @keyframes crt-on {
-    0% { transform: scaleY(0.005) scaleX(0.6); }
-    55% { transform: scaleY(1) scaleX(0.98); }
-    100% { transform: none; }
-  }
   .screen iframe {
     display: block;
     width: 100%;
@@ -281,73 +300,53 @@
   .screen.booted iframe {
     opacity: 1;
   }
+  /* Old picture is gone the instant the coin drops; the flash fades into the void. */
+  .screen.flash iframe,
+  .screen.void iframe {
+    opacity: 0;
+    transition: none;
+  }
   .scanlines {
     position: absolute;
     inset: 0;
     pointer-events: none;
-    background: repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0 1px, transparent 1px 3px);
+    background: repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 3px);
   }
-  /* Power-on surge: a white sheet that burns off. Plays on open and after a coin. */
   .glow {
     position: absolute;
     inset: 0;
     pointer-events: none;
     background: #fff;
     opacity: 0;
-    animation: glow-off 0.6s ease-out both;
   }
-  @keyframes glow-off {
-    0% { opacity: 0.85; }
+  .screen.flash .glow {
+    animation: flash-out 0.7s ease-out both;
+  }
+  @keyframes flash-out {
+    0% { opacity: 0; }
+    8% { opacity: 0.75; }
     100% { opacity: 0; }
   }
 
-  /* Power off: the picture dies while a white burst flashes twice and collapses to a
-     point in the middle of the tube, blooms once, and goes out. */
-  .screen.off iframe,
-  .screen.off .attract {
-    animation: crt-die 0.7s ease-in both;
-  }
-  @keyframes crt-die {
-    0% { opacity: 1; transform: none; }
-    35% { opacity: 0.6; transform: scale(1.02, 0.85); }
-    100% { opacity: 0; transform: scale(0.9, 0.3); }
-  }
-  .screen.off .glow {
-    animation: none;
-  }
-  .screen.off::before {
-    content: '';
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: 170%;
-    aspect-ratio: 1;
-    border-radius: 50%;
-    z-index: 2;
-    pointer-events: none;
-    background: radial-gradient(circle, #fff 0 26%, rgba(255, 255, 255, 0.8) 42%, rgba(255, 255, 255, 0) 66%);
-    animation: crt-burst 0.72s cubic-bezier(0.65, 0, 0.35, 1) both;
-  }
-  @keyframes crt-burst {
-    0% { opacity: 0; transform: translate(-50%, -50%) scale(1.2); }
-    8% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
-    14% { opacity: 0.7; }
-    20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
-    68% { opacity: 1; transform: translate(-50%, -50%) scale(0.04); }
-    80% { opacity: 1; transform: translate(-50%, -50%) scale(0.1); }
-    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.01); }
-  }
-
-  /* Power on after a coin: the normal flicker, then a magnetic wobble on both axes. */
+  /* Power on: grow in fast from a line, then a magnetic wobble on both axes that settles. */
   .screen.on {
-    animation: crt-on 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    animation: crt-on 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+  @keyframes crt-on {
+    0% { transform: scaleY(0.005) scaleX(0.6); }
+    60% { transform: scaleY(1) scaleX(0.98); }
+    100% { transform: none; }
   }
   .screen.on .glow {
-    animation: glow-off 0.6s ease-out both;
+    animation: glow-off 0.45s ease-out both;
+  }
+  @keyframes glow-off {
+    0% { opacity: 0.55; }
+    100% { opacity: 0; }
   }
   .screen.on iframe,
   .screen.on .attract {
-    animation: crt-wobble 1.2s ease-out 0.3s both;
+    animation: crt-wobble 0.9s ease-out 0.15s both;
   }
   @keyframes crt-wobble {
     0% { transform: translate(-10px, 6px) skew(-3deg, 1deg) scaleY(1.04); }
@@ -364,7 +363,7 @@
     inset: 0;
     pointer-events: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    animation: static-fade 1.2s steps(8) both;
+    animation: static-fade 1s steps(8) both;
   }
   @keyframes static-fade {
     0% { opacity: 0.5; background-position: 0 0; }
@@ -447,6 +446,13 @@
   .cap-yellow { background: radial-gradient(circle at 40% 35%, #fde68a, #f59e0b 60%, #b45309); }
   .cap-green { background: radial-gradient(circle at 40% 35%, #86efac, #22c55e 60%, #15803d); }
   .cap-red { background: radial-gradient(circle at 40% 35%, #fca5a5, #ef5350 60%, #991b1b); }
+  .cap-blue { background: radial-gradient(circle at 40% 35%, #93c5fd, #3b82f6 60%, #1e40af); }
+  .cap-blue.lit { box-shadow:
+      inset 0 -6px 0 rgba(0, 0, 0, 0.35),
+      inset 0 3px 0 rgba(255, 255, 255, 0.35),
+      0 4px 0 #0f0d14,
+      0 6px 12px rgba(0, 0, 0, 0.6),
+      0 0 14px #60a5fa; }
   .label {
     font-size: 0.6rem;
     white-space: nowrap;
@@ -525,7 +531,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .screen, .screen iframe, .screen .attract, .screen::before, .glow, .static, .arcade-backdrop {
+    .screen, .screen iframe, .screen .attract, .glow, .static, .arcade-backdrop {
       animation: none;
     }
   }
