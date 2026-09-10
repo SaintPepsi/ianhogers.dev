@@ -58,7 +58,7 @@
       session += 1;
       crt = 'on';
       crtTimer = setTimeout(() => (crt = 'idle'), 1200);
-    }, 650);
+    }, 720);
   }
 
   function leave() {
@@ -86,7 +86,7 @@
 
 {#if game}
   <div class="arcade-backdrop" role="dialog" aria-modal="true" aria-label="{game.title} arcade cabinet">
-    <div class="cabinet" class:fills style="--accent: {accent[game.accent]}">
+    <div class="cabinet" class:fills style="--accent: {accent[game.accent]}; --theme: {game.theme}">
       <!-- Marquee -->
       <header class="marquee">
         <img src="/assets/pixel-art/game-assets/wow_yellow.png" alt="" class="pixel-sprite marquee-sprite animate-float-slow" />
@@ -115,6 +115,7 @@
             </div>
           {/if}
           <div class="scanlines" aria-hidden="true"></div>
+          <div class="glow" aria-hidden="true"></div>
           {#if crt === 'on'}
             <div class="static" aria-hidden="true"></div>
           {/if}
@@ -221,7 +222,13 @@
     font-size: clamp(1.25rem, 3vw, 2.25rem);
     color: #fff;
     letter-spacing: 0.06em;
-    text-shadow: 0 0 10px color-mix(in srgb, var(--accent) 45%, transparent);
+    /* Hard 8-direction outline in the game's own colour. Crisper on the pixel font than text-stroke. */
+    --o: 3px;
+    text-shadow:
+      var(--o) 0 var(--theme), calc(-1 * var(--o)) 0 var(--theme),
+      0 var(--o) var(--theme), 0 calc(-1 * var(--o)) var(--theme),
+      var(--o) var(--o) var(--theme), calc(-1 * var(--o)) calc(-1 * var(--o)) var(--theme),
+      var(--o) calc(-1 * var(--o)) var(--theme), calc(-1 * var(--o)) var(--o) var(--theme);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -247,69 +254,15 @@
     box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.9), 0 0 0 1px #2a2438;
     overflow: hidden;
     transform-origin: center;
+    will-change: transform;
     animation: crt-on 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
   }
+  /* Only transforms and opacity animate in here. Filters or blend modes over a live
+     iframe force full repaints every frame and made the open stutter. */
   @keyframes crt-on {
-    0% { transform: scaleY(0.005) scaleX(0.6); filter: brightness(4); }
-    55% { transform: scaleY(1) scaleX(0.98); filter: brightness(1.6); }
-    100% { transform: none; filter: none; }
-  }
-  /* Power off: squash to a bright line, shrink to a white dot, fade into the void.
-     The white layer squashes with the screen so the line and dot read as hot phosphor. */
-  .screen.off {
-    animation: crt-off 0.65s ease-in both;
-  }
-  .screen.off::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: 2;
-    background: #fff;
-    animation: crt-flash 0.65s ease-in both;
-  }
-  @keyframes crt-flash {
-    0% { opacity: 0; }
-    25% { opacity: 0.9; }
-    80% { opacity: 1; }
-    100% { opacity: 0; }
-  }
-  @keyframes crt-off {
-    0% { transform: none; filter: brightness(1); box-shadow: none; }
-    30% { transform: scaleY(0.006); filter: brightness(3); box-shadow: 0 0 24px 6px #fff; }
-    60% { transform: scaleY(0.006) scaleX(0.03); filter: brightness(8); box-shadow: 0 0 40px 10px #fff; }
-    80% { transform: scaleY(0.006) scaleX(0.02); filter: brightness(8); box-shadow: 0 0 10px 2px #fff; }
-    100% { transform: scaleY(0.006) scaleX(0.02); opacity: 0; filter: brightness(0); box-shadow: none; }
-  }
-  /* Power on: the normal flicker, then a magnetic wobble that settles. */
-  .screen.on {
-    animation: crt-on 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-  }
-  .screen.on iframe,
-  .screen.on .attract {
-    animation: crt-wobble 1.1s ease-out 0.35s both;
-  }
-  @keyframes crt-wobble {
-    0% { transform: translateX(-9px) skewX(-3deg); filter: brightness(1.8) contrast(1.4) saturate(0.4); }
-    10% { transform: translateX(8px) skewX(2.5deg); }
-    20% { transform: translateX(-6px) skewX(-2deg); filter: brightness(1.3) contrast(1.2) saturate(0.7); }
-    30% { transform: translateX(5px) skewX(1.5deg); }
-    45% { transform: translateX(-3px) skewX(-1deg); filter: none; }
-    60% { transform: translateX(2px) skewX(0.5deg); }
-    80% { transform: translateX(-1px); }
-    100% { transform: none; filter: none; }
-  }
-  .static {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    mix-blend-mode: screen;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    animation: static-fade 1.2s steps(8) both;
-  }
-  @keyframes static-fade {
-    0% { opacity: 0.55; background-position: 0 0; }
-    50% { opacity: 0.25; background-position: 120px 80px; }
-    100% { opacity: 0; background-position: 40px 200px; }
+    0% { transform: scaleY(0.005) scaleX(0.6); }
+    55% { transform: scaleY(1) scaleX(0.98); }
+    100% { transform: none; }
   }
   .screen iframe {
     display: block;
@@ -327,8 +280,91 @@
     position: absolute;
     inset: 0;
     pointer-events: none;
-    background: repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 3px);
-    mix-blend-mode: overlay;
+    background: repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0 1px, transparent 1px 3px);
+  }
+  /* Power-on surge: a white sheet that burns off. Plays on open and after a coin. */
+  .glow {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: #fff;
+    opacity: 0;
+    animation: glow-off 0.6s ease-out both;
+  }
+  @keyframes glow-off {
+    0% { opacity: 0.85; }
+    100% { opacity: 0; }
+  }
+
+  /* Power off: the picture dies while a white burst flashes twice and collapses to a
+     point in the middle of the tube, blooms once, and goes out. */
+  .screen.off iframe,
+  .screen.off .attract {
+    animation: crt-die 0.7s ease-in both;
+  }
+  @keyframes crt-die {
+    0% { opacity: 1; transform: none; }
+    35% { opacity: 0.6; transform: scale(1.02, 0.85); }
+    100% { opacity: 0; transform: scale(0.9, 0.3); }
+  }
+  .screen.off .glow {
+    animation: none;
+  }
+  .screen.off::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 170%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    z-index: 2;
+    pointer-events: none;
+    background: radial-gradient(circle, #fff 0 26%, rgba(255, 255, 255, 0.8) 42%, rgba(255, 255, 255, 0) 66%);
+    animation: crt-burst 0.72s cubic-bezier(0.65, 0, 0.35, 1) both;
+  }
+  @keyframes crt-burst {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(1.2); }
+    8% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+    14% { opacity: 0.7; }
+    20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+    68% { opacity: 1; transform: translate(-50%, -50%) scale(0.04); }
+    80% { opacity: 1; transform: translate(-50%, -50%) scale(0.1); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.01); }
+  }
+
+  /* Power on after a coin: the normal flicker, then a magnetic wobble on both axes. */
+  .screen.on {
+    animation: crt-on 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+  .screen.on .glow {
+    animation: glow-off 0.6s ease-out both;
+  }
+  .screen.on iframe,
+  .screen.on .attract {
+    animation: crt-wobble 1.2s ease-out 0.3s both;
+  }
+  @keyframes crt-wobble {
+    0% { transform: translate(-10px, 6px) skew(-3deg, 1deg) scaleY(1.04); }
+    10% { transform: translate(9px, -7px) skew(2.5deg, -1deg) scaleY(0.97); }
+    20% { transform: translate(-7px, 5px) skew(-2deg, 0.8deg) scaleY(1.03); }
+    30% { transform: translate(6px, -4px) skew(1.5deg, -0.6deg) scaleY(0.98); }
+    45% { transform: translate(-4px, 3px) skew(-1deg, 0.4deg) scaleY(1.015); }
+    60% { transform: translate(2px, -2px) skew(0.5deg, -0.2deg); }
+    80% { transform: translate(-1px, 1px); }
+    100% { transform: none; }
+  }
+  .static {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    animation: static-fade 1.2s steps(8) both;
+  }
+  @keyframes static-fade {
+    0% { opacity: 0.5; background-position: 0 0; }
+    50% { opacity: 0.22; background-position: 120px 80px; }
+    100% { opacity: 0; background-position: 40px 200px; }
   }
   .attract {
     position: absolute;
@@ -484,7 +520,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .screen, .screen iframe, .screen .attract, .static, .arcade-backdrop {
+    .screen, .screen iframe, .screen .attract, .screen::before, .glow, .static, .arcade-backdrop {
       animation: none;
     }
   }

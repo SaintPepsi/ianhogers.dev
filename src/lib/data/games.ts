@@ -9,6 +9,8 @@ export type Game = {
   source?: string;
   tags: string[];
   accent: 'crimson' | 'lavender' | 'amber' | 'maple';
+  /** The game's own palette colour. Outlines the cabinet title. */
+  theme: string;
   hint?: string;
 };
 
@@ -24,6 +26,7 @@ export const games: Game[] = [
     source: 'https://github.com/SaintPepsi/clank-lit',
     tags: ['interactive piece', 'ai agents', 'gaslighting', 'single html file'],
     accent: 'crimson',
+    theme: '#4ade80',
     hint: 'press ` in-game to see which bugs are live',
   },
   {
@@ -36,5 +39,6 @@ export const games: Game[] = [
     embed: 'https://itch.io/embed-upload/17916070?color=1e1a28',
     tags: ['idle game', 'satire', 'itch.io'],
     accent: 'lavender',
+    theme: '#2f8fff',
   },
 ];
