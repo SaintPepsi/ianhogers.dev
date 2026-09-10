@@ -1,5 +1,7 @@
 <script lang="ts">
-  import { arcade, closeArcade } from '$lib/arcade.svelte';
+  import { page } from '$app/state';
+  import { arcade, closeArcade, setFullscreenParam } from '$lib/arcade.svelte';
+  import { games } from '$lib/data/games';
 
   let session = $state(0);
   let credits = $state(1);
@@ -8,8 +10,17 @@
   let frame: HTMLIFrameElement | undefined = $state();
   let isFullscreen = $state(false);
   let canFullscreen = $state(false);
+  // Arrived via ?fullscreen=1. Browsers only grant fullscreen on a click, so show a
+  // PRESS START gate that requests it.
+  let wantsFullscreen = $state(false);
 
   const game = $derived(arcade.game);
+
+  // URL -> cabinet. Covers pasted links, the back button, and our own open/close.
+  $effect(() => {
+    const slug = page.url.searchParams.get('play');
+    arcade.game = slug ? (games.find((g) => g.slug === slug) ?? null) : null;
+  });
 
   const accent: Record<string, string> = {
     crimson: '#ef5350',
@@ -25,6 +36,7 @@
     credits = 1;
     loaded = false;
     canFullscreen = typeof document !== 'undefined' && !!document.fullscreenEnabled;
+    wantsFullscreen = canFullscreen && page.url.searchParams.get('fullscreen') === '1';
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => {
@@ -55,6 +67,13 @@
 
   function onFullscreenChange() {
     isFullscreen = !!document.fullscreenElement;
+    setFullscreenParam(isFullscreen);
+  }
+
+  async function pressStart() {
+    wantsFullscreen = false;
+    await toggleFullscreen();
+    frame?.focus();
   }
 
   function onKey(e: KeyboardEvent) {
@@ -99,6 +118,12 @@
               <span class="blink">INSERT COIN</span>
               <span class="dim">loading {game.title.toLowerCase()}...</span>
             </div>
+          {/if}
+          {#if wantsFullscreen}
+            <button type="button" class="attract gate font-pixel" onclick={pressStart}>
+              <span class="blink">PRESS START</span>
+              <span class="dim">goes full screen</span>
+            </button>
           {/if}
           <div class="scanlines" aria-hidden="true"></div>
         </div>
@@ -264,6 +289,12 @@
   }
   .attract .dim {
     font-size: 0.65rem;
+  }
+  .gate {
+    z-index: 1;
+    width: 100%;
+    border: 0;
+    background: rgba(0, 0, 0, 0.82);
   }
   .blink {
     animation: blink 1s steps(1) infinite;
