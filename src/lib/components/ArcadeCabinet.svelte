@@ -6,13 +6,12 @@
   let session = $state(0);
   let credits = $state(1);
   let loaded = $state(false);
-  let cabinet: HTMLElement | undefined = $state();
   let frame: HTMLIFrameElement | undefined = $state();
-  let isFullscreen = $state(false);
-  let canFullscreen = $state(false);
-  // Arrived via ?fullscreen=1. Browsers only grant fullscreen on a click, so show a
-  // PRESS START gate that requests it.
-  let wantsFullscreen = $state(false);
+  // "Full screen" means the cabinet fills the browser viewport, not the native API.
+  // Below 768px it always fills; the button only matters on wider screens.
+  let expanded = $state(false);
+  let innerWidth = $state(1024);
+  const fills = $derived(expanded || innerWidth < 768);
 
   const game = $derived(arcade.game);
 
@@ -35,13 +34,11 @@
     session = 0;
     credits = 1;
     loaded = false;
-    canFullscreen = typeof document !== 'undefined' && !!document.fullscreenEnabled;
-    wantsFullscreen = canFullscreen && page.url.searchParams.get('fullscreen') === '1';
+    expanded = page.url.searchParams.get('fullscreen') === '1';
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => {
       document.body.style.overflow = prev;
-      if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
     };
   });
 
@@ -55,24 +52,9 @@
     closeArcade();
   }
 
-  async function toggleFullscreen() {
-    if (!cabinet) return;
-    try {
-      if (document.fullscreenElement) await document.exitFullscreen();
-      else await cabinet.requestFullscreen();
-    } catch {
-      /* browser said no, nothing to do */
-    }
-  }
-
-  function onFullscreenChange() {
-    isFullscreen = !!document.fullscreenElement;
-    setFullscreenParam(isFullscreen);
-  }
-
-  async function pressStart() {
-    wantsFullscreen = false;
-    await toggleFullscreen();
+  function toggleFullscreen() {
+    expanded = !expanded;
+    setFullscreenParam(expanded);
     frame?.focus();
   }
 
@@ -87,11 +69,11 @@
   }
 </script>
 
-<svelte:window onkeydown={onKey} onfullscreenchange={onFullscreenChange} />
+<svelte:window onkeydown={onKey} bind:innerWidth />
 
 {#if game}
   <div class="arcade-backdrop" role="dialog" aria-modal="true" aria-label="{game.title} arcade cabinet">
-    <div class="cabinet" style="--accent: {accent[game.accent]}" bind:this={cabinet}>
+    <div class="cabinet" class:fills style="--accent: {accent[game.accent]}">
       <!-- Marquee -->
       <header class="marquee">
         <img src="/assets/pixel-art/game-assets/wow_yellow.png" alt="" class="pixel-sprite marquee-sprite animate-float-slow" />
@@ -119,12 +101,6 @@
               <span class="dim">loading {game.title.toLowerCase()}...</span>
             </div>
           {/if}
-          {#if wantsFullscreen}
-            <button type="button" class="attract gate font-pixel" onclick={pressStart}>
-              <span class="blink">PRESS START</span>
-              <span class="dim">goes full screen</span>
-            </button>
-          {/if}
           <div class="scanlines" aria-hidden="true"></div>
         </div>
       </div>
@@ -136,10 +112,10 @@
             <span class="cap cap-yellow"></span>
             <span class="label font-pixel">INSERT COIN</span>
           </button>
-          {#if canFullscreen}
+          {#if innerWidth >= 768}
             <button type="button" class="arcade-btn" onclick={toggleFullscreen}>
               <span class="cap cap-green"></span>
-              <span class="label font-pixel">{isFullscreen ? 'WINDOW' : 'FULL SCREEN'}</span>
+              <span class="label font-pixel">{expanded ? 'WINDOW' : 'FULL SCREEN'}</span>
             </button>
           {/if}
           <button type="button" class="arcade-btn" onclick={leave}>
@@ -193,12 +169,6 @@
       0 0 0 4px var(--accent),
       0 40px 80px -20px rgba(0, 0, 0, 0.9);
     image-rendering: pixelated;
-  }
-  .cabinet:fullscreen {
-    width: 100%;
-    height: 100%;
-    border: none;
-    box-shadow: none;
   }
 
   /* Marquee */
@@ -290,12 +260,6 @@
   .attract .dim {
     font-size: 0.65rem;
   }
-  .gate {
-    z-index: 1;
-    width: 100%;
-    border: 0;
-    background: rgba(0, 0, 0, 0.82);
-  }
   .blink {
     animation: blink 1s steps(1) infinite;
     color: var(--accent);
@@ -379,43 +343,43 @@
     color: #fff;
   }
 
-  /* Mobile: cabinet fills the screen, marquee and panel become bordered bars. */
+  /* Filled: cabinet takes the whole viewport, marquee and panel become bordered bars.
+     Always on below 768px, toggled by FULL SCREEN above. */
+  .arcade-backdrop:has(.fills) {
+    padding: 0;
+  }
+  .cabinet.fills {
+    width: 100%;
+    height: 100dvh;
+    border: 0;
+    box-shadow: none;
+  }
+  .fills .marquee {
+    padding: 0.6rem 0.9rem;
+    border-top: 4px solid var(--accent);
+    border-image: repeating-linear-gradient(90deg, var(--accent) 0 6px, transparent 6px 12px) 4;
+    border-bottom: 3px solid #0f0d14;
+  }
+  .fills .bezel {
+    padding: 0;
+  }
+  .fills .screen {
+    border-width: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .fills .panel {
+    padding: 0.6rem 0.9rem calc(0.6rem + env(safe-area-inset-bottom));
+    border-bottom: 4px solid var(--accent);
+    border-image: repeating-linear-gradient(90deg, var(--accent) 0 6px, transparent 6px 12px) 4;
+  }
   @media (max-width: 767px) {
-    .arcade-backdrop {
-      padding: 0;
-    }
-    .cabinet {
-      width: 100%;
-      height: 100dvh;
-      border: 0;
-      box-shadow: none;
-    }
-    .marquee {
-      padding: 0.6rem 0.9rem;
-      border-top: 4px solid var(--accent);
-      border-image: repeating-linear-gradient(90deg, var(--accent) 0 6px, transparent 6px 12px) 4;
-      border-bottom: 3px solid #0f0d14;
-    }
     .marquee-sprite {
       width: 20px;
       height: 20px;
     }
     .marquee-credits {
       font-size: 0.65rem;
-    }
-    .bezel {
-      padding: 0;
-    }
-    .screen {
-      border-width: 0;
-      border-radius: 0;
-      box-shadow: none;
-    }
-    .panel {
-      gap: 0.75rem;
-      padding: 0.6rem 0.9rem calc(0.6rem + env(safe-area-inset-bottom));
-      border-bottom: 4px solid var(--accent);
-      border-image: repeating-linear-gradient(90deg, var(--accent) 0 6px, transparent 6px 12px) 4;
     }
     .buttons {
       justify-content: space-around;
