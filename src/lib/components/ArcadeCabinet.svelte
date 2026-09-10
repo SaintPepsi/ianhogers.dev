@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from 'svelte';
   import { page } from '$app/state';
   import { arcade, closeArcade, setFullscreenParam } from '$lib/arcade.svelte';
   import { games } from '$lib/data/games';
@@ -16,8 +17,11 @@
   const game = $derived(arcade.game);
 
   // URL -> cabinet. Covers pasted links, the back button, and our own open/close.
+  // Only assign when the slug actually changes: the fullscreen param also changes the
+  // URL, and re-assigning the same game would reset the session and reload the iframe.
   $effect(() => {
     const slug = page.url.searchParams.get('play');
+    if ((arcade.game?.slug ?? null) === slug) return;
     arcade.game = slug ? (games.find((g) => g.slug === slug) ?? null) : null;
   });
 
@@ -30,13 +34,14 @@
 
   // Reset per-session bits whenever a (different) game is opened, and lock page scroll.
   $effect(() => {
-    if (!game) return;
+    const slug = game?.slug;
+    if (!slug) return;
     session = 0;
     credits = 1;
     loaded = false;
     crt = 'idle';
     clearTimeout(crtTimer);
-    expanded = page.url.searchParams.get('fullscreen') === '1';
+    expanded = untrack(() => page.url.searchParams.get('fullscreen') === '1');
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => {
