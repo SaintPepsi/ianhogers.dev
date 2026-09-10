@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { page } from '$app/state';
+  import { arcade } from '$lib/arcade.svelte';
 
   const BAMBOO_POEMS = [
     // Guild lore
@@ -296,23 +297,34 @@
     rafId = requestAnimationFrame(animationTick);
   }
 
-  function handleVisibilityChange() {
-    if (document.hidden) {
-      // Pause: cancel rAF and spawning while tab is hidden
-      if (rafId !== null) {
-        cancelAnimationFrame(rafId);
-        rafId = null;
-      }
-      stopSpawning();
-    } else {
-      // Resume: reset tick time and restart loops
-      lastTickTime = 0;
-      if (isActive) {
-        if (rafId === null) rafId = requestAnimationFrame(animationTick);
-        if (spawnTimerId === null && !allPoemsRead()) scheduleNextSpawn();
-      }
+  function pauseLoops() {
+    if (rafId !== null) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+    stopSpawning();
+  }
+
+  function resumeLoops() {
+    lastTickTime = 0;
+    if (isActive) {
+      if (rafId === null) rafId = requestAnimationFrame(animationTick);
+      if (spawnTimerId === null && !allPoemsRead()) scheduleNextSpawn();
     }
   }
+
+  // Paused while the tab is hidden or the arcade cabinet covers the page.
+  function handleVisibilityChange() {
+    if (document.hidden) pauseLoops();
+    else if (!arcade.game) resumeLoops();
+  }
+
+  $effect(() => {
+    const covered = !!arcade.game;
+    if (!mounted) return;
+    if (covered) pauseLoops();
+    else if (!document.hidden) resumeLoops();
+  });
 
   function startAnimationLoop() {
     if (rafId !== null) return;

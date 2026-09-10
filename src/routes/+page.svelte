@@ -1,5 +1,8 @@
 <script lang="ts">
   import SlopPoliceCordon from '$lib/components/SlopPoliceCordon.svelte';
+  import GameTile from '$lib/components/GameTile.svelte';
+  import ArcadeCabinet from '$lib/components/ArcadeCabinet.svelte';
+  import { games } from '$lib/data/games';
   let { data } = $props();
 </script>
 
@@ -132,30 +135,24 @@
   </div>
 </section>
 
-<!-- Shipped: playable game -->
+<!-- Shipped: playable games -->
 <section class="mb-12">
   <div class="pixel-divider mb-8" style="--divider-color: #2a2438;"></div>
-  <div class="flex items-center gap-3 mb-4">
+  <div class="flex items-center gap-3 mb-2">
     <img src="/assets/pixel-art/game-assets/wow_blue.png" alt="" class="pixel-sprite w-6 h-6 animate-float-slow" />
     <h2 class="text-2xl mb-0">Play something I made</h2>
   </div>
-  <p class="text-gray-400 text-sm mb-4 max-w-lg">
-    <span class="text-purple-300">Hey Siri, Summarise this</span> — a satirical idle game where Siri
-    summarises things you can already read, then summarises the summary. Numbers go up forever; it
-    never gets better. That's the joke.
-  </p>
-  <div class="pixel-box pixel-box-lavender glow-lavender p-3 block w-full">
-    <iframe
-      title="Hey Siri, Summarise this (The Idle Game) on itch.io"
-      loading="lazy"
-      frameborder="0"
-      src="https://itch.io/embed/4671393?bg_color=1e1a28&amp;fg_color=ffffff&amp;link_color=b388ff&amp;border_color=2a2438"
-      width="100%"
-      height="167"
-      class="block w-full"
-    ><a href="https://sancoca.itch.io/hey-siri-summarise-this">Hey Siri, Summarise this (The Idle Game) by SanCoca</a></iframe>
+  <p class="text-gray-500 font-mono text-xs mb-4">small games, big opinions &middot; the shelf scrolls sideways</p>
+
+  <!-- Full-bleed shelf: first tile lines up with the content column, the rest hang off the right edge -->
+  <div class="game-shelf">
+    {#each games as game (game.slug)}
+      <GameTile {game} />
+    {/each}
   </div>
 </section>
+
+<ArcadeCabinet />
 
 <!-- Quick shoutouts teaser -->
 <section class="mb-12">
@@ -177,3 +174,30 @@
     </a>
   </div>
 </section>
+
+<style>
+  /* Break out of the max-w-3xl column. Left padding lands the first tile on the column edge. */
+  .game-shelf {
+    --col: 48rem;
+    --gutter: 1rem;
+    position: relative;
+    left: 50%;
+    width: 100vw;
+    margin-left: -50vw;
+    display: flex;
+    gap: 1.5rem;
+    padding: 0.75rem max(var(--gutter), calc((100vw - var(--col)) / 2 + 1.5rem)) 1.5rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: max(var(--gutter), calc((100vw - var(--col)) / 2 + 1.5rem));
+    scrollbar-width: none;
+  }
+  .game-shelf::-webkit-scrollbar {
+    display: none;
+  }
+  @media (min-width: 640px) {
+    .game-shelf {
+      --gutter: 1.5rem;
+    }
+  }
+</style>
