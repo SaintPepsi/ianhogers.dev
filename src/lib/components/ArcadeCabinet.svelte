@@ -34,6 +34,8 @@
     session = 0;
     credits = 1;
     loaded = false;
+    crt = 'idle';
+    clearTimeout(crtTimer);
     expanded = page.url.searchParams.get('fullscreen') === '1';
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -42,10 +44,21 @@
     };
   });
 
+  // CRT power cycle on coin: collapse to a white dot, black void, then come back wobbling.
+  let crt = $state<'idle' | 'off' | 'on'>('idle');
+  let crtTimer: ReturnType<typeof setTimeout> | undefined;
+
   function insertCoin() {
+    if (crt === 'off') return;
     credits += 1;
-    loaded = false;
-    session += 1;
+    crt = 'off';
+    clearTimeout(crtTimer);
+    crtTimer = setTimeout(() => {
+      loaded = false;
+      session += 1;
+      crt = 'on';
+      crtTimer = setTimeout(() => (crt = 'idle'), 1200);
+    }, 650);
   }
 
   function leave() {
@@ -85,7 +98,7 @@
 
       <!-- Screen -->
       <div class="bezel">
-        <div class="screen" class:booted={loaded}>
+        <div class="screen" class:booted={loaded} class:off={crt === 'off'} class:on={crt === 'on'}>
           {#key session}
             <iframe
               bind:this={frame}
@@ -102,6 +115,9 @@
             </div>
           {/if}
           <div class="scanlines" aria-hidden="true"></div>
+          {#if crt === 'on'}
+            <div class="static" aria-hidden="true"></div>
+          {/if}
         </div>
       </div>
 
@@ -171,16 +187,29 @@
     image-rendering: pixelated;
   }
 
-  /* Marquee */
+  /* Marquee: bare title over a diagonal-stripe rule with a solid line under it. */
   .marquee {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 1rem;
-    padding: 0.75rem 1.25rem;
+    padding: 0.7rem 1.25rem 0.9rem;
+  }
+  .marquee::after,
+  .fills .marquee::before,
+  .fills .panel::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 9px;
     background:
-      repeating-linear-gradient(90deg, transparent 0 6px, rgba(0, 0, 0, 0.25) 6px 7px),
-      linear-gradient(180deg, #2a2438, #171320);
-    border-bottom: 3px solid #0f0d14;
+      repeating-linear-gradient(-45deg, var(--accent) 0 4px, transparent 4px 10px) top / 100% 6px no-repeat,
+      linear-gradient(var(--accent), var(--accent)) bottom / 100% 2px no-repeat;
+    pointer-events: none;
+  }
+  .marquee::after {
+    bottom: 0;
   }
   .marquee-sprite {
     width: 28px;
@@ -192,10 +221,7 @@
     font-size: clamp(1.25rem, 3vw, 2.25rem);
     color: #fff;
     letter-spacing: 0.06em;
-    text-shadow:
-      0 0 6px var(--accent),
-      0 0 18px var(--accent),
-      0 0 36px color-mix(in srgb, var(--accent) 60%, transparent);
+    text-shadow: 0 0 10px color-mix(in srgb, var(--accent) 45%, transparent);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -227,6 +253,63 @@
     0% { transform: scaleY(0.005) scaleX(0.6); filter: brightness(4); }
     55% { transform: scaleY(1) scaleX(0.98); filter: brightness(1.6); }
     100% { transform: none; filter: none; }
+  }
+  /* Power off: squash to a bright line, shrink to a white dot, fade into the void.
+     The white layer squashes with the screen so the line and dot read as hot phosphor. */
+  .screen.off {
+    animation: crt-off 0.65s ease-in both;
+  }
+  .screen.off::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background: #fff;
+    animation: crt-flash 0.65s ease-in both;
+  }
+  @keyframes crt-flash {
+    0% { opacity: 0; }
+    25% { opacity: 0.9; }
+    80% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  @keyframes crt-off {
+    0% { transform: none; filter: brightness(1); box-shadow: none; }
+    30% { transform: scaleY(0.006); filter: brightness(3); box-shadow: 0 0 24px 6px #fff; }
+    60% { transform: scaleY(0.006) scaleX(0.03); filter: brightness(8); box-shadow: 0 0 40px 10px #fff; }
+    80% { transform: scaleY(0.006) scaleX(0.02); filter: brightness(8); box-shadow: 0 0 10px 2px #fff; }
+    100% { transform: scaleY(0.006) scaleX(0.02); opacity: 0; filter: brightness(0); box-shadow: none; }
+  }
+  /* Power on: the normal flicker, then a magnetic wobble that settles. */
+  .screen.on {
+    animation: crt-on 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+  .screen.on iframe,
+  .screen.on .attract {
+    animation: crt-wobble 1.1s ease-out 0.35s both;
+  }
+  @keyframes crt-wobble {
+    0% { transform: translateX(-9px) skewX(-3deg); filter: brightness(1.8) contrast(1.4) saturate(0.4); }
+    10% { transform: translateX(8px) skewX(2.5deg); }
+    20% { transform: translateX(-6px) skewX(-2deg); filter: brightness(1.3) contrast(1.2) saturate(0.7); }
+    30% { transform: translateX(5px) skewX(1.5deg); }
+    45% { transform: translateX(-3px) skewX(-1deg); filter: none; }
+    60% { transform: translateX(2px) skewX(0.5deg); }
+    80% { transform: translateX(-1px); }
+    100% { transform: none; filter: none; }
+  }
+  .static {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    mix-blend-mode: screen;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    animation: static-fade 1.2s steps(8) both;
+  }
+  @keyframes static-fade {
+    0% { opacity: 0.55; background-position: 0 0; }
+    50% { opacity: 0.25; background-position: 120px 80px; }
+    100% { opacity: 0; background-position: 40px 200px; }
   }
   .screen iframe {
     display: block;
@@ -355,10 +438,11 @@
     box-shadow: none;
   }
   .fills .marquee {
-    padding: 0.6rem 0.9rem;
-    border-top: 4px solid var(--accent);
-    border-image: repeating-linear-gradient(90deg, var(--accent) 0 6px, transparent 6px 12px) 4;
-    border-bottom: 3px solid #0f0d14;
+    padding: 0.9rem 0.9rem 0.8rem;
+  }
+  .fills .marquee::before {
+    top: 0;
+    transform: scaleY(-1);
   }
   .fills .bezel {
     padding: 0;
@@ -369,9 +453,11 @@
     box-shadow: none;
   }
   .fills .panel {
-    padding: 0.6rem 0.9rem calc(0.6rem + env(safe-area-inset-bottom));
-    border-bottom: 4px solid var(--accent);
-    border-image: repeating-linear-gradient(90deg, var(--accent) 0 6px, transparent 6px 12px) 4;
+    position: relative;
+    padding: 0.6rem 0.9rem calc(0.9rem + env(safe-area-inset-bottom));
+  }
+  .fills .panel::after {
+    bottom: 0;
   }
   @media (max-width: 767px) {
     .marquee-sprite {
@@ -398,7 +484,7 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .screen, .arcade-backdrop {
+    .screen, .screen iframe, .screen .attract, .static, .arcade-backdrop {
       animation: none;
     }
   }
