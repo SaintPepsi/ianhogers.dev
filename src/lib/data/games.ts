@@ -41,4 +41,18 @@ export const games: Game[] = [
     accent: 'lavender',
     theme: '#2f8fff',
   },
+  {
+    slug: 'maple-arcade',
+    title: "Maple's Arcade",
+    blurb:
+      'A cabinet of small realtime multiplayer experiments: watch everyone\'s cursors move together, draw on a shared canvas, hop between rooms. Built on my realtime-app-devkit: SpacetimeDB modules in TypeScript, the server always has the last say, clients just paint what it tells them.',
+    cover: '/assets/games/maple-arcade.webp',
+    play: 'https://realtime-app-devkit-ian-hogers-projects.vercel.app/',
+    embed: 'https://realtime-app-devkit-ian-hogers-projects.vercel.app/',
+    source: 'https://github.com/SaintPepsi/realtime-app-devkit',
+    tags: ['realtime multiplayer', 'spacetimedb', 'sveltekit', 'devkit'],
+    accent: 'maple',
+    theme: '#ddb7ff',
+    hint: 'open it in a second tab to meet yourself',
+  },
 ];
