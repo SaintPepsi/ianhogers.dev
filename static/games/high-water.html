@@ -1,0 +1,1378 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>High Water</title>
+<meta name="description" content="Run a country's flood-defence budget while the sea rises and never stops. Build walls, develop the economy, call in help from other nations.">
+<style>
+  :root {
+    --bg: #07131f;
+    --panel: rgba(8, 22, 36, 0.86);
+    --panel-solid: #0c1d2e;
+    --line: rgba(140, 190, 230, 0.18);
+    --text: #e8f1f8;
+    --dim: #8fa7bb;
+    --sea: #3fa2e6;
+    --wall: #d9cbb0;
+    --build: #f0b429;
+    --dev: #4cc38a;
+    --alert: #ef5b5b;
+    --common: #9fb3c8;
+    --rare: #4ea8ff;
+    --epic: #c77dff;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); color: var(--text);
+    font-family: ui-rounded, "SF Pro Rounded", "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased; user-select: none; -webkit-user-select: none; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  [hidden] { display: none !important; }
+  #gl { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+
+  .screen { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; z-index: 5; }
+  .num { font-variant-numeric: tabular-nums; }
+
+  /* ---------- loading ---------- */
+  #loading { justify-content: center; gap: 12px; background: radial-gradient(circle at 50% 40%, #0f2a44, var(--bg)); }
+  #loading .spin { width: 42px; height: 42px; border-radius: 50%; border: 4px solid rgba(255,255,255,.12); border-top-color: var(--sea); animation: spin 0.9s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ---------- menu ---------- */
+  #menu { justify-content: space-between; padding: max(28px, 6vh) 16px max(24px, 5vh); pointer-events: none; }
+  #menu > * { pointer-events: auto; }
+  .logo { text-align: center; }
+  .logo h1 { margin: 0; font-size: clamp(44px, 9vw, 88px); letter-spacing: 0.04em; line-height: 0.95; font-weight: 900;
+    background: linear-gradient(180deg, #fff 0%, #cfe8ff 45%, #3fa2e6 46%, #1c5d93 100%); -webkit-background-clip: text; background-clip: text; color: transparent;
+    filter: drop-shadow(0 4px 18px rgba(0,0,0,.6)); }
+  .logo p { margin: 10px 0 0; color: var(--dim); font-size: clamp(13px, 2vw, 16px); text-shadow: 0 1px 6px #000; }
+  .menu-btns { display: flex; flex-direction: column; gap: 10px; width: min(320px, 100%); }
+  .mbtn { padding: 14px 18px; border-radius: 14px; border: 1px solid var(--line); background: var(--panel); font-size: 18px; font-weight: 800; letter-spacing: 0.05em;
+    backdrop-filter: blur(8px); transition: transform .12s, background .12s, border-color .12s; }
+  .mbtn:hover:not(:disabled) { transform: translateY(-2px); border-color: rgba(160,210,255,.5); }
+  .mbtn:disabled { opacity: 0.4; cursor: default; }
+  .mbtn.primary { background: linear-gradient(180deg, #3fa2e6, #1f6fb0); border-color: #6cc0ff; }
+  .mbtn small { display: block; font-size: 12px; font-weight: 600; letter-spacing: 0; color: var(--dim); margin-top: 2px; }
+  .mbtn.primary small { color: #d8ecff; }
+  .credit { color: var(--dim); font-size: 11px; text-align: center; max-width: 520px; line-height: 1.5; text-shadow: 0 1px 4px #000; }
+
+  /* ---------- panels (setup / history) ---------- */
+  .panel-screen { background: rgba(4, 12, 20, 0.72); backdrop-filter: blur(6px); padding: 20px 16px; overflow-y: auto; }
+  .panel-screen .inner { width: min(980px, 100%); }
+  .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+  .panel-head h2 { margin: 0; font-size: 26px; font-weight: 900; }
+  .ghost { background: transparent; border: 1px solid var(--line); border-radius: 10px; padding: 8px 14px; font-weight: 700; }
+  .ghost:hover { border-color: rgba(160,210,255,.5); }
+  .label { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--dim); margin: 18px 0 8px; font-weight: 800; }
+  .diffs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .diff { text-align: left; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); }
+  .diff b { display: block; font-size: 15px; }
+  .diff span { font-size: 12px; color: var(--dim); }
+  .diff.on { border-color: var(--sea); box-shadow: inset 0 0 0 1px var(--sea); background: rgba(63,162,230,.14); }
+  .countries { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+  .cc { text-align: left; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; align-items: center; }
+  .cc .fl { font-size: 26px; grid-row: span 2; }
+  .cc b { font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cc .st { font-size: 11px; color: var(--dim); }
+  .cc .meta { grid-column: 1 / -1; font-size: 11px; color: var(--dim); display: flex; justify-content: space-between; margin-top: 4px; }
+  .cc .stars { color: #ffb347; letter-spacing: 1px; }
+  .cc.on { border-color: var(--sea); box-shadow: inset 0 0 0 1px var(--sea); background: rgba(63,162,230,.14); }
+  .setup-foot { position: sticky; bottom: -20px; padding: 14px 0 20px; margin-top: 14px; background: linear-gradient(transparent, rgba(4,12,20,.95) 30%); display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+  .setup-foot .pick { font-size: 14px; color: var(--dim); }
+  .setup-foot .pick b { color: var(--text); }
+  .note { font-size: 11px; color: var(--dim); line-height: 1.5; margin-top: 8px; }
+  table.hist { width: 100%; border-collapse: collapse; font-size: 14px; }
+  table.hist th { text-align: left; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); padding: 8px 8px; border-bottom: 1px solid var(--line); }
+  table.hist td { padding: 10px 8px; border-bottom: 1px solid var(--line); }
+  table.hist tr.best td { color: #ffe29a; }
+  .empty { color: var(--dim); padding: 30px 0; text-align: center; }
+
+  /* ---------- HUD ---------- */
+  #hud { position: fixed; inset: 0; pointer-events: none; z-index: 4; }
+  #hud > * { pointer-events: auto; }
+  .topbar { position: absolute; left: 10px; right: 10px; top: 10px; display: flex; gap: 8px; align-items: flex-start; }
+  .ident { display: flex; gap: 10px; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 8px 12px; backdrop-filter: blur(8px); }
+  .ident .flag { font-size: 28px; line-height: 1; }
+  .ident .cname { font-weight: 900; font-size: 16px; line-height: 1.1; }
+  .ident .year { font-size: 12px; color: var(--dim); }
+  .stats { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; }
+  .stat { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 6px 10px; min-width: 84px; backdrop-filter: blur(8px); }
+  .stat span { display: block; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); font-weight: 800; }
+  .stat b { font-size: 16px; }
+  .stat b.neg { color: var(--alert); }
+  .ctrls { display: flex; gap: 6px; }
+  .icon-btn { width: 40px; height: 40px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); font-weight: 900; font-size: 14px; backdrop-filter: blur(8px); }
+  .icon-btn:hover { border-color: rgba(160,210,255,.5); }
+
+  .gauge { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 150px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 10px; backdrop-filter: blur(8px); }
+  .gauge .col { position: relative; height: 150px; border-radius: 8px; background: linear-gradient(#1b2b3a, #13202c); overflow: hidden; margin-bottom: 8px; }
+  .gauge .g-sea { position: absolute; left: 0; right: 0; bottom: 0; background: linear-gradient(#56b8ff, #1f6fb0); transition: height .2s linear; }
+  .gauge .g-wall { position: absolute; left: 30%; right: 30%; bottom: 0; background: repeating-linear-gradient(0deg, #cfc2a6 0 6px, #b7aa8e 6px 7px); border-radius: 3px 3px 0 0; }
+  .gauge .g-target { position: absolute; left: 22%; right: 22%; height: 0; border-top: 2px dashed var(--build); }
+  .gauge .g-surge { position: absolute; left: 0; right: 0; background: rgba(255,255,255,.35); }
+  .gauge .row { display: flex; justify-content: space-between; font-size: 12px; line-height: 1.55; }
+  .gauge .row span { color: var(--dim); }
+  .gauge .row b.bad { color: var(--alert); }
+  .gauge .row b.ok { color: var(--dev); }
+  .gauge .next { margin-top: 6px; font-size: 11px; color: var(--dim); }
+  .gauge .next .bar { height: 5px; border-radius: 3px; background: rgba(255,255,255,.1); margin-top: 3px; overflow: hidden; }
+  .gauge .next .bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--rare), var(--epic)); }
+  .gauge.danger { border-color: var(--alert); box-shadow: 0 0 0 1px var(--alert), 0 0 24px rgba(239,91,91,.35); }
+
+  #toasts { position: absolute; left: 50%; top: 74px; transform: translateX(-50%); display: flex; flex-direction: column; gap: 6px; align-items: center; pointer-events: none; width: min(460px, 90vw); }
+  .toast { background: var(--panel-solid); border: 1px solid var(--line); border-radius: 12px; padding: 8px 14px; font-size: 14px; box-shadow: 0 6px 20px rgba(0,0,0,.4); animation: tin .25s ease-out; text-align: center; }
+  .toast.warn { border-color: #ffb347; }
+  .toast.bad { border-color: var(--alert); }
+  .toast.good { border-color: var(--dev); }
+  .toast.out { opacity: 0; transform: translateY(-6px); transition: all .4s; }
+  @keyframes tin { from { opacity: 0; transform: translateY(-8px); } }
+
+  .bottom { position: absolute; left: 50%; bottom: max(12px, env(safe-area-inset-bottom)); transform: translateX(-50%); width: min(640px, calc(100% - 20px)); }
+  .landbar { display: flex; align-items: center; gap: 10px; font-size: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 6px 12px; margin-bottom: 8px; backdrop-filter: blur(8px); }
+  .landbar span { color: var(--dim); font-weight: 800; letter-spacing: .08em; text-transform: uppercase; font-size: 10px; white-space: nowrap; }
+  .landbar .bar { flex: 1; height: 8px; border-radius: 4px; background: rgba(255,255,255,.1); overflow: hidden; position: relative; }
+  .landbar .bar i { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, #3fa2e6, #ef5b5b); }
+  .landbar .bar em { position: absolute; top: 0; bottom: 0; left: 75%; width: 2px; background: #fff; opacity: .6; }
+  .actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .act { position: relative; border: 0; border-radius: 16px; padding: 12px 8px 10px; text-align: center; box-shadow: 0 4px 0 rgba(0,0,0,.35), 0 10px 24px rgba(0,0,0,.35); transition: transform .08s, filter .12s; overflow: hidden; }
+  .act b { display: block; font-size: clamp(16px, 3.6vw, 20px); font-weight: 900; letter-spacing: .08em; }
+  .act small { display: block; font-size: 11px; font-weight: 700; opacity: .85; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .act:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,.35); }
+  .act:disabled { filter: grayscale(.7) brightness(.7); cursor: default; }
+  .act .k { position: absolute; top: 6px; left: 8px; font-size: 10px; font-weight: 900; opacity: .55; border: 1px solid currentColor; border-radius: 4px; padding: 0 4px; }
+  .act.build { background: linear-gradient(180deg, #ffc94d, #e09a10); color: #2b1a00; }
+  .act.dev { background: linear-gradient(180deg, #5fd89c, #2b9b63); color: #002814; }
+  .act.alert { background: linear-gradient(180deg, #ff7a7a, #c93838); color: #2a0000; }
+  .act.on { outline: 3px solid #fff; outline-offset: 2px; }
+  .act .cd { position: absolute; left: 0; bottom: 0; height: 4px; background: rgba(0,0,0,.35); }
+  .act.ready { animation: pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse { 50% { filter: brightness(1.15); } }
+
+  #sheet { position: absolute; left: 50%; bottom: calc(max(12px, env(safe-area-inset-bottom)) + 124px); transform: translateX(-50%); width: min(640px, calc(100% - 20px));
+    background: var(--panel-solid); border: 1px solid var(--line); border-radius: 18px; padding: 14px; box-shadow: 0 12px 40px rgba(0,0,0,.5); max-height: calc(100% - 220px); overflow-y: auto; animation: tin .18s ease-out; }
+  .sheet-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .sheet-head h3 { margin: 0; font-size: 18px; font-weight: 900; letter-spacing: .06em; }
+  .sheet-head .sub { font-size: 12px; color: var(--dim); }
+  .opts { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .opt { text-align: left; border: 1px solid var(--line); border-radius: 14px; background: rgba(255,255,255,.03); padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; }
+  .opt:hover:not(:disabled) { border-color: rgba(160,210,255,.5); background: rgba(255,255,255,.06); }
+  .opt:disabled { opacity: .45; cursor: default; }
+  .opt .t { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .opt .t b { font-size: 15px; }
+  .opt .t em { font-style: normal; font-size: 11px; color: var(--dim); }
+  .opt .d { font-size: 12px; color: var(--dim); }
+  .opt .p { font-size: 13px; font-weight: 800; margin-top: 4px; }
+  .opt .p.free { color: var(--dev); }
+  .opt .p.cant { color: var(--alert); }
+  .opt.helper .t b { display: flex; gap: 8px; align-items: center; }
+  .cooldown-msg { text-align: center; padding: 14px; color: var(--dim); font-size: 14px; }
+
+  /* ---------- modals ---------- */
+  .modal { position: fixed; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center; background: rgba(2, 8, 14, 0.7); backdrop-filter: blur(4px); padding: 16px; }
+  .modal .box { width: min(760px, 100%); max-height: 100%; overflow-y: auto; text-align: center; }
+  .modal h2 { margin: 0 0 4px; font-size: clamp(24px, 4vw, 34px); font-weight: 900; }
+  .modal .lead { color: var(--dim); margin: 0 0 18px; font-size: 14px; }
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .card { position: relative; border-radius: 18px; padding: 18px 14px 16px; background: linear-gradient(180deg, #13263a, #0b1826); border: 2px solid var(--common); display: flex; flex-direction: column; align-items: center; gap: 6px; transition: transform .15s, box-shadow .15s; animation: deal .35s both; }
+  .card:nth-child(2) { animation-delay: .07s; } .card:nth-child(3) { animation-delay: .14s; }
+  @keyframes deal { from { opacity: 0; transform: translateY(24px) rotate(-3deg); } }
+  .card:hover { transform: translateY(-6px); box-shadow: 0 14px 30px rgba(0,0,0,.45); }
+  .card.rare { border-color: var(--rare); box-shadow: 0 0 22px rgba(78,168,255,.25); }
+  .card.epic { border-color: var(--epic); box-shadow: 0 0 28px rgba(199,125,255,.35); background: linear-gradient(180deg, #24173a, #120b20); }
+  .card .ic { font-size: 40px; line-height: 1.1; }
+  .card .rr { font-size: 10px; letter-spacing: .16em; text-transform: uppercase; font-weight: 900; color: var(--common); }
+  .card.rare .rr { color: var(--rare); } .card.epic .rr { color: var(--epic); }
+  .card b { font-size: 17px; }
+  .card p { margin: 0; font-size: 13px; color: #c5d6e4; line-height: 1.4; }
+  .card .k { position: absolute; top: 8px; left: 10px; font-size: 11px; opacity: .5; font-weight: 900; }
+  .over-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 18px 0; }
+  .over-stats div { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px; }
+  .over-stats span { display: block; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--dim); font-weight: 800; }
+  .over-stats b { font-size: 20px; }
+  .row-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .row-btns .mbtn { min-width: 180px; }
+  .cardlist { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 10px; }
+  .cardlist span { font-size: 12px; border: 1px solid var(--line); border-radius: 8px; padding: 3px 8px; color: var(--dim); }
+
+  .flash { position: fixed; inset: 0; pointer-events: none; z-index: 3; box-shadow: inset 0 0 120px rgba(239,91,91,0); transition: box-shadow .3s; }
+  .flash.on { box-shadow: inset 0 0 140px rgba(239,91,91,.55); }
+
+  @media (max-width: 720px) {
+    .topbar { flex-wrap: wrap; }
+    .stats { order: 3; flex-basis: 100%; }
+    .stat { min-width: 0; flex: 1; padding: 5px 8px; }
+    .stat b { font-size: 14px; }
+    .gauge { top: auto; bottom: 168px; transform: none; width: 132px; padding: 8px; }
+    .gauge .col { height: 80px; }
+    .cards { grid-template-columns: 1fr; }
+    .card { flex-direction: row; text-align: left; padding: 12px; }
+    .card .ic { font-size: 30px; }
+    .opts { grid-template-columns: 1fr; }
+    .diffs { grid-template-columns: 1fr; }
+    #sheet { bottom: calc(max(12px, env(safe-area-inset-bottom)) + 118px); }
+  }
+  @media (max-height: 560px) {
+    .gauge { display: none; }
+  }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+</head>
+<body>
+<canvas id="gl"></canvas>
+<div class="flash" id="flash"></div>
+
+<div id="loading" class="screen">
+  <div class="spin"></div>
+  <div id="loadMsg">Loading the world...</div>
+</div>
+
+<div id="menu" class="screen" hidden>
+  <div class="logo">
+    <h1>HIGH WATER</h1>
+    <p>The sea never stops rising. Hold the line as long as you can.</p>
+  </div>
+  <div class="menu-btns">
+    <button class="mbtn primary" id="mPlay">PLAY<small>pick a country and a pace</small></button>
+    <button class="mbtn" id="mResume" disabled>RESUME<small id="mResumeSub">no run in progress</small></button>
+    <button class="mbtn" id="mHistory">MATCH HISTORY<small id="mHistSub">your drowned nations</small></button>
+  </div>
+  <div class="credit">Borders: Natural Earth via world-atlas. GDP &amp; population: World Bank (2023, rounded). Mean elevation &amp; coastline: CIA World Factbook. Terrain is generated from each country's real outline and mean elevation.</div>
+</div>
+
+<div id="setup" class="screen panel-screen" hidden>
+  <div class="inner">
+    <div class="panel-head"><h2>New run</h2><button class="ghost" data-back>Back</button></div>
+    <div class="label">How fast does the water rise?</div>
+    <div class="diffs" id="diffs"></div>
+    <div class="label">Choose your country</div>
+    <div class="countries" id="countries"></div>
+    <div class="note">Stars combine how expensive your coastline is to wall off against your GDP, and how low your land sits. Starting a new run replaces any run in progress.</div>
+    <div class="setup-foot">
+      <div class="pick" id="pickLabel">Pick a country</div>
+      <button class="mbtn primary" id="startBtn" disabled>START</button>
+    </div>
+  </div>
+</div>
+
+<div id="history" class="screen panel-screen" hidden>
+  <div class="inner">
+    <div class="panel-head"><h2>Match history</h2><button class="ghost" data-back>Back</button></div>
+    <div id="histBody"></div>
+  </div>
+</div>
+
+<div id="hud" hidden>
+  <div class="topbar">
+    <div class="ident"><div class="flag" id="hFlag"></div><div><div class="cname" id="hName"></div><div class="year num" id="hYear"></div></div></div>
+    <div class="stats">
+      <div class="stat"><span>Funds</span><b class="num" id="hFunds"></b></div>
+      <div class="stat"><span>Income/yr</span><b class="num" id="hIncome"></b></div>
+      <div class="stat"><span>GDP</span><b class="num" id="hGdp"></b></div>
+      <div class="stat"><span>People</span><b class="num" id="hPop"></b></div>
+    </div>
+    <div class="ctrls">
+      <button class="icon-btn" id="speedBtn" title="Game speed">1×</button>
+      <button class="icon-btn" id="pauseBtn" title="Pause (Space)">❚❚</button>
+    </div>
+  </div>
+
+  <div class="gauge" id="gauge">
+    <div class="col"><div class="g-sea" id="gSea"></div><div class="g-surge" id="gSurge"></div><div class="g-wall" id="gWall"></div><div class="g-target" id="gTarget"></div></div>
+    <div class="row"><span>Sea</span><b class="num" id="gSeaT"></b></div>
+    <div class="row"><span>Wall</span><b class="num" id="gWallT"></b></div>
+    <div class="row"><span>Margin</span><b class="num" id="gMarginT"></b></div>
+    <div class="row"><span>Rising</span><b class="num" id="gRateT"></b></div>
+    <div class="next"><span id="gNextT"></span><div class="bar"><i id="gNextBar"></i></div></div>
+  </div>
+
+  <div id="toasts"></div>
+
+  <div id="sheet" hidden></div>
+
+  <div class="bottom">
+    <div class="landbar"><span>Land lost</span><div class="bar"><i id="landFill"></i><em title="75%: the country is gone"></em></div><b class="num" id="landT">0%</b></div>
+    <div class="actions">
+      <button class="act build" id="bBuild"><span class="k">B</span><b>BUILD</b><small id="bBuildSub"></small></button>
+      <button class="act dev" id="bDev"><span class="k">D</span><b>DEVELOP</b><small>money · growth · people</small></button>
+      <button class="act alert" id="bAlert"><span class="k">A</span><b>ALERT</b><small id="bAlertSub"></small><div class="cd" id="bAlertCd"></div></button>
+    </div>
+  </div>
+</div>
+
+<div id="cardModal" class="modal" hidden>
+  <div class="box">
+    <h2 id="cardTitle"></h2>
+    <p class="lead">The sea has passed another metre. Choose one boon for the rest of this run.</p>
+    <div class="cards" id="cards"></div>
+  </div>
+</div>
+
+<div id="pauseModal" class="modal" hidden>
+  <div class="box" style="width:min(360px,100%)">
+    <h2>Paused</h2>
+    <p class="lead">Your run is saved automatically.</p>
+    <div class="menu-btns" style="margin:0 auto">
+      <button class="mbtn primary" id="pResume">RESUME</button>
+      <button class="mbtn" id="pQuit">SAVE &amp; QUIT TO MENU</button>
+    </div>
+  </div>
+</div>
+
+<div id="overModal" class="modal" hidden>
+  <div class="box">
+    <h2 id="overTitle"></h2>
+    <p class="lead" id="overLead"></p>
+    <div class="over-stats" id="overStats"></div>
+    <div class="row-btns">
+      <button class="mbtn primary" id="oAgain">PLAY AGAIN</button>
+      <button class="mbtn" id="oMenu">MENU</button>
+    </div>
+    <div class="cardlist" id="overCards"></div>
+  </div>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const WORLD_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-50m.json';
+const SAVE_KEY = 'highwater.save.v1';
+const HIST_KEY = 'highwater.history.v1';
+const START_YEAR = 2026;
+const YEAR_SECONDS = 2.2;   // real seconds per game year at 1x
+const LOSS_LIMIT = 0.75;    // share of land underwater that ends the run
+const STEP = 0.5;           // metres of wall per BUILD press
+
+// Approximate public figures. GDP: current US$ billions (World Bank, 2023). Population: millions (World Bank, 2023).
+// Mean elevation (m) and coastline (km): CIA World Factbook. id is the ISO 3166-1 numeric code used by world-atlas.
+const COUNTRIES = [
+  { id: '528', name: 'Netherlands',    iso: 'NL', gdp: 1118,  pop: 17.9,   elev: 30,   coast: 451 },
+  { id: '050', name: 'Bangladesh',     iso: 'BD', gdp: 437,   pop: 172.9,  elev: 85,   coast: 580 },
+  { id: '208', name: 'Denmark',        iso: 'DK', gdp: 404,   pop: 5.9,    elev: 34,   coast: 7314 },
+  { id: '056', name: 'Belgium',        iso: 'BE', gdp: 632,   pop: 11.8,   elev: 181,  coast: 67 },
+  { id: '704', name: 'Vietnam',        iso: 'VN', gdp: 430,   pop: 100.3,  elev: 398,  coast: 3444 },
+  { id: '328', name: 'Guyana',         iso: 'GY', gdp: 16.8,  pop: 0.8,    elev: 207,  coast: 459 },
+  { id: '826', name: 'United Kingdom', iso: 'GB', gdp: 3340,  pop: 68.3,   elev: 162,  coast: 12429 },
+  { id: '372', name: 'Ireland',        iso: 'IE', gdp: 545,   pop: 5.3,    elev: 118,  coast: 1448 },
+  { id: '276', name: 'Germany',        iso: 'DE', gdp: 4456,  pop: 84.5,   elev: 263,  coast: 2389 },
+  { id: '250', name: 'France',         iso: 'FR', gdp: 3031,  pop: 68.2,   elev: 375,  coast: 3427 },
+  { id: '724', name: 'Spain',          iso: 'ES', gdp: 1581,  pop: 48.4,   elev: 660,  coast: 4964 },
+  { id: '620', name: 'Portugal',       iso: 'PT', gdp: 287,   pop: 10.5,   elev: 372,  coast: 1793 },
+  { id: '380', name: 'Italy',          iso: 'IT', gdp: 2255,  pop: 58.8,   elev: 538,  coast: 7600 },
+  { id: '818', name: 'Egypt',          iso: 'EG', gdp: 396,   pop: 112.7,  elev: 321,  coast: 2450 },
+  { id: '566', name: 'Nigeria',        iso: 'NG', gdp: 363,   pop: 223.8,  elev: 380,  coast: 853 },
+  { id: '710', name: 'South Africa',   iso: 'ZA', gdp: 377,   pop: 60.4,   elev: 1034, coast: 2798 },
+  { id: '450', name: 'Madagascar',     iso: 'MG', gdp: 16,    pop: 30.3,   elev: 615,  coast: 4828 },
+  { id: '356', name: 'India',          iso: 'IN', gdp: 3550,  pop: 1428.6, elev: 160,  coast: 7000 },
+  { id: '144', name: 'Sri Lanka',      iso: 'LK', gdp: 84,    pop: 22.0,   elev: 228,  coast: 1340 },
+  { id: '764', name: 'Thailand',       iso: 'TH', gdp: 515,   pop: 71.8,   elev: 287,  coast: 3219 },
+  { id: '360', name: 'Indonesia',      iso: 'ID', gdp: 1371,  pop: 277.5,  elev: 367,  coast: 54716 },
+  { id: '608', name: 'Philippines',    iso: 'PH', gdp: 437,   pop: 117.3,  elev: 442,  coast: 36289 },
+  { id: '156', name: 'China',          iso: 'CN', gdp: 17795, pop: 1410.7, elev: 1840, coast: 14500 },
+  { id: '410', name: 'South Korea',    iso: 'KR', gdp: 1713,  pop: 51.7,   elev: 282,  coast: 2413 },
+  { id: '392', name: 'Japan',          iso: 'JP', gdp: 4213,  pop: 124.5,  elev: 438,  coast: 29751 },
+  { id: '036', name: 'Australia',      iso: 'AU', gdp: 1724,  pop: 26.6,   elev: 330,  coast: 25760 },
+  { id: '554', name: 'New Zealand',    iso: 'NZ', gdp: 253,   pop: 5.2,    elev: 388,  coast: 15134 },
+  { id: '840', name: 'United States',  iso: 'US', gdp: 27361, pop: 334.9,  elev: 760,  coast: 19924 },
+  { id: '484', name: 'Mexico',         iso: 'MX', gdp: 1789,  pop: 128.5,  elev: 1111, coast: 9330 },
+  { id: '192', name: 'Cuba',           iso: 'CU', gdp: 107,   pop: 11.2,   elev: 108,  coast: 3735 },
+  { id: '076', name: 'Brazil',         iso: 'BR', gdp: 2174,  pop: 216.4,  elev: 320,  coast: 7491 },
+  { id: '032', name: 'Argentina',      iso: 'AR', gdp: 641,   pop: 46.7,   elev: 595,  coast: 4989 },
+];
+// Nations you can call on for help: everyone above, plus a few wealthy non-playable ones.
+const HELPERS = [
+  ...COUNTRIES.map(c => ({ name: c.name, iso: c.iso, gdp: c.gdp })),
+  { name: 'Norway', iso: 'NO', gdp: 485 }, { name: 'Switzerland', iso: 'CH', gdp: 885 },
+  { name: 'Saudi Arabia', iso: 'SA', gdp: 1068 }, { name: 'United Arab Emirates', iso: 'AE', gdp: 504 },
+  { name: 'Singapore', iso: 'SG', gdp: 501 }, { name: 'Canada', iso: 'CA', gdp: 2140 },
+  { name: 'Sweden', iso: 'SE', gdp: 593 }, { name: 'Qatar', iso: 'QA', gdp: 235 },
+];
+
+const DIFFS = [
+  { key: 'slow',    name: 'Slow Melt',         r0: 0.035, accel: 0.011, desc: 'Gentle start, slow acceleration' },
+  { key: 'bau',     name: 'Business as Usual', r0: 0.05,  accel: 0.012, desc: 'The water means it' },
+  { key: 'runaway', name: 'Runaway',           r0: 0.075, accel: 0.014, desc: 'Ice sheets have given up' },
+];
+
+const CARDS = [
+  { id: 'precast',   r: 'common', icon: '🧱', name: 'Precast Panels',       text: 'More wall per $: wall costs −12%.',                 apply: s => { s.mods.wallCost *= 0.88; } },
+  { id: 'tax',       r: 'common', icon: '💰', name: 'Tax Reform',           text: 'Income +12%.',                                      apply: s => { s.mods.income *= 1.12; } },
+  { id: 'percap',    r: 'common', icon: '📈', name: 'Productivity Drive',   text: 'More $ per person: income +8%, GDP +3%.',           apply: s => { s.mods.income *= 1.08; s.gdp *= 1.03; } },
+  { id: 'overtime',  r: 'common', icon: '⏱️', name: 'Overtime Shifts',      text: 'People work harder: build speed +25%.',             apply: s => { s.mods.build *= 1.25; } },
+  { id: 'babyboom',  r: 'common', icon: '👶', name: 'Baby Boom',            text: 'Population +6%, build speed +8%.',                  apply: s => { s.pop *= 1.06; s.mods.build *= 1.08; } },
+  { id: 'tourism',   r: 'common', icon: '📸', name: 'Last-Chance Tourism',  text: 'Gain 3 years of income right now.',                 apply: s => { s.funds += 3 * incomeNow(s); } },
+  { id: 'sandbags',  r: 'common', icon: '🪣', name: 'Sandbag Brigades',     text: 'Pumps drain floods 0.4 m/yr faster.',               apply: s => { s.mods.pump += 0.4; } },
+  { id: 'dutch',     r: 'rare',   icon: '🌷', name: 'Dutch Know-how',       text: 'Every wall holds back an extra 0.4 m of water.',    apply: s => { s.mods.freeboard += 0.4; } },
+  { id: 'greenbond', r: 'rare',   icon: '🌿', name: 'Green Bonds',          text: 'Income +20%.',                                      apply: s => { s.mods.income *= 1.2; } },
+  { id: 'diplomats', r: 'rare',   icon: '🤝', name: 'Career Diplomats',     text: 'Alert cooldown −30%, help offers +25% stronger.',   apply: s => { s.mods.alertCd *= 0.7; s.mods.alertPower *= 1.25; } },
+  { id: 'mangroves', r: 'rare',   icon: '🌳', name: 'Mangrove Belts',       text: 'Storm surges hit 30% softer.',                      apply: s => { s.mods.surge *= 0.7; } },
+  { id: 'remote',    r: 'rare',   icon: '💻', name: 'Remote Work',          text: 'Flooding hurts the economy 25% less.',              apply: s => { s.mods.floodLoss *= 0.75; } },
+  { id: 'cranes',    r: 'rare',   icon: '🏗️', name: 'Automated Cranes',     text: 'Build speed +40%.',                                 apply: s => { s.mods.build *= 1.4; } },
+  { id: 'rebar',     r: 'rare',   icon: '🔩', name: 'Basalt Rebar',         text: 'Wall costs −15%. Overtopping erodes walls half as fast.', apply: s => { s.mods.wallCost *= 0.85; s.mods.erosion *= 0.5; } },
+  { id: 'floating',  r: 'epic',   icon: '🛟', name: 'Floating Cities',      text: 'Flooding hurts the economy 45% less.',              apply: s => { s.mods.floodLoss *= 0.55; } },
+  { id: 'tidal',     r: 'epic',   icon: '🌊', name: 'Tidal Power',          text: '+3% income for every metre the sea has risen (up to 15 m).',     apply: s => { s.mods.tidal += 0.03; } },
+  { id: 'reclaim',   r: 'epic',   icon: '🚜', name: 'Land Reclamation',     text: 'Pumps drain floods 1.2 m/yr faster.',               apply: s => { s.mods.pump += 1.2; } },
+  { id: 'sovereign', r: 'epic',   icon: '🏦', name: 'Sovereign Wealth Fund', text: 'GDP growth +0.8% per year.',                       apply: s => { s.mods.growth += 0.008; } },
+  { id: 'megaproj',  r: 'epic',   icon: '🏛️', name: 'Delta Megaproject',    text: 'Wall costs −30%, and +1 m of wall for free.',       apply: s => { s.mods.wallCost *= 0.7; s.wallTarget += 1; } },
+];
+const CARD_LIMIT = { common: 3, rare: 2, epic: 1 }; // times a card can be taken per run
+const RESERVE = { id: 'reserve', r: 'common', icon: '🪙', name: 'Rainy Day Fund', text: 'Gain 2 years of income right now.', apply: s => { s.funds += 2 * incomeNow(s); } };
+const CARD_BY_ID = Object.fromEntries([...CARDS, RESERVE].map(c => [c.id, c]));
+
+const DEVS = [
+  { key: 'treasury',  icon: '💰', name: 'Money',  sub: 'Treasury',  base: 1.5, grow: 1.45, text: 'Income up, with diminishing returns' },
+  { key: 'industry',  icon: '🏭', name: 'Growth', sub: 'Industry',  base: 2.0, grow: 1.5,  text: 'GDP growth up, with diminishing returns' },
+  { key: 'workforce', icon: '👷', name: 'People', sub: 'Workforce', base: 1.3, grow: 1.45, text: 'Build speed +25%, population +3%' },
+  { key: 'pumps',     icon: '🚰', name: 'Pumps',  sub: 'Drainage',  base: 1.1, grow: 1.5,  text: 'Drain floods +0.4 m/yr' },
+];
+
+// ---------- small helpers ----------
+const $ = s => document.querySelector(s);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const flag = iso => String.fromCodePoint(...[...iso].map(c => 0x1F1E6 + c.charCodeAt(0) - 65));
+const fmtMoney = b => {
+  const a = Math.abs(b), sign = b < 0 ? '−' : '';
+  if (a >= 1000) return sign + '$' + (a / 1000).toFixed(2) + 'T';
+  if (a >= 10) return sign + '$' + a.toFixed(0) + 'B';
+  if (a >= 1) return sign + '$' + a.toFixed(1) + 'B';
+  return sign + '$' + Math.round(a * 1000) + 'M';
+};
+const fmtPop = m => m >= 1000 ? (m / 1000).toFixed(2) + 'B' : m >= 10 ? m.toFixed(0) + 'M' : m >= 1 ? m.toFixed(1) + 'M' : Math.round(m * 1000) + 'K';
+const fmtM = m => m.toFixed(2) + ' m';
+function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function hash2(x, y, s) { let h = (x * 374761393 + y * 668265263 + s * 982451653) | 0; h = Math.imul(h ^ (h >>> 13), 1274126177); h ^= h >>> 16; return (h >>> 0) / 4294967296; }
+function vnoise(x, y, s) {
+  const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi;
+  const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+  const a = hash2(xi, yi, s), b = hash2(xi + 1, yi, s), c = hash2(xi, yi + 1, s), d = hash2(xi + 1, yi + 1, s);
+  return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+}
+function fbm(x, y, s) { let t = 0, amp = 0.5, f = 1, n = 0; for (let o = 0; o < 4; o++) { t += amp * vnoise(x * f, y * f, s + o * 17); n += amp; amp *= 0.5; f *= 2; } return t / n; }
+const store = {
+  get(k) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch { return null; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+  del(k) { try { localStorage.removeItem(k); } catch {} },
+};
+
+// ---------- country economics ----------
+const gameElev = c => clamp(0.8 * Math.sqrt(c.elev), 2.5, 22);       // mean land height used by the game, metres
+const coastFactor = c => clamp(Math.pow(c.coast / 3000, 0.35), 0.55, 2.2);
+const costRatio = c => clamp(12 * coastFactor(c) * Math.pow(c.gdp, -0.25), 0.8, 3.5); // years of starting income per 0.5 m of wall
+function stars(c) {
+  const a = Math.log(costRatio(c) / 0.8) / Math.log(3.5 / 0.8);
+  const b = 1 - (gameElev(c) - 2.5) / 19.5;
+  return clamp(1 + Math.round((a * 0.6 + b * 0.4) * 4), 1, 5);
+}
+
+// ---------- world data ----------
+let FEATURES = null;
+const featureById = id => FEATURES.find(f => f.id === id);
+function polysOf(f) { const g = f && f.geometry; if (!g) return []; return g.type === 'Polygon' ? [g.coordinates] : g.type === 'MultiPolygon' ? g.coordinates : []; }
+function polyInfo(p) {
+  const r = p[0]; let a = 0, x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+  for (let i = 0; i < r.length; i++) {
+    const [x, y] = r[i], [x2, y2] = r[(i + 1) % r.length];
+    a += x * y2 - x2 * y; x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y);
+  }
+  const cy = (y0 + y1) / 2;
+  return { p, area: Math.abs(a) / 2 * Math.cos(cy * Math.PI / 180), box: [x0, y0, x1, y1], cx: (x0 + x1) / 2, cy };
+}
+// The country's mainland plus nearby islands; drops far-flung territories (Alaska, French Guiana, the Canaries...).
+function mainBox(f) {
+  const ps = polysOf(f).map(polyInfo).sort((a, b) => b.area - a.area);
+  const used = new Set([0]); let box = [...ps[0].box]; let changed = true;
+  while (changed) {
+    changed = false;
+    const ex = Math.max(6, 0.3 * (box[2] - box[0])), ey = Math.max(5, 0.3 * (box[3] - box[1]));
+    ps.forEach((q, i) => {
+      if (used.has(i)) return;
+      if (q.cx >= box[0] - ex && q.cx <= box[2] + ex && q.cy >= box[1] - ey && q.cy <= box[3] + ey) {
+        used.add(i); changed = true;
+        box = [Math.min(box[0], q.box[0]), Math.min(box[1], q.box[1]), Math.max(box[2], q.box[2]), Math.max(box[3], q.box[3])];
+      }
+    });
+  }
+  return box;
+}
+
+// ---------- map generation ----------
+function buildMapData(country, seed) {
+  const f = featureById(country.id);
+  const b = mainBox(f);
+  let w = b[2] - b[0], h = b[3] - b[1];
+  let lon0 = b[0] - (0.15 * w + 0.6), lon1 = b[2] + (0.15 * w + 0.6);
+  let lat0 = b[1] - (0.15 * h + 0.6), lat1 = b[3] + (0.15 * h + 0.6);
+  const kx = Math.cos((lat0 + lat1) / 2 * Math.PI / 180);
+  // keep the frame from getting too thin in either direction
+  let ww = (lon1 - lon0) * kx, hh = lat1 - lat0;
+  if (ww / hh < 0.8) { const add = (0.8 * hh - ww) / kx / 2; lon0 -= add; lon1 += add; ww = (lon1 - lon0) * kx; }
+  if (ww / hh > 1.8) { const add = (ww / 1.8 - hh) / 2; lat0 -= add; lat1 += add; hh = lat1 - lat0; }
+  const scale = 190 / Math.max(ww, hh);
+  const W = Math.max(40, Math.round(ww * scale)), H = Math.max(40, Math.round(hh * scale));
+
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d', { willReadFrequently: true });
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+  const px = lon => (lon - lon0) / (lon1 - lon0) * W, py = lat => (lat1 - lat) / (lat1 - lat0) * H;
+  const drawFeature = (feat, color) => {
+    ctx.fillStyle = color; ctx.beginPath();
+    for (const poly of polysOf(feat)) for (const ring of poly) {
+      ring.forEach(([x, y], i) => i ? ctx.lineTo(px(x), py(y)) : ctx.moveTo(px(x), py(y)));
+      ctx.closePath();
+    }
+    ctx.fill('evenodd');
+  };
+  for (const feat of FEATURES) if (feat.id !== country.id) drawFeature(feat, '#00ff00');
+  drawFeature(f, '#ff0000');
+  const img = ctx.getImageData(0, 0, W, H).data;
+
+  const N = W * H;
+  const type = new Uint8Array(N); // 0 sea, 1 foreign land, 2 own land
+  for (let i = 0; i < N; i++) {
+    const r = img[i * 4], g = img[i * 4 + 1];
+    type[i] = r + g < 110 ? 0 : r >= g ? 2 : 1;
+  }
+  // sea that can't reach the frame edge is a rasterising seam between two countries: give it to the land around it
+  const open = new Uint8Array(N); const oq = [];
+  for (let x = 0; x < W; x++) for (const y of [0, H - 1]) { const i = y * W + x; if (!type[i] && !open[i]) { open[i] = 1; oq.push(i); } }
+  for (let y = 0; y < H; y++) for (const x of [0, W - 1]) { const i = y * W + x; if (!type[i] && !open[i]) { open[i] = 1; oq.push(i); } }
+  while (oq.length) {
+    const i = oq.pop(), x = i % W, y = (i / W) | 0;
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const nx = x + dx, ny = y + dy; if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue;
+      const j = ny * W + nx; if (!type[j] && !open[j]) { open[j] = 1; oq.push(j); }
+    }
+  }
+  for (let i = 0; i < N; i++) if (!type[i] && !open[i]) {
+    const x = i % W, y = (i / W) | 0; let o = 0, f = 0;
+    for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) {
+      const nx = x + dx, ny = y + dy; if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue;
+      const t = type[ny * W + nx]; if (t === 2) o++; else if (t === 1) f++;
+    }
+    type[i] = o >= f ? 2 : 1;
+  }
+  const bfs = (isSource, canWalk) => {
+    const dist = new Int16Array(N).fill(-1); const q = new Int32Array(N); let qh = 0, qt = 0;
+    for (let i = 0; i < N; i++) if (isSource(i)) { dist[i] = 0; q[qt++] = i; }
+    while (qh < qt) {
+      const i = q[qh++], x = i % W, y = (i / W) | 0;
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+        const nx = x + dx, ny = y + dy; if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue;
+        const j = ny * W + nx; if (dist[j] >= 0 || !canWalk(j)) continue;
+        dist[j] = dist[i] + 1; q[qt++] = j;
+      }
+    }
+    return dist;
+  };
+  const dSea = bfs(i => type[i] === 0, i => type[i] !== 0);
+  const dLand = bfs(i => type[i] !== 0, i => type[i] === 0);
+
+  const s1 = seed % 100000;
+  const elev = new Float32Array(N);
+  const own = [];
+  let maxD = 1;
+  for (let i = 0; i < N; i++) if (type[i] === 2) { own.push(i); if (dSea[i] > maxD) maxD = dSea[i]; }
+  const refD = Math.max(3, maxD * 0.85);
+  const meanG = gameElev(country);
+  const p = country.elev < 100 ? 1.9 : country.elev < 400 ? 1.4 : 1.15;
+  const raw = new Float32Array(N); let sum = 0;
+  for (const i of own) {
+    const x = i % W, y = (i / W) | 0;
+    const d = dSea[i] < 0 ? maxD : dSea[i];
+    const n = fbm(x * 0.06, y * 0.06, s1);
+    const ridge = 1 - Math.abs(fbm(x * 0.03 + 7, y * 0.03 + 3, s1 + 5) * 2 - 1);
+    const base = Math.pow(Math.min(1, d / refD), p);
+    raw[i] = base * (0.35 + 0.9 * n + 0.6 * ridge * ridge) + 0.02 * n;
+    sum += raw[i];
+  }
+  const k = own.length ? meanG / (sum / own.length) : 1;
+  for (const i of own) {
+    const x = i % W, y = (i / W) | 0;
+    elev[i] = 0.3 + 1.2 * fbm(x * 0.2, y * 0.2, s1 + 9) + raw[i] * k;
+  }
+  for (let i = 0; i < N; i++) {
+    const x = i % W, y = (i / W) | 0;
+    if (type[i] === 1) {
+      const d = dSea[i] < 0 ? 60 : dSea[i];
+      elev[i] = 0.4 + Math.pow(Math.min(1, d / 40), 1.3) * (3 + 14 * fbm(x * 0.05, y * 0.05, s1 + 3)) + fbm(x * 0.2, y * 0.2, s1 + 11);
+    } else if (type[i] === 0) {
+      const d = dLand[i] < 0 ? 30 : dLand[i];
+      elev[i] = -1.2 - Math.min(d, 30) * 0.45 - fbm(x * 0.1, y * 0.1, s1 + 13) * 2;
+    }
+  }
+
+  // walls: own cells touching anything that isn't own land
+  const walls = [];
+  for (const i of own) {
+    const x = i % W, y = (i / W) | 0;
+    const nb = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+    if (nb.some(([dx, dy]) => { const nx = x + dx, ny = y + dy; return nx < 0 || ny < 0 || nx >= W || ny >= H || type[ny * W + nx] !== 2; })) walls.push(i);
+  }
+
+  // where people live: coasts are crowded
+  const weight = new Float32Array(N);
+  for (const i of own) { const d = Math.max(0, dSea[i]); weight[i] = 1 + 4 * Math.exp(-d / 5) * (0.4 + fbm((i % W) * 0.15, ((i / W) | 0) * 0.15, s1 + 21)); }
+  const sorted = own.slice().sort((a, b) => elev[a] - elev[b]);
+  const sElev = new Float32Array(sorted.length), cumW = new Float32Array(sorted.length);
+  let acc = 0;
+  sorted.forEach((i, n) => { sElev[n] = elev[i]; acc += weight[i]; cumW[n] = acc; });
+
+  const rnd = mulberry32(seed + 77);
+  const buildings = [];
+  const tries = Math.min(own.length * 3, 5000);
+  const maxW = 5;
+  for (let t = 0; t < tries && buildings.length < 380; t++) {
+    const i = own[(rnd() * own.length) | 0];
+    if (rnd() * maxW < weight[i] && !buildings.includes(i)) buildings.push(i);
+  }
+
+  let cx = 0, cz = 0, mnx = 1e9, mxx = -1e9, mnz = 1e9, mxz = -1e9;
+  for (const i of own) { const x = i % W, y = (i / W) | 0; cx += x; cz += y; mnx = Math.min(mnx, x); mxx = Math.max(mxx, x); mnz = Math.min(mnz, y); mxz = Math.max(mxz, y); }
+  cx /= own.length; cz /= own.length;
+  return { W, H, type, elev, own, walls, sElev, cumW, totalW: acc, buildings, center: [cx, cz], extent: [mxx - mnx, mxz - mnz], lonlat: [(lon0 + lon1) / 2, (lat0 + lat1) / 2] };
+}
+function fracBelow(map, level) {
+  const a = map.sElev; let lo = 0, hi = a.length;
+  while (lo < hi) { const m = (lo + hi) >> 1; if (a[m] < level) lo = m + 1; else hi = m; }
+  return { area: lo / a.length, pop: lo ? map.cumW[lo - 1] / map.totalW : 0 };
+}
+
+// ---------- three.js ----------
+const canvas = $('#gl');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+const SKY = 0xa9cde6;
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(SKY);
+scene.fog = new THREE.Fog(SKY, 200, 500);
+const camera = new THREE.PerspectiveCamera(42, 1, 0.5, 3000);
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true; controls.enablePan = false;
+controls.minPolarAngle = 0.25; controls.maxPolarAngle = 1.2;
+controls.minAzimuthAngle = -0.9; controls.maxAzimuthAngle = 0.9;
+controls.enabled = false;
+scene.add(new THREE.HemisphereLight(0xe8f4ff, 0x40503a, 1.1));
+const sun = new THREE.DirectionalLight(0xfff0d8, 1.9);
+sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); sun.shadow.bias = -0.0008; sun.shadow.normalBias = 0.3;
+scene.add(sun, sun.target);
+
+const Y = e => e >= 0 ? 4 * Math.log(1 + e / 2.5) : e * 0.35; // metres -> world height, stretched near sea level
+const rgb = hex => new THREE.Vector3(((hex >> 16) & 255) / 255, ((hex >> 8) & 255) / 255, (hex & 255) / 255);
+
+const waterVS = `
+  varying vec3 vW;
+  void main() { vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }`;
+const waterFS = `
+  uniform sampler2D uMap; uniform vec2 uGrid; uniform float uLevel; uniform float uTime; uniform int uMode;
+  uniform vec3 uShallow; uniform vec3 uDeep; uniform float uFoam; uniform vec3 uFog; uniform float uFogNear; uniform float uFogFar; uniform vec3 uSun;
+  varying vec3 vW;
+  void main() {
+    vec2 uv = vec2((vW.x + uGrid.x * 0.5) / uGrid.x, (vW.z + uGrid.y * 0.5) / uGrid.y);
+    bool inside = uv.x > 0.0 && uv.x < 1.0 && uv.y > 0.0 && uv.y < 1.0;
+    vec4 t = texture2D(uMap, clamp(uv, 0.0, 1.0));
+    float own = inside ? t.r : 0.0;
+    if (uMode == 0 && own > 0.5) discard;
+    if (uMode == 1 && own < 0.5) discard;
+    float h = inside ? t.g * 80.0 - 20.0 : -20.0;
+    float depth = uLevel - h;
+    vec3 col = mix(uShallow, uDeep, smoothstep(0.0, 12.0, depth));
+    vec2 p = vW.xz;
+    float a1 = p.x * 0.35 + uTime * 1.3, a2 = p.y * 0.29 - uTime * 1.1, a3 = (p.x + p.y) * 0.9 + uTime * 2.1;
+    vec3 n = normalize(vec3(0.10 * cos(a1) + 0.05 * cos(a3), 1.0, 0.10 * cos(a2) + 0.05 * cos(a3)));
+    vec3 V = normalize(cameraPosition - vW);
+    float diff = clamp(dot(n, uSun), 0.0, 1.0);
+    float spec = pow(max(dot(n, normalize(uSun + V)), 0.0), 90.0) * 0.7;
+    float fres = pow(1.0 - max(dot(n, V), 0.0), 3.0);
+    col = col * (0.6 + 0.4 * diff) + spec + fres * vec3(0.18, 0.26, 0.34);
+    float foam = 1.0 - smoothstep(0.0, 0.45, depth);
+    col = mix(col, vec3(0.93, 0.97, 1.0), uFoam * foam * (0.45 + 0.25 * sin(uTime * 3.0 + p.x * 1.7 + p.y)));
+    float d = length(cameraPosition - vW);
+    col = mix(col, uFog, smoothstep(uFogNear, uFogFar, d));
+    gl_FragColor = vec4(col, 1.0);
+  }`;
+function waterMat(mode, shallow, deep) {
+  return new THREE.ShaderMaterial({
+    vertexShader: waterVS, fragmentShader: waterFS,
+    uniforms: {
+      uMap: { value: null }, uGrid: { value: new THREE.Vector2(1, 1) }, uLevel: { value: 0 }, uTime: { value: 0 }, uMode: { value: mode },
+      uShallow: { value: rgb(shallow) }, uDeep: { value: rgb(deep) }, uFoam: { value: mode === 0 ? 1 : 0.35 }, uFog: { value: rgb(SKY) },
+      uFogNear: { value: 200 }, uFogFar: { value: 500 }, uSun: { value: new THREE.Vector3(0.4, 0.8, 0.3).normalize() },
+    },
+  });
+}
+
+let world = null; // { map, group, terrain, sea, flood, wallMesh, bldMesh, ... }
+function disposeWorld() {
+  if (!world) return;
+  scene.remove(world.group);
+  world.group.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose?.(); });
+  world.tex.dispose();
+  world = null;
+}
+function landColor(e, foreign) {
+  const stops = [[0, 0xd9c79a], [1.2, 0xc9c08a], [2.5, 0x7fae5a], [8, 0x4f8d45], [18, 0x3d6f3a], [32, 0x7a6b52], [55, 0x8d8a86], [80, 0xf2f2f2]];
+  let c0 = stops[0], c1 = stops[stops.length - 1];
+  for (let i = 0; i < stops.length - 1; i++) if (e >= stops[i][0] && e < stops[i + 1][0]) { c0 = stops[i]; c1 = stops[i + 1]; break; }
+  if (e >= stops[stops.length - 1][0]) c0 = c1;
+  const t = c1 === c0 ? 0 : (e - c0[0]) / (c1[0] - c0[0]);
+  const col = new THREE.Color(c0[1]).lerp(new THREE.Color(c1[1]), t);
+  if (foreign) { const g = (col.r + col.g + col.b) / 3; col.lerp(new THREE.Color(g, g, g), 0.7).multiplyScalar(0.62); }
+  return col;
+}
+function buildWorld(map) {
+  disposeWorld();
+  const { W, H, type, elev } = map;
+  const group = new THREE.Group();
+  const geo = new THREE.PlaneGeometry(W - 1, H - 1, W - 1, H - 1); geo.rotateX(-Math.PI / 2);
+  const pos = geo.attributes.position, cols = new Float32Array(W * H * 3);
+  const sand = new THREE.Color(0xc2b280), deep = new THREE.Color(0x3c4a52);
+  for (let i = 0; i < W * H; i++) {
+    pos.setY(i, Y(elev[i]));
+    let c;
+    if (type[i] === 0) c = sand.clone().lerp(deep, clamp(-elev[i] / 12, 0, 1));
+    else c = landColor(elev[i], type[i] === 1);
+    cols[i * 3] = c.r; cols[i * 3 + 1] = c.g; cols[i * 3 + 2] = c.b;
+  }
+  geo.setAttribute('color', new THREE.BufferAttribute(cols, 3));
+  geo.computeVertexNormals();
+  const terrain = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.95, metalness: 0 }));
+  terrain.receiveShadow = true; terrain.castShadow = true;
+  group.add(terrain);
+
+  // mask texture: R = own land, G = height (for water colour)
+  const data = new Uint8Array(W * H * 4);
+  for (let i = 0; i < W * H; i++) {
+    data[i * 4] = type[i] === 2 ? 255 : 0;
+    data[i * 4 + 1] = Math.round(clamp((elev[i] + 20) / 80, 0, 1) * 255);
+    data[i * 4 + 3] = 255;
+  }
+  const tex = new THREE.DataTexture(data, W, H, THREE.RGBAFormat);
+  tex.magFilter = THREE.LinearFilter; tex.minFilter = THREE.LinearFilter; tex.needsUpdate = true;
+
+  const big = Math.max(W, H) * 10;
+  const sea = new THREE.Mesh(new THREE.PlaneGeometry(big, big).rotateX(-Math.PI / 2), waterMat(0, 0x5fc8d8, 0x1a4f7a));
+  const flood = new THREE.Mesh(new THREE.PlaneGeometry(W + 2, H + 2).rotateX(-Math.PI / 2), waterMat(1, 0x5f8e8c, 0x2f5a6e));
+  for (const m of [sea, flood]) { m.material.uniforms.uMap.value = tex; m.material.uniforms.uGrid.value.set(W, H); group.add(m); }
+
+  const wallGeo = new THREE.BoxGeometry(1.04, 1, 1.04); wallGeo.translate(0, 0.5, 0);
+  const wallMat = new THREE.MeshStandardMaterial({ color: 0xd4cab4, roughness: 0.85, flatShading: true, emissive: 0x000000 });
+  const wallMesh = new THREE.InstancedMesh(wallGeo, wallMat, map.walls.length);
+  wallMesh.castShadow = true; wallMesh.receiveShadow = true;
+  group.add(wallMesh);
+
+  const bGeo = new THREE.BoxGeometry(0.75, 1, 0.75); bGeo.translate(0, 0.5, 0);
+  const bMesh = new THREE.InstancedMesh(bGeo, new THREE.MeshStandardMaterial({ roughness: 0.7, flatShading: true }), map.buildings.length);
+  bMesh.castShadow = true;
+  const rnd = mulberry32(W * 31 + H), bh = map.buildings.map(() => 0.35 + rnd() * rnd() * 1.4);
+  const palette = [0xf4efe6, 0xe8d8c4, 0xd9e2ea, 0xf2c9a0, 0xc7d3dd];
+  map.buildings.forEach((_, n) => bMesh.setColorAt(n, new THREE.Color(palette[(rnd() * palette.length) | 0])));
+  group.add(bMesh);
+
+  scene.add(group);
+  const size = Math.max(W, H);
+  scene.fog.near = size * 1.1; scene.fog.far = size * 2.6;
+  for (const m of [sea, flood]) { m.material.uniforms.uFogNear.value = scene.fog.near; m.material.uniforms.uFogFar.value = scene.fog.far; }
+
+  const cx = map.center[0] - (W - 1) / 2, cz = map.center[1] - (H - 1) / 2;
+  const ext = Math.max(map.extent[0], map.extent[1] * 1.2, 30);
+  controls.target.set(cx, 2, cz);
+  camera.position.set(cx, ext * 0.75, cz + ext * 0.95);
+  controls.minDistance = ext * 0.25; controls.maxDistance = ext * 1.9;
+  controls.minAzimuthAngle = -0.9; controls.maxAzimuthAngle = 0.9;
+  controls.update();
+  sun.position.set(cx - size * 0.4, size * 0.9, cz + size * 0.5); sun.target.position.set(cx, 0, cz);
+  const sc = sun.shadow.camera; sc.left = -size * 0.7; sc.right = size * 0.7; sc.top = size * 0.7; sc.bottom = -size * 0.7; sc.near = 1; sc.far = size * 3; sc.updateProjectionMatrix();
+
+  world = { map, group, terrain, sea, flood, wallMesh, bMesh, bh, tex, lastWall: -99, lastFlood: -99 };
+  updateWalls(true); updateBuildings(true);
+}
+const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _v = new THREE.Vector3(), _s = new THREE.Vector3();
+function updateWalls(force) {
+  if (!world || !S) return;
+  if (!force && Math.abs(world.lastWall - S.wall) < 0.005) return;
+  world.lastWall = S.wall;
+  const { map, wallMesh } = world, { W, H, elev } = map;
+  const top = Y(S.wall);
+  map.walls.forEach((i, n) => {
+    const x = i % W - (W - 1) / 2, z = ((i / W) | 0) - (H - 1) / 2;
+    const base = Y(elev[i]) - 0.4;
+    const hgt = S.wall > elev[i] ? top - base : 0.0001;
+    _m.compose(_v.set(x, base, z), _q, _s.set(1, hgt, 1));
+    wallMesh.setMatrixAt(n, _m);
+  });
+  wallMesh.instanceMatrix.needsUpdate = true;
+}
+function updateBuildings(force) {
+  if (!world || !S) return;
+  if (!force && Math.abs(world.lastFlood - S.flood) < 0.02) return;
+  world.lastFlood = S.flood;
+  const { map, bMesh, bh } = world, { W, H, elev } = map;
+  map.buildings.forEach((i, n) => {
+    const x = i % W - (W - 1) / 2, z = ((i / W) | 0) - (H - 1) / 2;
+    const gone = elev[i] < S.flood;
+    _m.compose(_v.set(x, Y(elev[i]) - 0.1, z), _q, _s.set(1, gone ? 0.0001 : bh[n], 1));
+    bMesh.setMatrixAt(n, _m);
+  });
+  bMesh.instanceMatrix.needsUpdate = true;
+}
+
+// ---------- globe (menu backdrop + in-game inset) ----------
+const gScene = new THREE.Scene();
+const SPACE = new THREE.Color(0x06111c);
+const gCam = new THREE.PerspectiveCamera(30, 1, 0.1, 50);
+gCam.position.set(0, 0, 4.2);
+gScene.add(new THREE.AmbientLight(0xffffff, 0.55));
+const gLight = new THREE.DirectionalLight(0xffffff, 1.6); gLight.position.set(-3, 2, 4); gScene.add(gLight);
+const gTilt = new THREE.Group(), gSpin = new THREE.Group(); gTilt.add(gSpin); gScene.add(gTilt);
+const gCanvas = document.createElement('canvas'); gCanvas.width = 2048; gCanvas.height = 1024;
+const gTex = new THREE.CanvasTexture(gCanvas); gTex.colorSpace = THREE.SRGBColorSpace; gTex.anisotropy = 4;
+const globe = new THREE.Mesh(new THREE.SphereGeometry(1, 96, 64), new THREE.MeshStandardMaterial({ map: gTex, roughness: 0.75 }));
+gSpin.add(globe);
+const atmo = new THREE.Mesh(new THREE.SphereGeometry(1.06, 64, 32), new THREE.MeshBasicMaterial({ color: 0x6fc0ff, transparent: true, opacity: 0.12, side: THREE.BackSide }));
+gTilt.add(atmo);
+let globeHighlight = null;
+function drawGlobe(highlightId) {
+  const ctx = gCanvas.getContext('2d'), Wg = gCanvas.width, Hg = gCanvas.height;
+  const grd = ctx.createLinearGradient(0, 0, 0, Hg); grd.addColorStop(0, '#15406a'); grd.addColorStop(0.5, '#1d5c90'); grd.addColorStop(1, '#15406a');
+  ctx.fillStyle = grd; ctx.fillRect(0, 0, Wg, Hg);
+  const px = x => (x + 180) / 360 * Wg, py = y => (90 - y) / 180 * Hg;
+  for (const f of FEATURES) {
+    const hl = f.id === highlightId, playable = COUNTRIES.some(c => c.id === f.id);
+    ctx.fillStyle = hl ? '#ff5a4f' : playable ? '#8fb86a' : '#6d9054';
+    ctx.strokeStyle = hl ? '#fff' : 'rgba(20,40,20,.55)'; ctx.lineWidth = hl ? 2.5 : 0.8;
+    ctx.beginPath();
+    for (const poly of polysOf(f)) for (const ring of poly) { ring.forEach(([x, y], i) => i ? ctx.lineTo(px(x), py(y)) : ctx.moveTo(px(x), py(y))); ctx.closePath(); }
+    ctx.fill('evenodd'); ctx.stroke();
+  }
+  gTex.needsUpdate = true; globeHighlight = highlightId;
+}
+let globeAim = null; // { lon, lat } to face, or null to spin
+function globeAngles(lon, lat) { const phi = (lon + 180) / 360 * Math.PI * 2; return { y: Math.PI / 2 - phi, x: lat * Math.PI / 180 }; }
+function angleLerp(a, b, t) { let d = ((b - a) % (Math.PI * 2) + Math.PI * 3) % (Math.PI * 2) - Math.PI; return a + d * t; }
+
+// ---------- game state ----------
+let S = null, MAP = null, COUNTRY = null, DIFF = null;
+let mode = 'loading'; // loading | menu | setup | history | game
+let paused = false, modalOpen = false, sheetMode = null, speed = 1;
+
+const income0 = s => 0.04 * s.gdp0;
+function dealMult(s) { return s.deals.filter(d => d.until > s.year).reduce((m, d) => m * d.mult, 1); }
+function wallCost(s) { const h = Math.max(0, s.wallTarget); return costRatio(COUNTRY) * income0(s) * Math.pow(1 + 0.12 * h, 1.7) * Math.pow(1.08, h) * Math.max(0.4, s.mods.wallCost) * dealMult(s); }
+function devCost(s, d) { return d.base * 0.04 * s.gdp * Math.pow(d.grow, s.lv[d.key]); }
+const industryBonus = lv => 0.015 * (1 - Math.pow(0.8, lv));
+const treasuryBonus = lv => 0.8 * (1 - Math.pow(0.84, lv));
+function riseRate(s) { return DIFF.r0 * Math.pow(1 + DIFF.accel, s.year); }
+function floodState(s) { return fracBelow(MAP, s.flood); }
+function incomeNow(s) {
+  const f = floodState(s);
+  return 0.04 * s.gdp * Math.min(3, s.mods.income) * (1 + treasuryBonus(s.lv.treasury)) * (1 - clamp(f.pop * 0.9 * s.mods.floodLoss, 0, 0.95)) * (1 + s.mods.tidal * clamp(s.sea, 0, 15));
+}
+function buildRate(s) {
+  const f = floodState(s);
+  const crews = s.crews.filter(c => c.until > s.year).reduce((a, c) => a + c.rate, 0);
+  return 0.4 * s.mods.build * (1 + 0.25 * s.lv.workforce) * Math.sqrt(Math.max(0.05, s.pop * (1 - f.pop * 0.7)) / s.pop0) + crews;
+}
+function pumpRate(s) { return 0.25 + 0.4 * s.lv.pumps + s.mods.pump + s.pumpCrews.filter(c => c.until > s.year).reduce((a, c) => a + c.rate, 0); }
+
+function newState(country, diff) {
+  const seed = (Math.random() * 1e9) | 0;
+  const s = {
+    v: 1, countryId: country.id, diffKey: diff.key, seed, year: 0, sea: 0, surge: 0,
+    gdp: country.gdp, gdp0: country.gdp, pop: country.pop, pop0: country.pop,
+    wall: 1.0, wallTarget: 1.0, flood: -1, nextMeter: 1,
+    lv: { treasury: 0, industry: 0, workforce: 0, pumps: 0 },
+    mods: { wallCost: 1, income: 1, build: 1, freeboard: 0, surge: 1, floodLoss: 1, alertCd: 1, alertPower: 1, pump: 0, growth: 0, tidal: 0, erosion: 1 },
+    pending: 0, cards: [], crews: [], pumpCrews: [], deals: [], asked: {}, offers: null, alertReadyAt: 3,
+    storm: { at: 9 + Math.random() * 5, amp: 0.6 + Math.random() * 0.5, warned: false },
+    stats: { peakWall: 1, built: 0, spentWall: 0, spentDev: 0, helped: 0, maxLost: 0 },
+    over: false,
+  };
+  s.funds = 2 * income0(s);
+  return s;
+}
+
+// ---------- simulation ----------
+function step(dt) {
+  const s = S;
+  s.year += dt;
+  s.sea += riseRate(s) * dt;
+
+  // storms
+  const st = s.storm;
+  if (!st.warned && s.year >= st.at - 2) { st.warned = true; toast(`🌀 Storm surge forecast in 2 years: up to +${(st.amp * s.mods.surge).toFixed(1)} m`, 'warn'); }
+  if (s.year >= st.at && s.year <= st.at + 0.8) s.surge = st.amp * s.mods.surge * Math.sin(Math.PI * (s.year - st.at) / 0.8);
+  else s.surge = 0;
+  if (s.year > st.at + 0.8) { s.storm = { at: st.at + 6 + Math.random() * 7, amp: 0.5 + 0.014 * s.year + Math.random() * 0.8, warned: false }; }
+
+  // construction
+  if (s.wall < s.wallTarget) {
+    s.wall = Math.min(s.wallTarget, s.wall + buildRate(s) * dt);
+    if (s.wall >= s.wallTarget - 1e-6) toast(`🧱 Wall complete at ${s.wall.toFixed(1)} m`, 'good');
+  }
+  s.stats.peakWall = Math.max(s.stats.peakWall, s.wall);
+
+  // water vs wall
+  const water = s.sea + s.surge;
+  const defense = s.wall + s.mods.freeboard;
+  const over = water - defense;
+  if (over > 0) {
+    s.flood = Math.max(s.flood, Math.min(water, s.flood + (water - Math.max(s.flood, 0)) * Math.min(1, (0.5 + over * 1.6) * dt) + over * dt));
+    const erode = Math.min(0.12 * over * s.mods.erosion * dt, 0.5 * dt);
+    s.wall = Math.max(0, s.wall - erode); s.wallTarget = Math.max(s.wall, s.wallTarget - erode);
+    if (!s.overtopping) { s.overtopping = true; toast('🌊 The sea is over the wall! Build higher or call for help.', 'bad'); }
+  } else {
+    s.overtopping = false;
+    if (s.flood > -1) s.flood = Math.max(-1, s.flood - pumpRate(s) * dt);
+  }
+
+  // economy
+  const f = floodState(s);
+  s.funds += incomeNow(s) * dt;
+  const g = 0.01 + industryBonus(s.lv.industry) + s.mods.growth - 0.04 * f.pop;
+  s.gdp *= 1 + g * dt;
+  s.pop *= 1 + (0.003 - 0.004 * f.pop) * dt;
+  s.stats.maxLost = Math.max(s.stats.maxLost, f.area);
+
+  if (s.sea >= s.nextMeter) { s.nextMeter++; s.pending++; }
+  if (f.area >= LOSS_LIMIT) endRun('flooded');
+}
+
+// ---------- UI: screens ----------
+function show(id) {
+  for (const x of ['#loading', '#menu', '#setup', '#history']) $(x).hidden = x !== id;
+}
+function goMenu() {
+  mode = 'menu'; show('#menu'); $('#hud').hidden = true; closeSheet();
+  for (const m of ['#cardModal', '#pauseModal', '#overModal']) $(m).hidden = true;
+  modalOpen = false; paused = false;
+  disposeWorld(); S = null; MAP = null;
+  controls.enabled = false;
+  if (globeHighlight !== null) drawGlobe(null);
+  globeAim = null;
+  const save = store.get(SAVE_KEY);
+  const c = save && COUNTRIES.find(k => k.id === save.countryId);
+  $('#mResume').disabled = !c;
+  $('#mResumeSub').textContent = c ? `${flag(c.iso)} ${c.name}, ${START_YEAR + Math.floor(save.year)} · sea ${save.sea.toFixed(1)} m` : 'no run in progress';
+  const hist = store.get(HIST_KEY) || [];
+  $('#mHistSub').textContent = hist.length ? `${hist.length} run${hist.length > 1 ? 's' : ''} recorded` : 'your drowned nations';
+}
+
+let pickCountry = null, pickDiff = DIFFS[1];
+function openSetup() {
+  mode = 'setup'; show('#setup');
+  $('#diffs').innerHTML = DIFFS.map(d => `<button class="diff ${d === pickDiff ? 'on' : ''}" data-diff="${d.key}"><b>${d.name}</b><span>${d.desc} · ${(d.r0 * 100).toFixed(1)} cm/yr to start</span></button>`).join('');
+  $('#countries').innerHTML = COUNTRIES.slice().sort((a, b) => stars(a) - stars(b) || a.name.localeCompare(b.name)).map(c => `
+    <button class="cc ${pickCountry === c ? 'on' : ''}" data-c="${c.id}">
+      <span class="fl">${flag(c.iso)}</span><b>${c.name}</b>
+      <span class="st">GDP ${fmtMoney(c.gdp)} · ${fmtPop(c.pop)} people</span>
+      <span class="meta"><span>${c.coast.toLocaleString()} km coast · ${c.elev} m avg</span><span class="stars">${'★'.repeat(stars(c))}${'☆'.repeat(5 - stars(c))}</span></span>
+    </button>`).join('');
+  updatePick();
+}
+function updatePick() {
+  $('#startBtn').disabled = !pickCountry;
+  $('#pickLabel').innerHTML = pickCountry ? `${flag(pickCountry.iso)} <b>${pickCountry.name}</b> · ${pickDiff.name}` : 'Pick a country';
+}
+function openHistory() {
+  mode = 'history'; show('#history');
+  const hist = (store.get(HIST_KEY) || []).slice().sort((a, b) => b.years - a.years);
+  if (!hist.length) { $('#histBody').innerHTML = '<div class="empty">No runs yet. The sea is patient.</div>'; return; }
+  $('#histBody').innerHTML = `<table class="hist"><thead><tr><th>Country</th><th>Pace</th><th>Held until</th><th>Sea</th><th>Peak wall</th><th>Result</th></tr></thead><tbody>${
+    hist.map((h, i) => `<tr class="${i === 0 ? 'best' : ''}"><td>${flag(h.iso)} ${h.country}</td><td>${h.diff}</td><td class="num">${h.endYear} <span style="color:var(--dim)">(${h.years} yrs)</span></td><td class="num">${h.sea.toFixed(1)} m</td><td class="num">${h.wall.toFixed(1)} m</td><td>${h.result}</td></tr>`).join('')
+  }</tbody></table>`;
+}
+
+// ---------- start / resume / end ----------
+function startRun(state) {
+  S = state;
+  COUNTRY = COUNTRIES.find(c => c.id === S.countryId);
+  DIFF = DIFFS.find(d => d.key === S.diffKey) || DIFFS[1];
+  MAP = buildMapData(COUNTRY, S.seed);
+  buildWorld(MAP);
+  drawGlobe(COUNTRY.id);
+  globeAim = { lon: MAP.lonlat[0], lat: MAP.lonlat[1] };
+  mode = 'game'; show(null); $('#hud').hidden = false; controls.enabled = true;
+  paused = false; modalOpen = false; S.pending = S.pending || 0;
+  $('#hFlag').textContent = flag(COUNTRY.iso); $('#hName').textContent = COUNTRY.name;
+  toastsEl.innerHTML = '';
+  if (S.year === 0) toast(`Year ${START_YEAR}. ${COUNTRY.name} has ${S.wall.toFixed(1)} m of coastal defences. The water is coming.`);
+  save();
+}
+function recordHistory(result) {
+  const hist = store.get(HIST_KEY) || [];
+  hist.push({ country: COUNTRY.name, iso: COUNTRY.iso, diff: DIFF.name, years: Math.floor(S.year), endYear: START_YEAR + Math.floor(S.year), sea: S.sea, wall: S.stats.peakWall, result, date: Date.now(), cards: S.cards.length });
+  while (hist.length > 40) hist.shift();
+  store.set(HIST_KEY, hist);
+}
+function endRun(cause) {
+  if (S.over) return;
+  S.over = true; store.del(SAVE_KEY);
+  paused = false; $('#pauseModal').hidden = true; $('#cardModal').hidden = true;
+  recordHistory('Drowned');
+  closeSheet();
+  const f = floodState(S);
+  $('#overTitle').textContent = `${COUNTRY.name} is gone`;
+  $('#overLead').textContent = `In ${START_YEAR + Math.floor(S.year)} the sea stood ${S.sea.toFixed(1)} m above today and ${Math.round(f.area * 100)}% of the land was underwater. You held it for ${Math.floor(S.year)} years.`;
+  $('#overStats').innerHTML = [
+    ['Years held', Math.floor(S.year)], ['Sea level', S.sea.toFixed(1) + ' m'], ['Peak wall', S.stats.peakWall.toFixed(1) + ' m'],
+    ['Spent on walls', fmtMoney(S.stats.spentWall)], ['Spent developing', fmtMoney(S.stats.spentDev)], ['Nations helped', S.stats.helped],
+  ].map(([k, v]) => `<div><span>${k}</span><b class="num">${v}</b></div>`).join('');
+  $('#overCards').innerHTML = S.cards.map(id => `<span>${CARD_BY_ID[id].icon} ${CARD_BY_ID[id].name}</span>`).join('');
+  $('#overModal').hidden = false; modalOpen = true;
+}
+function save() {
+  if (!S || S.over) return;
+  store.set(SAVE_KEY, S);
+}
+setInterval(() => { if (mode === 'game') save(); }, 3000);
+document.addEventListener('visibilitychange', () => { if (document.hidden && mode === 'game') { save(); if (!modalOpen) setPaused(true); } });
+window.addEventListener('pagehide', () => { if (mode === 'game') save(); });
+
+// ---------- actions ----------
+function build() {
+  if (!S || S.over || modalOpen) return;
+  const c = wallCost(S);
+  if (S.funds < c) { toast(`Not enough funds: the next ${STEP} m costs ${fmtMoney(c)}`, 'bad'); pop('#bBuild'); return; }
+  S.funds -= c; S.wallTarget += STEP; S.stats.spentWall += c; S.stats.built += STEP;
+  pop('#bBuild');
+}
+function pop(sel) { const el = $(sel); el.animate([{ transform: 'scale(0.94)' }, { transform: 'scale(1)' }], { duration: 160 }); }
+
+function toggleSheet(kind) {
+  if (!S || S.over || modalOpen) return;
+  if (sheetMode === kind) { closeSheet(); return; }
+  sheetMode = kind; $('#sheet').hidden = false;
+  $('#bDev').classList.toggle('on', kind === 'dev'); $('#bAlert').classList.toggle('on', kind === 'alert');
+  renderSheet(true);
+}
+function closeSheet() { sheetMode = null; $('#sheet').hidden = true; $('#bDev').classList.remove('on'); $('#bAlert').classList.remove('on'); }
+let sheetSig = '';
+function renderSheet(force) {
+  if (!sheetMode || !S) return;
+  const el = $('#sheet');
+  if (sheetMode === 'dev') {
+    const sig = 'dev' + DEVS.map(d => S.lv[d.key] + ':' + (S.funds >= devCost(S, d))).join();
+    if (!force && sig === sheetSig) return; sheetSig = sig;
+    el.innerHTML = `<div class="sheet-head"><div><h3>DEVELOP</h3><div class="sub">Invest in the country behind the wall.</div></div><button class="ghost" data-close>✕</button></div>
+      <div class="opts">${DEVS.map(d => { const c = devCost(S, d), ok = S.funds >= c; return `
+        <button class="opt" data-dev="${d.key}" ${ok ? '' : 'disabled'}>
+          <div class="t"><b>${d.icon} ${d.name}</b><em>${d.sub} · lv ${S.lv[d.key]}</em></div>
+          <div class="d">${d.key === 'industry' ? `GDP growth +${((industryBonus(S.lv.industry + 1) - industryBonus(S.lv.industry)) * 100).toFixed(2)}%/yr` : d.key === 'treasury' ? `Income +${((treasuryBonus(S.lv.treasury + 1) - treasuryBonus(S.lv.treasury)) * 100).toFixed(1)}%` : d.text}</div>
+          <div class="p ${ok ? '' : 'cant'}">${fmtMoney(c)}</div>
+        </button>`; }).join('')}</div>`;
+  } else {
+    const ready = S.year >= S.alertReadyAt;
+    if (ready && !S.offers) S.offers = genOffers(S);
+    const sig = 'alert' + ready + (ready ? S.offers.map(o => S.funds >= o.price).join() : Math.ceil(S.alertReadyAt - S.year));
+    if (!force && sig === sheetSig) return; sheetSig = sig;
+    const head = `<div class="sheet-head"><div><h3>ALERT</h3><div class="sub">Ask another nation for help. One deal per call.</div></div><button class="ghost" data-close>✕</button></div>`;
+    if (!ready) { el.innerHTML = head + `<div class="cooldown-msg">Diplomatic channels are recovering.<br>Next call possible in <b class="num">${Math.ceil(S.alertReadyAt - S.year)}</b> years.</div>`; return; }
+    el.innerHTML = head + `<div class="opts">${S.offers.map((o, i) => { const ok = S.funds >= o.price; return `
+      <button class="opt helper" data-offer="${i}" ${ok ? '' : 'disabled'}>
+        <div class="t"><b><span>${flag(o.iso)}</span>${o.helper}</b><em>${o.kind}</em></div>
+        <div class="d">${o.text}</div>
+        <div class="p ${o.price === 0 ? 'free' : ok ? '' : 'cant'}">${o.price === 0 ? 'Free, but they will remember (longer cooldown)' : fmtMoney(o.price)}</div>
+      </button>`; }).join('')}</div>`;
+  }
+}
+function buyDev(key) {
+  const d = DEVS.find(x => x.key === key), c = devCost(S, d);
+  if (S.funds < c) return;
+  S.funds -= c; S.stats.spentDev += c; S.lv[key]++;
+  if (key === 'workforce') S.pop *= 1.03;
+  toast(`${d.icon} ${d.sub} upgraded to level ${S.lv[key]}`, 'good');
+  renderSheet(true);
+}
+function genOffers(s) {
+  const pool = HELPERS.filter(h => h.name !== COUNTRY.name);
+  const picks = [];
+  const rnd = Math.random;
+  while (picks.length < 3) {
+    const tot = pool.reduce((a, h) => a + Math.sqrt(h.gdp), 0); let r = rnd() * tot;
+    const h = pool.find(x => (r -= Math.sqrt(x.gdp)) <= 0) || pool[0];
+    if (!picks.includes(h)) picks.push(h);
+  }
+  const kinds = ['engineers', 'aid', 'dredgers', 'pumps', 'concrete'].sort(() => rnd() - 0.5);
+  const inc = income0(s);
+  return picks.map((h, i) => {
+    const kind = kinds[i];
+    const dutch = h.iso === 'NL' && kind !== 'aid' && kind !== 'concrete' ? 1.4 : 1;
+    const sc = clamp(Math.pow(h.gdp / s.gdp0, 0.25), 0.6, 1.8) * s.mods.alertPower * dutch;
+    const pm = 1 + 0.35 * (s.asked[h.name] || 0);
+    const o = { helper: h.name, iso: h.iso, type: kind };
+    if (kind === 'engineers') { o.kind = 'Hire engineers'; o.rate = +(0.3 * sc).toFixed(2); o.yrs = 12; o.price = 1.0 * inc * sc * pm; o.text = `Their crews build your wall ${o.rate} m/yr faster for ${o.yrs} years.`; }
+    if (kind === 'aid') { o.kind = 'Emergency aid'; o.amount = 2.5 * inc * sc; o.price = 0; o.text = `A grant of ${fmtMoney(o.amount)}, straight into your funds.`; }
+    if (kind === 'dredgers') { o.kind = 'Dredging fleet'; o.h = +(0.5 * sc).toFixed(1); o.price = wallCost(s) * o.h / STEP * 0.8 * pm; o.text = `Raise your wall target by ${o.h} m, built by their fleet at 20% off.`; }
+    if (kind === 'pumps') { o.kind = 'Pump teams'; o.drop = +(1.5 * sc).toFixed(1); o.rate = +(0.6 * sc).toFixed(1); o.price = 0.7 * inc * sc * pm; o.text = `Drain ${o.drop} m of floodwater now, then +${o.rate} m/yr pumping for 8 years.`; }
+    if (kind === 'concrete') { o.kind = 'Concrete deal'; o.mult = +(1 - clamp(0.2 * sc, 0.1, 0.35)).toFixed(2); o.price = 0.9 * inc * sc * pm; o.text = `Wall costs −${Math.round((1 - o.mult) * 100)}% for 10 years.`; }
+    if (dutch > 1) o.text += ' (Dutch specialty)';
+    return o;
+  });
+}
+function takeOffer(i) {
+  const o = S.offers && S.offers[i]; if (!o || S.funds < o.price) return;
+  S.funds -= o.price;
+  let cd = 10 * S.mods.alertCd;
+  if (o.type === 'engineers') S.crews.push({ rate: o.rate, until: S.year + o.yrs });
+  if (o.type === 'aid') { S.funds += o.amount; cd *= 1.5; }
+  if (o.type === 'dredgers') S.wallTarget += o.h;
+  if (o.type === 'pumps') { S.flood = Math.max(-1, S.flood - o.drop); S.pumpCrews.push({ rate: o.rate, until: S.year + 8 }); }
+  if (o.type === 'concrete') S.deals.push({ mult: o.mult, until: S.year + 10 });
+  S.asked[o.helper] = (S.asked[o.helper] || 0) + 1;
+  S.stats.helped++;
+  S.alertReadyAt = S.year + cd; S.offers = null;
+  toast(`${flag(o.iso)} ${o.helper} agreed: ${o.kind.toLowerCase()}`, 'good');
+  closeSheet();
+}
+
+// ---------- cards ----------
+function rollCards() {
+  const meter = S.nextMeter - S.pending;
+  const wE = 6 + meter * 0.6, wR = 26 + meter * 0.4, wC = Math.max(30, 68 - meter);
+  const out = [];
+  let guard = 0;
+  while (out.length < 3 && guard++ < 200) {
+    const r = Math.random() * (wE + wR + wC);
+    const rar = r < wE ? 'epic' : r < wE + wR ? 'rare' : 'common';
+    const pool = CARDS.filter(c => c.r === rar && !out.includes(c) && S.cards.filter(id => id === c.id).length < CARD_LIMIT[c.r]);
+    if (pool.length) out.push(pool[(Math.random() * pool.length) | 0]);
+  }
+  while (out.length < 3) out.push(RESERVE);
+  return out;
+}
+let dealt = null;
+function showCards() {
+  modalOpen = true; closeSheet();
+  dealt = rollCards();
+  const meter = S.nextMeter - S.pending;
+  $('#cardTitle').textContent = `Sea level +${meter} m`;
+  $('#cards').innerHTML = dealt.map((c, i) => `
+    <button class="card ${c.r}" data-card="${i}"><span class="k">${i + 1}</span><div class="ic">${c.icon}</div>
+      <div><div class="rr">${c.r}</div><b>${c.name}</b><p>${c.text}</p></div></button>`).join('');
+  $('#cardModal').hidden = false;
+}
+function pickCard(i) {
+  if (!dealt || !dealt[i]) return;
+  const c = dealt[i]; c.apply(S); S.cards.push(c.id); dealt = null;
+  S.pending--; $('#cardModal').hidden = true; modalOpen = false;
+  toast(`${c.icon} ${c.name}`, 'good');
+  save();
+}
+
+// ---------- toasts ----------
+const toastsEl = $('#toasts');
+function toast(msg, cls = '') {
+  const el = document.createElement('div'); el.className = 'toast ' + cls; el.textContent = msg;
+  toastsEl.prepend(el);
+  while (toastsEl.children.length > 4) toastsEl.lastChild.remove();
+  setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 450); }, 4200);
+}
+
+// ---------- HUD ----------
+function setPaused(p) {
+  if (mode !== 'game' || !S || S.over) return;
+  paused = p; $('#pauseModal').hidden = !p; modalOpen = p || !$('#cardModal').hidden;
+  $('#pauseBtn').textContent = p ? '▶' : '❚❚';
+}
+function updateHud() {
+  const s = S, f = floodState(s);
+  $('#hYear').textContent = `Year ${START_YEAR + Math.floor(s.year)} · ${DIFF.name}`;
+  const fe = $('#hFunds'); fe.textContent = fmtMoney(s.funds);
+  $('#hIncome').textContent = '+' + fmtMoney(incomeNow(s));
+  $('#hGdp').textContent = fmtMoney(s.gdp);
+  $('#hPop').textContent = fmtPop(s.pop);
+  const cost = wallCost(s);
+  $('#bBuildSub').textContent = `+${STEP} m · ${fmtMoney(cost)}`;
+  $('#bBuild').disabled = s.funds < cost;
+  const ready = s.year >= s.alertReadyAt;
+  $('#bAlertSub').textContent = ready ? 'ask for help' : `ready in ${Math.ceil(s.alertReadyAt - s.year)} yrs`;
+  $('#bAlert').classList.toggle('ready', ready);
+  $('#bAlertCd').style.width = ready ? '0%' : clamp((s.alertReadyAt - s.year) / (10 * s.mods.alertCd * 1.5), 0, 1) * 100 + '%';
+
+  const water = s.sea + s.surge, def = s.wall + s.mods.freeboard;
+  const top = Math.max(water, s.wallTarget, 2) * 1.25;
+  $('#gSea').style.height = (s.sea / top * 100) + '%';
+  $('#gSurge').style.bottom = (s.sea / top * 100) + '%'; $('#gSurge').style.height = (s.surge / top * 100) + '%';
+  $('#gWall').style.height = (def / top * 100) + '%';
+  $('#gTarget').style.bottom = ((s.wallTarget + s.mods.freeboard) / top * 100) + '%';
+  $('#gTarget').hidden = s.wallTarget - s.wall < 0.01;
+  $('#gSeaT').textContent = fmtM(s.sea) + (s.surge > 0.01 ? ` +${s.surge.toFixed(1)}` : '');
+  $('#gWallT').textContent = fmtM(s.wall) + (s.wallTarget - s.wall > 0.01 ? ` → ${s.wallTarget.toFixed(1)}` : '');
+  const margin = def - water, mt = $('#gMarginT');
+  mt.textContent = (margin >= 0 ? '+' : '') + margin.toFixed(2) + ' m'; mt.className = 'num ' + (margin < 0 ? 'bad' : margin < 0.6 ? '' : 'ok');
+  $('#gRateT').textContent = (riseRate(s) * 100).toFixed(1) + ' cm/yr';
+  const frac = s.sea - (s.nextMeter - 1);
+  $('#gNextT').textContent = `Next boon at +${s.nextMeter} m`;
+  $('#gNextBar').style.width = clamp(frac, 0, 1) * 100 + '%';
+  $('#gauge').classList.toggle('danger', margin < 0);
+  $('#flash').classList.toggle('on', margin < 0);
+  $('#landFill').style.width = clamp(f.area / LOSS_LIMIT, 0, 1) * LOSS_LIMIT * 100 + '%';
+  $('#landT').textContent = Math.round(f.area * 100) + '%';
+  renderSheet(false);
+}
+
+// ---------- events ----------
+document.addEventListener('click', e => {
+  const t = e.target.closest('button'); if (!t) return;
+  if (t.dataset.back !== undefined) goMenu();
+  else if (t.dataset.close !== undefined) closeSheet();
+  else if (t.dataset.diff) { pickDiff = DIFFS.find(d => d.key === t.dataset.diff); openSetup(); }
+  else if (t.dataset.c) {
+    pickCountry = COUNTRIES.find(c => c.id === t.dataset.c);
+    document.querySelectorAll('.cc').forEach(b => b.classList.toggle('on', b === t));
+    updatePick();
+    const b = mainBox(featureById(pickCountry.id));
+    globeAim = { lon: (b[0] + b[2]) / 2, lat: (b[1] + b[3]) / 2 };
+    drawGlobe(pickCountry.id);
+  }
+  else if (t.dataset.dev) buyDev(t.dataset.dev);
+  else if (t.dataset.offer !== undefined) takeOffer(+t.dataset.offer);
+  else if (t.dataset.card !== undefined) pickCard(+t.dataset.card);
+});
+$('#mPlay').onclick = openSetup;
+$('#mHistory').onclick = openHistory;
+$('#mResume').onclick = () => { const s = store.get(SAVE_KEY); if (s && COUNTRIES.some(c => c.id === s.countryId)) startRun(s); };
+$('#startBtn').onclick = () => {
+  if (!pickCountry) return;
+  const old = store.get(SAVE_KEY);
+  if (old) { // the abandoned run still counts
+    const pc = COUNTRY, pd = DIFF, ps = S;
+    COUNTRY = COUNTRIES.find(c => c.id === old.countryId); DIFF = DIFFS.find(d => d.key === old.diffKey) || DIFFS[1]; S = old;
+    if (COUNTRY) recordHistory('Abandoned');
+    COUNTRY = pc; DIFF = pd; S = ps;
+  }
+  startRun(newState(pickCountry, pickDiff));
+};
+$('#bBuild').onclick = build;
+$('#bDev').onclick = () => toggleSheet('dev');
+$('#bAlert').onclick = () => toggleSheet('alert');
+$('#pauseBtn').onclick = () => setPaused(!paused);
+$('#speedBtn').onclick = () => { speed = speed === 1 ? 2 : speed === 2 ? 4 : 1; $('#speedBtn').textContent = speed + '×'; };
+$('#pResume').onclick = () => setPaused(false);
+$('#pQuit').onclick = () => { save(); goMenu(); };
+$('#oMenu').onclick = goMenu;
+$('#oAgain').onclick = () => { const c = COUNTRY, d = DIFF; $('#overModal').hidden = true; startRun(newState(c, d)); };
+window.addEventListener('keydown', e => {
+  if (mode !== 'game' || !S || S.over) return;
+  const k = e.key.toLowerCase();
+  if (!$('#cardModal').hidden) { if (['1', '2', '3'].includes(k)) pickCard(+k - 1); return; }
+  if (k === ' ' || k === 'escape' || k === 'p') { e.preventDefault(); if (k === 'escape' && sheetMode) closeSheet(); else setPaused(!paused); return; }
+  if (paused) return;
+  if (k === 'b') build();
+  if (k === 'd') toggleSheet('dev');
+  if (k === 'a') toggleSheet('alert');
+});
+
+// ---------- loop ----------
+function resize() {
+  const w = window.innerWidth, h = window.innerHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h; camera.updateProjectionMatrix();
+}
+window.addEventListener('resize', resize); resize();
+
+const clock = new THREE.Clock();
+let hudT = 0, time = 0;
+function frame() {
+  requestAnimationFrame(frame);
+  const dt = Math.min(0.1, clock.getDelta()); time += dt;
+  const w = window.innerWidth, h = window.innerHeight;
+
+  if (mode === 'game' && S) {
+    if (!paused && !modalOpen && !S.over) {
+      let yrs = dt * speed / YEAR_SECONDS;
+      while (yrs > 0 && !S.over) { const d = Math.min(yrs, 0.05); step(d); yrs -= d; }
+      if (S.pending > 0 && !S.over) showCards();
+    }
+    // world
+    const water = S.sea + S.surge;
+    world.sea.position.y = Y(water); world.sea.material.uniforms.uLevel.value = water;
+    world.flood.visible = S.flood > -0.5;
+    world.flood.position.y = Y(Math.max(0, S.flood)); world.flood.material.uniforms.uLevel.value = S.flood;
+    world.sea.material.uniforms.uTime.value = time; world.flood.material.uniforms.uTime.value = time * 0.6;
+    updateWalls(); updateBuildings();
+    const building = S.wall < S.wallTarget - 0.001;
+    world.wallMesh.material.emissive.setHex(building ? 0x6a4a00 : S.overtopping ? 0x400000 : 0x000000);
+    world.wallMesh.material.emissiveIntensity = building ? 0.4 + 0.4 * Math.sin(time * 6) : 0.6;
+    controls.update();
+    renderer.setViewport(0, 0, w, h); renderer.setScissorTest(false);
+    renderer.render(scene, camera);
+    // inset globe
+    const gs = Math.min(150, Math.max(90, w * 0.14));
+    const gx = w - gs - 10, gy = h - gs - (w < 720 ? 130 : 64);
+    if (w >= 520 && globeAim) {
+      const a = globeAngles(globeAim.lon, globeAim.lat);
+      gSpin.rotation.y = a.y; gTilt.rotation.x = a.x;
+      renderer.setScissorTest(true); renderer.setScissor(gx, gy, gs, gs); renderer.setViewport(gx, gy, gs, gs);
+      gCam.aspect = 1; gCam.updateProjectionMatrix();
+      gScene.background = null;
+      renderer.autoClear = false; renderer.clearDepth();
+      renderer.render(gScene, gCam);
+      renderer.autoClear = true; renderer.setScissorTest(false);
+    }
+    hudT -= dt; if (hudT <= 0) { hudT = 0.1; updateHud(); }
+  } else {
+    // menu globe
+    if (globeAim) {
+      const a = globeAngles(globeAim.lon, globeAim.lat);
+      gSpin.rotation.y = angleLerp(gSpin.rotation.y, a.y, Math.min(1, dt * 3));
+      gTilt.rotation.x += (a.x * 0.8 - gTilt.rotation.x) * Math.min(1, dt * 3);
+    } else { gSpin.rotation.y += dt * 0.08; gTilt.rotation.x += (0.35 - gTilt.rotation.x) * Math.min(1, dt); }
+    gScene.background = SPACE;
+    gCam.aspect = w / h;
+    gCam.position.z = w / h < 1 ? 4.2 / (w / h) * 0.85 : 4.2;
+    gCam.updateProjectionMatrix();
+    renderer.setScissorTest(false); renderer.setViewport(0, 0, w, h);
+    renderer.render(gScene, gCam);
+  }
+}
+
+// ---------- boot ----------
+async function boot() {
+  try {
+    const res = await fetch(WORLD_URL);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const topo = await res.json();
+    FEATURES = topojson.feature(topo, topo.objects.countries).features;
+  } catch (err) {
+    $('#loadMsg').innerHTML = `Couldn't load the world map (${err.message}).<br><button class="ghost" style="margin-top:10px" onclick="location.reload()">Retry</button>`;
+    $('#loading .spin').hidden = true;
+    return;
+  }
+  drawGlobe(null);
+  goMenu();
+  frame();
+}
+boot();
+</script>
+<script>
+if (window.self !== window.top) {
+  const st = document.createElement("style");
+  st.textContent = "*, *::before, *::after { cursor: none !important; }";
+  document.head.appendChild(st);
+  const post = (kind, e) => {
+    const t = e && e.target instanceof Element ? e.target : null;
+    top.postMessage({
+      type: "pixel-cursor", kind,
+      x: e ? e.clientX : 0, y: e ? e.clientY : 0,
+      clickable: !!(t && t.closest("a, button, [role=button], input, select, textarea, label")),
+      draggable: !!(t && t.closest("[draggable=true]")),
+    }, "*");
+  };
+  document.addEventListener("mousemove", e => post("move", e), { passive: true });
+  document.addEventListener("mousedown", e => post("down", e), { passive: true });
+  document.addEventListener("mouseup",   e => post("up", e),   { passive: true });
+  document.addEventListener("mouseleave", () => post("leave"));
+}
+</script>
+</body>
+</html>
