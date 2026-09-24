@@ -169,8 +169,9 @@
   .cooldown-msg { text-align: center; padding: 14px; color: var(--dim); font-size: 14px; }
 
   /* ---------- modals ---------- */
-  .modal { position: fixed; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center; background: rgba(2, 8, 14, 0.7); backdrop-filter: blur(4px); padding: 16px; }
-  .modal .box { width: min(760px, 100%); max-height: 100%; overflow-y: auto; text-align: center; }
+  .modal { position: fixed; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center; background: rgba(2, 8, 14, 0.7); backdrop-filter: blur(4px); padding: 4px; }
+  /* padding holds the cards' deal-in transform, which would otherwise flash scrollbars */
+  .modal .box { width: min(760px, 100%); max-height: 100%; overflow-y: auto; text-align: center; padding: 36px 12px; }
   .modal h2 { margin: 0 0 4px; font-size: clamp(24px, 4vw, 34px); font-weight: 900; }
   .modal .lead { color: var(--dim); margin: 0 0 18px; font-size: 14px; }
   .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
@@ -206,7 +207,7 @@
     .gauge { top: auto; bottom: 168px; transform: none; width: 132px; padding: 8px; }
     .gauge .col { height: 80px; }
     .cards { grid-template-columns: 1fr; }
-    .card { flex-direction: row; text-align: left; padding: 12px; }
+    .card { flex-direction: row; text-align: left; padding: 12px 12px 12px 26px; }
     .card .ic { font-size: 30px; }
     .opts { grid-template-columns: 1fr; }
     .diffs { grid-template-columns: 1fr; }
