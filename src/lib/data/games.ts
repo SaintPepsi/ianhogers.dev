@@ -55,4 +55,17 @@ export const games: Game[] = [
     theme: '#ddb7ff',
     hint: 'open it in a second tab to meet yourself',
   },
+  {
+    slug: 'high-water',
+    title: 'High Water',
+    blurb:
+      'Pick a real country, get its real GDP, and hold back a sea that never stops rising. Three buttons: build the wall higher, develop the economy behind it, or call another nation for help. Every metre the water climbs you pick a boon. None of them save you. The only question is what year it ends.',
+    cover: '/assets/games/high-water.webp',
+    play: '/games/high-water.html',
+    embed: '/games/high-water.html',
+    tags: ['3d strategy', 'roguelike', 'three.js', 'single html file'],
+    accent: 'amber',
+    theme: '#3fa2e6',
+    hint: 'B build · D develop · A alert · space pauses',
+  },
 ];
