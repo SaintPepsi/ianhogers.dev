@@ -196,17 +196,20 @@
   .shelf-arrow.left svg {
     transform: scaleX(-1);
   }
-  /* Out beside the centred tile, over the neighbours, but never past the screen edge.
-     50% is the screen centre (the column is centred); (100vw - 100%) / 2 is the column's gutter. */
+  /* Pinned to the screen edges. The wrap sits in the centred column, so (100vw - 100%) / 2 is its gutter. */
+  .shelf-arrow {
+    --inset: 1rem;
+  }
   .shelf-arrow.left {
-    left: max(calc(0.5rem - (100vw - 100%) / 2), calc(50% - var(--tile) / 2 - 2rem - var(--size)));
+    left: calc(var(--inset) - (100vw - 100%) / 2);
   }
   .shelf-arrow.right {
-    right: max(calc(0.5rem - (100vw - 100%) / 2), calc(50% - var(--tile) / 2 - 2rem - var(--size)));
+    right: calc(var(--inset) - (100vw - 100%) / 2);
   }
   @media (max-width: 640px) {
     .shelf-arrow {
       --size: 3rem;
+      --inset: 0.5rem;
     }
   }
 </style>
