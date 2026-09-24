@@ -1,6 +1,6 @@
 <script lang="ts">
   import SlopPoliceCordon from '$lib/components/SlopPoliceCordon.svelte';
-  import GameTile from '$lib/components/GameTile.svelte';
+  import GameShelf from '$lib/components/GameShelf.svelte';
   import ArcadeCabinet from '$lib/components/ArcadeCabinet.svelte';
   import { games } from '$lib/data/games';
   let { data } = $props();
@@ -144,12 +144,7 @@
   </div>
   <p class="text-gray-500 font-mono text-xs mb-4">small games, big opinions &middot; the shelf scrolls sideways</p>
 
-  <!-- Full-bleed shelf: first tile lines up with the content column, the rest hang off the right edge -->
-  <div class="game-shelf">
-    {#each games as game (game.slug)}
-      <GameTile {game} />
-    {/each}
-  </div>
+  <GameShelf {games} />
 </section>
 
 <ArcadeCabinet />
@@ -174,30 +169,3 @@
     </a>
   </div>
 </section>
-
-<style>
-  /* Break out of the max-w-3xl column. Left padding lands the first tile on the column edge. */
-  .game-shelf {
-    --col: 48rem;
-    --gutter: 1rem;
-    position: relative;
-    left: 50%;
-    width: 100vw;
-    margin-left: -50vw;
-    display: flex;
-    gap: 1.5rem;
-    padding: 0.75rem max(var(--gutter), calc((100vw - var(--col)) / 2 + 1.5rem)) 1.5rem;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scroll-padding-inline: max(var(--gutter), calc((100vw - var(--col)) / 2 + 1.5rem));
-    scrollbar-width: none;
-  }
-  .game-shelf::-webkit-scrollbar {
-    display: none;
-  }
-  @media (min-width: 640px) {
-    .game-shelf {
-      --gutter: 1.5rem;
-    }
-  }
-</style>

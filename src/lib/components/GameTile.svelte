@@ -53,7 +53,7 @@
 <style>
   .game-tile {
     flex: 0 0 min(32rem, 86vw);
-    scroll-snap-align: start;
+    scroll-snap-align: center;
     padding: 3px; /* pixel-box border thickness; the cover sits inside it */
     transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
