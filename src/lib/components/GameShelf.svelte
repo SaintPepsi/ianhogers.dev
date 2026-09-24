@@ -87,6 +87,8 @@
 </script>
 
 <div class="shelf-wrap">
+  <!-- A scrollable region must be focusable so keyboard users can scroll it (axe: scrollable-region-focusable) -->
+  <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
   <div
     class="game-shelf"
     class:dragging
@@ -98,19 +100,28 @@
     onpointercancel={onPointerUp}
     onclickcapture={onClickCapture}
     ondragstart={(e) => e.preventDefault()}
+    id="game-shelf"
     role="region"
     aria-label="Games"
+    tabindex="0"
   >
     {#each games as game (game.slug)}
       <GameTile {game} />
     {/each}
   </div>
 
-  <button type="button" class="shelf-arrow left" disabled={atStart} onclick={() => goTo(centredIndex() - 1)} aria-label="Previous game">
-    <img src="/assets/pixel-art/ui/green_up_arrow_tiny.png" alt="" class="pixel-sprite w-4 h-4 -rotate-90" />
+  {#snippet chevron()}
+    <!-- pixel chevron pointing right; the left button mirrors it -->
+    <svg viewBox="0 0 7 12" width="14" height="24" aria-hidden="true" shape-rendering="crispEdges" fill="currentColor">
+      <rect x="0" y="0" width="3" height="2" /><rect x="2" y="2" width="3" height="2" /><rect x="4" y="4" width="3" height="2" />
+      <rect x="4" y="6" width="3" height="2" /><rect x="2" y="8" width="3" height="2" /><rect x="0" y="10" width="3" height="2" />
+    </svg>
+  {/snippet}
+  <button type="button" class="shelf-arrow left" disabled={atStart} onclick={() => goTo(centredIndex() - 1)} aria-label="Previous game" aria-controls="game-shelf">
+    {@render chevron()}
   </button>
-  <button type="button" class="shelf-arrow right" disabled={atEnd} onclick={() => goTo(centredIndex() + 1)} aria-label="Next game">
-    <img src="/assets/pixel-art/ui/green_up_arrow_tiny.png" alt="" class="pixel-sprite w-4 h-4 rotate-90" />
+  <button type="button" class="shelf-arrow right" disabled={atEnd} onclick={() => goTo(centredIndex() + 1)} aria-label="Next game" aria-controls="game-shelf">
+    {@render chevron()}
   </button>
 </div>
 
@@ -144,7 +155,13 @@
     user-select: none;
   }
 
+  .game-shelf:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: -3px;
+  }
+
   .shelf-arrow {
+    --size: 3.5rem;
     position: absolute;
     /* Middle of the 16:10 cover, so the arrows never sit on the tile's text. */
     top: calc(0.75rem + var(--tile) * 0.3125);
@@ -152,34 +169,44 @@
     z-index: 30;
     display: grid;
     place-items: center;
-    width: 2.75rem;
-    height: 2.75rem;
-    background: rgba(30, 26, 40, 0.85);
-    border: 2px solid #2a2438;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
-    transition: opacity 0.2s ease, border-color 0.2s ease;
+    width: var(--size);
+    height: var(--size);
+    color: #14111c;
+    background: #a78bfa;
+    border: 3px solid #14111c;
+    box-shadow: 4px 4px 0 #000, 0 0 0 2px rgba(167, 139, 250, 0.35);
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.15s ease, opacity 0.2s ease;
   }
-  .shelf-arrow:hover:not(:disabled) {
-    border-color: #a78bfa;
+  .shelf-arrow:hover {
+    background: #c4b5fd;
+  }
+  .shelf-arrow:active {
+    transform: translate(2px, calc(-50% + 2px));
+    box-shadow: 2px 2px 0 #000;
+  }
+  .shelf-arrow:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 3px;
   }
   .shelf-arrow:disabled {
     opacity: 0;
-    pointer-events: none;
+    visibility: hidden;
   }
-  /* Sit on the edges of the centred tile, clear of the neighbours peeking in. */
+  .shelf-arrow.left svg {
+    transform: scaleX(-1);
+  }
+  /* Out beside the centred tile, over the neighbours, but never past the screen edge.
+     50% is the screen centre (the column is centred); (100vw - 100%) / 2 is the column's gutter. */
   .shelf-arrow.left {
-    left: calc(50% - var(--tile) / 2 - 1.375rem);
+    left: max(calc(0.5rem - (100vw - 100%) / 2), calc(50% - var(--tile) / 2 - 2rem - var(--size)));
   }
   .shelf-arrow.right {
-    right: calc(50% - var(--tile) / 2 - 1.375rem);
+    right: max(calc(0.5rem - (100vw - 100%) / 2), calc(50% - var(--tile) / 2 - 2rem - var(--size)));
   }
   @media (max-width: 640px) {
-    .shelf-arrow.left {
-      left: 0.25rem;
-    }
-    .shelf-arrow.right {
-      right: 0.25rem;
+    .shelf-arrow {
+      --size: 3rem;
     }
   }
 </style>
