@@ -350,6 +350,7 @@ const START_YEAR = 2026;
 const YEAR_SECONDS = 2.2;   // real seconds per game year at 1x
 const LOSS_LIMIT = 0.75;    // share of land underwater that ends the run
 const STEP = 0.5;           // metres of wall per BUILD press
+const FLOOD_RATE = 1.2;     // floodwater rise, m/yr, per (metre overtopped)^1.5
 
 // Approximate public figures. GDP: current US$ billions (World Bank, 2023). Population: millions (World Bank, 2023).
 // Mean elevation (m) and coastline (km): CIA World Factbook. id is the ISO 3166-1 numeric code used by world-atlas.
@@ -926,7 +927,9 @@ function step(dt) {
   const defense = s.wall + s.mods.freeboard;
   const over = water - defense;
   if (over > 0) {
-    s.flood = Math.max(s.flood, Math.min(water, s.flood + (water - Math.max(s.flood, 0)) * Math.min(1, (0.5 + over * 1.6) * dt) + over * dt));
+    // floodwater rises with how much pours over the wall, not with how far the sea stands above the land,
+    // so a late overtop gives the player years to build or call for help instead of ending the run
+    s.flood = Math.min(water, Math.max(s.flood, 0) + FLOOD_RATE * Math.pow(over, 1.5) * dt);
     const erode = Math.min(0.12 * over * s.mods.erosion * dt, 0.5 * dt);
     s.wall = Math.max(0, s.wall - erode); s.wallTarget = Math.max(s.wall, s.wallTarget - erode);
     if (!s.overtopping) { s.overtopping = true; toast('🌊 The sea is over the wall! Build higher or call for help.', 'bad'); }
