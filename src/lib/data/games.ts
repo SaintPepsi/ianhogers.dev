@@ -68,4 +68,16 @@ export const games: Game[] = [
     theme: '#3fa2e6',
     hint: 'B build · D develop · A alert · space pauses',
   },
+  {
+    slug: 'one-door-urr',
+    title: 'One Door Urr..',
+    blurb:
+      'One door closes, many more open. Every door wants something from you. The same door gets easier each time you go through it, and pays less for it. Some pay nothing however hard you push. Then one slams shut, and all you have to do is look around.',
+    cover: '/assets/games/one-door-urr.webp',
+    play: '/games/one-door-urr.html',
+    embed: '/games/one-door-urr.html',
+    tags: ['typing game', 'life', 'three.js', 'single html file'],
+    accent: 'amber',
+    theme: '#ffb38a',
+  },
 ];
