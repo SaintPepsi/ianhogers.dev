@@ -33,6 +33,12 @@
   #score { position: fixed; top: 14px; right: 18px; pointer-events: none; font-size: 24px; font-weight: 900;
     font-variant-numeric: tabular-nums; opacity: 0; transition: opacity 1s; text-shadow: 0 2px 12px rgba(20, 10, 40, 0.5); }
   #score.on { opacity: 0.9; }
+  #energy { position: fixed; top: 20px; left: 18px; display: flex; gap: 5px; pointer-events: none; opacity: 0; transition: opacity 1s; }
+  #energy.on { opacity: 0.9; }
+  #energy i { width: 11px; height: 18px; border-radius: 4px; background: rgba(255, 255, 255, 0.22); box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.5); transition: background 0.4s, box-shadow 0.4s; }
+  #energy i.on { background: #7dffb0; box-shadow: 0 0 10px #4cd28a, inset 0 0 0 1.5px #c9ffe0; }
+  #energy.flash { animation: nope 0.4s ease; }
+  #energy.flash i { box-shadow: 0 0 12px #ff6b6b, inset 0 0 0 2px #ff8a8a; }
   .pop { position: fixed; left: 50%; top: 38%; pointer-events: none; font-weight: 900; font-size: clamp(30px, 6vw, 58px);
     font-variant-numeric: tabular-nums; text-shadow: 0 3px 20px rgba(0, 0, 0, 0.35); animation: popup 1.9s ease-out forwards; }
   .pop.zero { opacity: 0.6; font-size: clamp(22px, 4vw, 34px); }
@@ -61,6 +67,7 @@
 <div id="say"></div>
 <div id="buf"></div>
 <div id="score">0</div>
+<div id="energy"></div>
 <div id="veil"></div>
 <div id="ctrl">
   <button id="micBtn" title="Talk" aria-label="Talk" hidden><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
@@ -105,7 +112,7 @@ const T = {
   graduate:  { c: '#6fd3ff', l: ['graduate'], v: 34, fx: 'confetti', once: true, nx: ['work', 'travel', 'party'] },
   library:   { c: '#b08a62', l: ['library', 'lib', 'l'], v: 8, fx: 'books', nx: ['read', 'study'] },
   health:    { c: '#4cd28a', l: ['exercise', 'exrcise', 'exrc', 'ex', 'x'], v: 15, fx: 'rise', ev: ['injured'], nx: ['walk', 'rest'], drive: 0 },
-  family:    { c: '#ff8fa3', l: ['call home', 'call hme', 'home', 'hm', 'h'], v: 18, fx: 'hearts', nx: ['hug', 'cook'], drive: 0 },
+  family:    { c: '#ff8fa3', l: ['call home', 'home', 'hm', 'h'], v: 18, fx: 'hearts', nx: ['hug', 'cook'], drive: 0 },
   hug:       { c: '#ff6f91', l: ['hug'], v: 30, fx: 'hearts', drive: 0 },
   rest:      { c: '#9ad7ff', l: ['rest', 'rst', 'r'], v: 7, fx: 'bloom', drive: 0 },
   scroll:    { c: '#8a8aa8', l: ['scroll', 'scroll more', 'keep scrolling', 'just one more video'], grind: true, v: 5, fx: 'warp', nx: ['sleep'] },
@@ -139,37 +146,101 @@ Object.assign(T.cook, { ev: ['burnt'] }); Object.assign(T.sleep, { ev: ['insomni
 Object.assign(T.walk, { ev: ['raining'] }); Object.assign(T.library, { ev: ['closed'] });
 Object.assign(T.freelance, { ev: ['no clients'] }); Object.assign(T['new career'], { ev: ['not hiring'] });
 Object.assign(T.retrain, { ev: ['course full'] }); Object.assign(T['move city'], { ev: ['no vacancy'] });
+// Getting somewhere takes steps: a job needs applications, a degree needs a diploma first.
+// Doors with a req only show up once it's met.
+Object.assign(T, {
+  apply: { c: '#7aa2ff', l: ['apply for jobs', 'apply for job', 'apply', 'aply', 'ap'], v: 6, fx: 'paper', ev: ['rejected'], nx: ['coffee', 'study', 'job offer'] },
+  'job offer': { c: '#ffd84a', l: ['accept the offer'], v: 30, fx: 'confetti', nx: ['work'] },
+  diploma: { c: '#6fd3ff', l: ['get my diploma'], v: 30, fx: 'confetti', once: true, nx: ['university', 'apply'] },
+  university: { c: '#6f8cff', l: ['university', 'uni', 'u'], v: 14, fx: 'books', ev: ['dropped out'], nx: ['graduate', 'library', 'party'] },
+});
+Object.assign(T.graduate, { l: ['get my degree'], nx: ['apply', 'travel', 'party'] });
+T.study.nx = ['exam', 'library', 'coffee', 'diploma']; T.exam.nx = ['diploma', 'study']; T.quit.once = false;
+T.apply.req = () => !life.hired;
+T['job offer'].req = () => !life.hired && life.applies >= Math.max(1, 3 - life.diploma - life.degree);
+T.work.req = () => life.hired;
+T.overtime.req = () => life.hired && S('work').n >= 2;
+T.promotion.req = () => life.hired && S('work').n >= 3;
+T.quit.req = () => life.hired && S('work').n >= 2;
+T.exam.req = () => S('study').n >= 2;
+T.diploma.req = () => known('exam');
+T.university.req = () => life.diploma;
+T.graduate.req = () => S('university').n >= 2;
+const open_ = (k) => !T[k].req || T[k].req();
+
+// Wearing a word down never drops more than one letter a pass: working, workin, worki, work, wrk...
+function isSubseq(a, b) { let j = 0; for (const ch of b) if (ch === a[j]) j++; return j === a.length; }
+function smoothLadder(l) {
+  const out = [l[0]];
+  for (let i = 1; i < l.length; i++) {
+    let cur = out[out.length - 1];
+    const next = l[i];
+    while (letters(cur) - letters(next) > 1 && isSubseq(next, cur)) {
+      let k = cur.length - 1;
+      while (k >= 0 && (cur[k] === ' ' || !isSubseq(next, cur.slice(0, k) + cur.slice(k + 1)))) k--;
+      if (k < 0) break;
+      cur = (cur.slice(0, k) + cur.slice(k + 1)).replace(/  +/g, ' ').trim();
+      out.push(cur);
+    }
+    if (out[out.length - 1] !== next) out.push(next);
+  }
+  return out;
+}
+for (const k in T) if (!T[k].grind) T[k].l = smoothLadder(T[k].l);
+
+// What each door leads to: the next room is mostly made of these.
+Object.assign(T.hug, { nx: ['family', 'friends', 'rest'] }); Object.assign(T.rest, { nx: ['sleep', 'breathe', 'read'] });
+Object.assign(T.lottery, { nx: ['party', 'travel', 'apply'] }); Object.assign(T.sleep, { nx: ['rest', 'coffee', 'walk'] });
+Object.assign(T.walk, { nx: ['health', 'breathe', 'friends'] }); Object.assign(T.breathe, { nx: ['rest', 'walk', 'health'] });
+Object.assign(T.read, { nx: ['library', 'study', 'rest'] }); Object.assign(T.scroll, { nx: ['sleep', 'walk', 'friends'] });
+Object.assign(T.coffee, { nx: ['work', 'study', 'apply', 'read'] }); Object.assign(T.quit, { nx: ['apply', 'travel', 'rest', 'new career'] });
+Object.assign(T['job offer'], { nx: ['work', 'coffee'] }); Object.assign(T['get up'], { nx: ['walk', 'health', 'apply'] });
+Object.assign(T['start again'], { nx: ['apply', 'study', 'learn'] }); Object.assign(T.work, { nx: ['coffee', 'overtime', 'promotion', 'quit', 'goals'] });
+Object.assign(T.promotion, { nx: ['work', 'party', 'goals'] }); Object.assign(T.graduate, { nx: ['apply', 'travel', 'party', 'goals'] });
+Object.assign(T['build something'], { nx: ['work', 'freelance', 'goals'] });
+
+/* The long goal. From around room 10 a door to chase goals turns up. Chase it and it only ever
+   asks for more, while the sky ages towards dusk. Keep going and it offers a legacy; after that
+   there is one door left. The point was never the last door. */
+Object.assign(T, {
+  goals: { c: '#f0e6ff', l: ['chase goals', 'chase bigger goals', 'chase even bigger goals', 'chase the biggest goals'], grind: true, v: 24, fx: 'warp', nx: ['goals'], req: () => room.no >= 10 },
+  legacy: { c: '#ffcf4a', l: ['leave a legacy'], v: 60, fx: 'warp', golden: true, once: true, req: () => S('goals').n >= 3 },
+  'the end': { c: '#3a3358', l: ['the end'], v: 0, fx: 'bloom', once: true, ending: true },
+  'begin again': { c: '#ffd6e8', l: ['begin again'], v: 0, fx: 'bloom', restart: true },
+});
+
 /* Life threads. Doors feed four slow goals, each shown by a keepsake in the world:
    career builds a staircase behind you, health grows a tree on your left, heart gathers
    lanterns that orbit you, wonder pins stars into the sky. Threads lean on each other:
    health is your energy for heavy doors, heart gets you through locked ones. */
 const THREAD = { career: { c: '#ffd84a', g: 8 }, health: { c: '#4cd28a', g: 6 }, heart: { c: '#ff6f91', g: 5 }, wonder: { c: '#b388ff', g: 7 } };
-const life = { career: 0, health: 0, heart: 0, wonder: 0, energy: 2, maxE: 3, seen: new Set(), scars: [], lastHome: 0, pending: [], unlocked: new Set(), help: false };
+const life = { hired: false, applies: 0, diploma: false, degree: false, career: 0, health: 0, heart: 0, wonder: 0, energy: 2, maxE: 3, seen: new Set(), scars: [], lastHome: 0, pending: [], unlocked: new Set(), help: false };
 for (const [t, keys] of Object.entries({
-  career: ['study', 'exam', 'graduate', 'work', 'overtime', 'promotion', 'retrain', 'freelance', 'new career'],
+  career: ['apply', 'job offer', 'diploma', 'university', 'study', 'exam', 'graduate', 'work', 'overtime', 'promotion', 'retrain', 'freelance', 'new career'],
   health: ['health', 'walk', 'breathe', 'rest', 'sleep'],
   heart: ['family', 'hug', 'friends', 'cook', 'ask for help'],
   wonder: ['read', 'library', 'music', 'travel', 'learn', 'build something', 'move city', 'start again'],
 })) for (const k of keys) T[k].t = t;
 for (const k in T) if (T[k].golden) T[k].t = 'wonder';
-Object.assign(T.graduate, { lock: 'exam' }); Object.assign(T.promotion, { lock: 'graduate' }); Object.assign(T['new career'], { lock: 'learn' });
+Object.assign(T['new career'], { lock: 'learn' });
 for (const k of ['breathe', 'sleep', 'rest', 'hug']) T[k].pace = 'slow';
 const lockedBy = (key) => { const l = T[key]?.lock; return l && !known(l) && !life.unlocked.has(key) ? l : null; };
-const heavy = (d) => !!d.key && T[d.key] && !['heart', 'health'].includes(T[d.key].t) && (letters(d.word) >= 10 || !!T[d.key].grind);
+// grind doors are heavy: they cost energy, and when you're out they won't budge
+const heavy = (d) => !!(d.key && T[d.key] && T[d.key].grind);
 const tired = (d) => heavy(d) && life.energy === 0;
 const blocked = (d) => !!(d.key && (lockedBy(d.key) || tired(d)));
 // slam words come back later as doors you can type your way through, into something better
 const REFRAME = { rejected: 'redirected', fired: 'fired up', failed: 'failed forward', redundant: 'redesigned', replaced: 'replanted', burnout: 'burn bright',
   injured: 'in recovery', closed: 'clear', 'out of coffee': 'out for coffee', cancelled: 'can do', grounded: 'grow', offline: 'off outside', 'moved away': 'move too',
   "writer's block": 'write anyway', burnt: 'burn bright', insomnia: 'insight', raining: 'rainbow', 'no clients': 'new clients', 'not hiring': 'now hiring',
-  'course full': 'course found', 'no vacancy': 'now open' };
+  'course full': 'course found', 'no vacancy': 'now open', 'dropped out': 'dropped in' };
 function scarSpec(ev) {
   const w = REFRAME[ev] || 'onward'; let n = 0; while (n < w.length && w[n] === ev[n]) n++;
   const key = 'scar:' + ev;
   T[key] ??= { c: '#ff8a7a', l: [w], v: 30, fx: 'burst', scarred: true };
   return { key, word: w, zone: 'front', scar: ev, shared: Math.max(1, n) };
 }
-const POOL = ['health', 'family', 'hug', 'rest', 'scroll', 'party', 'lottery', 'travel', 'music', 'friends', 'cook', 'sleep', 'walk', 'read', 'work', 'study'];
+const POOL = ['health', 'family', 'hug', 'rest', 'scroll', 'party', 'lottery', 'travel', 'music', 'friends', 'cook', 'sleep', 'walk', 'read', 'work', 'study', 'apply'];
 const CALM = ['rest', 'family', 'hug', 'health', 'breathe', 'walk', 'friends', 'sleep', 'ask for help'];
 const DRIVE = ['new career', 'start again', 'learn', 'build something', 'freelance', 'travel', 'retrain', 'move city'];
 
@@ -186,7 +257,7 @@ function themeForWord(w) {
   if (T[w]) return w;
   for (const k in T) if (T[k].l.includes(w)) return k;
   const dev = w[0] + w.slice(1).replace(/[aeiou]/g, '');
-  const l = [...new Set([w, dev, w.replace(/ /g, '').slice(0, 2), w[0]])].filter(Boolean);
+  const l = smoothLadder([...new Set([w, dev, w.replace(/ /g, '').slice(0, 2), w[0]])].filter(Boolean));
   T[w] = { c: hashColor(w), l, v: 6 + Math.min(14, letters(w)), fx: pick(['burst', 'bloom', 'swirl', 'rise', 'tumble', 'confetti', 'warp']), ev: ['closed'], custom: true, t: 'wonder' };
   return w;
 }
@@ -440,6 +511,7 @@ const PROP = {
   blob: (c) => { const g = new THREE.Group(); part(g, pick([PG.sph, PG.tor, PG.cap, PG.ico]), pm(c, { roughness: 0.35 })); return g; },
 };
 const SETS = {
+  'the end': [],
   work: ['briefcase', 'mug', 'papers', 'laptop'], overtime: ['mug', 'papers', 'laptop', 'moon'], promotion: ['briefcase', 'star', 'balloon'],
   quit: ['briefcase', 'balloon', 'dart'], study: ['books', 'book', 'pencil', 'globe'], exam: ['books', 'pencil'], library: ['books', 'book', 'globe'],
   graduate: ['cap', 'balloon', 'star'], learn: ['books', 'pencil', 'globe'], retrain: ['books', 'pencil', 'laptop'], read: ['book', 'books', 'moon'],
@@ -447,6 +519,7 @@ const SETS = {
   family: ['heart', 'house', 'balloon'], hug: ['heart', 'balloon'], 'ask for help': ['heart', 'house'], friends: ['balloon', 'heart', 'note'],
   rest: ['cloud', 'moon', 'star'], sleep: ['cloud', 'moon', 'star'], breathe: ['cloud', 'leaf'], scroll: ['phone'],
   party: ['balloon', 'note', 'disco'], music: ['note', 'disco'], lottery: ['coin', 'star'],
+  apply: ['papers', 'briefcase', 'laptop'], 'job offer': ['briefcase', 'balloon', 'star'], diploma: ['cap', 'books', 'star'], university: ['books', 'globe', 'cap'],
   travel: ['dart', 'suitcase', 'globe'], 'move city': ['suitcase', 'house', 'dart'], 'new career': ['dart', 'briefcase', 'star'],
   'start again': ['dart', 'star', 'balloon'], 'build something': ['block', 'laptop', 'mug'], freelance: ['laptop', 'mug', 'dart'],
   'get up': ['star', 'balloon'],
@@ -454,6 +527,7 @@ const SETS = {
 const PASTEL = ['#ffd6e8', '#c9f2ff', '#fff1b8', '#d9c8ff', '#c8ffd9', '#ffd0b0'];
 function setProps(key) {
   const th = T[key], set = SETS[key] || (th && th.golden ? ['star', 'dart', 'globe'] : ['blob']);
+  if (!set.length) { for (const f of floaters) { scene.remove(f); f.traverse((o) => o.material && o.material.dispose()); } floaters = []; propSet = ''; return; }
   const name = set.join();
   if (name === propSet) return; propSet = name;
   for (const f of floaters) {
@@ -501,7 +575,7 @@ function makeDoor(spec) {
   const golden = !!(th && th.golden), free = !!spec.free;
   const word = spec.word || '';
   const color = new THREE.Color(free ? '#e8e2ff' : th.c);
-  const heavy = letters(word) >= 10;
+  const heavy = !!(th && th.grind);
   const panelCol = heavy ? color.clone().multiplyScalar(0.62) : color;
   const frameCol = golden ? new THREE.Color('#ffe39a') : color.clone().lerp(new THREE.Color('#ffffff'), 0.55);
   const metal = golden ? { metalness: 0.85, roughness: 0.22, envMapIntensity: 1.2 } : {};
@@ -679,26 +753,35 @@ function planRoom(fromKey) {
   room.no++;
   const specs = [], used = new Set();
   const add = (key, zone = 'front') => {
-    if (!key || used.has(key) || !T[key]) return false;
+    if (!key || used.has(key) || !T[key] || !open_(key)) return false;
     const th = T[key]; if ((th.once && known(key)) || th.secret) return false;
     const w = wordFor(key);
     if (specs.some((s) => s.word && (s.word.startsWith(w) || w.startsWith(s.word)))) return false;
     used.add(key); specs.push({ key, word: w, zone }); return true;
   };
-  if (room.no === 1) { add('work'); add('study'); return specs; }
+  if (room.no === 1) { add('apply'); add('study'); return specs; }
   const portrait = innerWidth < innerHeight;
-  const n = room.no < 3 ? 2 : portrait ? 3 : pick([3, 3, 4]);
+  // the rut: the more you take the same door, the fewer others show up
+  const rut = T[fromKey] ? S(fromKey).use : 0, shrink = Math.floor(Math.max(0, rut - 1) / 2), narrowing = shrink > 0;
+  const n = Math.max(T[fromKey]?.ev ? 1 : 2, (room.no < 3 ? 2 : portrait ? 3 : pick([3, 3, 4])) - shrink);
   const th = T[fromKey];
   const must = () => (specs[specs.length - 1].must = true);
+  if (fromKey === 'legacy') { add('the end'); return specs; }
+  if (fromKey === 'goals' && open_('legacy') && add('legacy')) must();
   if (th && !th.once && !th.quit && add(fromKey)) must();
   if (life.pending.length) { const k = life.pending[0]; if (add(k)) { life.pending.shift(); must(); } }
-  for (const k of shuffle([...(th?.nx || [])])) if (specs.length < n - 1 && Math.random() < 0.6) add(k);
-  if (S('work').n >= 2 && !known('quit') && used.has('work') && Math.random() < 0.45) add('quit');
-  if (room.no > 2 && specs.length < n && Math.random() < 0.4) specs.push({ free: true, zone: 'front' });
+  if (open_('job offer') && add('job offer')) must();
+  // mostly doors related to where you came from, then their relations
+  const keepSpare = n >= 3 ? 1 : 0;
+  for (const k of shuffle([...(th?.nx || [])])) if (specs.length < n - keepSpare) add(k);
+  for (const k of shuffle([...new Set((th?.nx || []).flatMap((x) => T[x]?.nx || []))])) if (specs.length < n - keepSpare) add(k);
+  if (!narrowing && open_('goals') && !used.has('goals') && specs.length < n && Math.random() < 0.3) add('goals');
+  if (used.has('work') && specs.length < n && Math.random() < 0.3) add('quit');
+  if (room.no > 2 && !narrowing && specs.length < n && Math.random() < 0.4) specs.push({ free: true, zone: 'front' });
   let guard = 0;
-  while (specs.length < n && guard++ < 40) add(room.no < 4 ? pick(['work', 'study', 'health', 'family', 'coffee']) : pick(POOL));
+  while (specs.length < n && guard++ < 40) add(room.no < 4 ? pick(['apply', 'work', 'study', 'health', 'family', 'coffee']) : pick(POOL));
   // at most one roadblock a room, from room 4 on
-  if (room.no >= 4) {
+  if (room.no >= 4 && !narrowing) {
     const fits = (w) => !specs.some((sp) => sp.word && (sp.word.startsWith(w) || w.startsWith(sp.word)));
     if (life.scars.length && Math.random() < 0.5) { const sp = scarSpec(life.scars[0]); if (fits(sp.word)) { life.scars.shift(); specs.push({ ...sp, must: true }); } }
     else if (room.no - life.lastHome >= 6 && !used.has('family')) {
@@ -706,7 +789,7 @@ function planRoom(fromKey) {
       if (fits(r)) { used.add('family'); specs.push({ key: 'family', word: r, zone: 'front', mirror: true, orig: w, must: true }); }
     }
   }
-  if (life.heart >= 2 && specs.some((sp) => sp.key && (lockedBy(sp.key) || ((letters(sp.word) >= 10 || T[sp.key].grind) && life.energy === 0)))) add('ask for help', 'right');
+  if (life.heart >= 2 && specs.some((sp) => sp.key && (lockedBy(sp.key) || (T[sp.key].grind && life.energy === 0)))) add('ask for help', 'right');
   // never more doors in front than fit side by side: extras step out to your left or right
   const freeSide = () => ['left', 'right'].find((z) => !specs.some((sp) => sp.zone === z));
   for (let front = specs.filter((sp) => sp.zone === 'front'); front.length > (portrait ? 3 : 4); front = specs.filter((sp) => sp.zone === 'front')) {
@@ -714,12 +797,12 @@ function planRoom(fromKey) {
     if (side) drop.zone = side; else specs.splice(specs.indexOf(drop), 1);
   }
   shuffle(specs);
-  if (room.no > 2 && Math.random() < 0.65) {
+  if (room.no > 2 && !narrowing && Math.random() < 0.65) {
     const secrets = Object.keys(T).filter((k) => T[k].secret && !known(k));
     if (secrets.length) { const k = pick(secrets); specs.push({ key: k, word: T[k].l[0], zone: 'back' }); }
     else specs.push({ free: true, zone: 'back' });
   }
-  if (room.no > 3 && Math.random() < 0.35 && freeSide()) {
+  if (room.no > 3 && !narrowing && Math.random() < 0.35 && freeSide()) {
     guard = 0; const before = specs.length, side = freeSide();
     while (specs.length === before && guard++ < 20) add(pick(POOL), side);
   }
@@ -757,7 +840,7 @@ function say(text, hold = 3) {
 }
 let score = 0;
 function popScore(n, color) {
-  score += n; $('score').textContent = score; $('score').classList.add('on');
+  score += n; $('score').textContent = score; $('score').classList.add('on'); $('energy').classList.add('on');
   try { if (score > (+localStorage.getItem('one-door-best') || 0)) localStorage.setItem('one-door-best', score); } catch {}
   const el = document.createElement('div'); el.className = 'pop' + (n === 0 ? ' zero' : '');
   el.textContent = '+' + n; el.style.color = n === 0 ? '#ffffff' : color;
@@ -864,10 +947,35 @@ function advance(key) {
   const th = T[key], st = S(key); st.n++; st.use++;
   if (th.grind || Math.random() < 0.65) st.step = Math.min(st.step + 1, th.l.length - 1);
 }
+let endingMode = 0;
+async function ending(d) {
+  // the last door: everything falls away, night comes, and you see what you made along the way
+  A.open(); d.glow.visible = true;
+  if (A.music) { A.music.tT = 0; A.music.iT = 0.05; }
+  roughTarget = 0;
+  await anim(0.9, (k) => (d.pivot.rotation.y = 1.9 * ease(k)));
+  const p0 = camPos.clone(), p1 = new THREE.Vector3(d.group.position.x, EYE, d.group.position.z);
+  const y0 = yaw, y1 = yaw + angDiff(d.angle, yaw);
+  await anim(1.8, (k) => { const e = ease(k); camPos.lerpVectors(p0, p1, e * 0.9); yaw = lerp(y0, y1, Math.min(1, e * 2)); });
+  await veil('#0b0a18', 1.6, 1);
+  for (const o of doors.concat(leaving)) disposeDoor(o); doors = []; leaving = [];
+  setProps('the end'); if (rail) rail.visible = false;
+  camPos.set(room.o.x, EYE, room.o.z); endingMode = 1; pitch = 0.18;
+  await veil('#0b0a18', 2.4, 0);
+  setTimeout(() => say('enjoy the journey', 4.5), 800);
+  setTimeout(() => say("don't fight the tide too hard", 5), 7000);
+  const ys = yaw; await anim(15, (k) => (yaw = ys + TAU * ease(k)));
+  pitch = 0.04;
+  const again = makeDoor({ key: 'begin again', word: 'begin again' }); again.zone = 'front';
+  placeDoor(again, yaw, 6); doors.push(again); riseDoor(again, 0, 2);
+  busy = false; refresh();
+}
 async function goThrough(d) {
   busy = true; awaitLook = false;
   const key = d.key, th = T[key], word = d.word;
   buffer = ''; refresh();
+  if (th.ending) return ending(d);
+  if (th.restart) { A.open(); await veil('#fff6ee', 1.2, 1); location.reload(); return; }
   if (blocked(d)) { await budge(d); busy = false; return; }
   if (shouldSlam(key)) return slam(d);
   const st = S(key);
@@ -906,7 +1014,7 @@ async function portal(d, th, extr, pts) {
   const pace = clamp(0.5 + 0.5 * extr, 0.5, 1);
   const a = d.angle, dir = new THREE.Vector3(-Math.sin(a), 0, -Math.cos(a));
   const doorPos = room.o.clone().addScaledVector(dir, d.R), o2 = doorPos.clone().addScaledVector(dir, 2.2);
-  const next = th.quit ? { list: [], R: 7 } : makeRoomDoors(planRoom(d.key), o2, a);
+  const next = makeRoomDoors(planRoom(d.key), o2, a);
   for (const n of next.list) { setPortal(n, true); if (n.zone === 'front') n.rise = 0; else n.group.visible = false; }
   const mask = new THREE.Mesh(G.glow, maskMat); mask.position.copy(d.glow.position); mask.renderOrder = -0.5;
   const skin = new THREE.Mesh(G.glow, new THREE.MeshBasicMaterial({ color: d.color, transparent: true, opacity: 0.15, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
@@ -937,12 +1045,6 @@ async function portal(d, th, extr, pts) {
     wait(0.35 * pace).then(() => anim(0.45, (k) => (d.pivot.rotation.y = 1.9 * (1 - ease(k)))))
       .then(() => { A.knock(0, 0.3); return anim(0.7, (k) => (d.rise = -4.6 * ease(k))); })
       .then(() => { leaving = leaving.filter((x) => x !== d); disposeDoor(d); });
-    if (th.quit) {
-      flags.slams++; pendingMany = false;
-      if (A.music) { A.music.tT = 0.3; A.music.iT = 0.55; }
-      buildRing(null, a, true);
-      if (flags.slams === 1) setTimeout(() => say('one door closes', 2.4), 500);
-    }
     refresh();
   };
   await anim(1.0 * pace, (k) => {
@@ -964,6 +1066,7 @@ function goThroughFree(d, text) {
 async function slam(d) {
   const key = d.key, th = T[key], st = S(key);
   const ev = th.ev[st.evIdx++ % th.ev.length];
+  if (['work', 'overtime', 'promotion'].includes(key)) life.hired = false;
   if (REFRAME[ev] && !life.scars.includes(ev)) life.scars.push(ev);
   st.step = 0; st.use = 0; st.n++;
   flags.slams++;
@@ -976,13 +1079,21 @@ async function slam(d) {
   A.slam(); d.pivot.rotation.y = 0; d.glow.visible = false;
   shake = 1; rough = Math.max(rough, 0.85); roughTarget = 1;
   if (A.music) { A.music.tT = 1; A.music.iT = 0.45; }
-  d.slammed = true; d.evWord = ev; d.lkey = ''; drawLabel(d); drawEmblem(d);
+  d.slammed = true; d.evWord = `${key}: ${ev}`; d.lkey = ''; drawLabel(d); drawEmblem(d);
   $('veil').style.background = '#3a0d14'; $('veil').style.opacity = 0.55; veil('#3a0d14', 0.8, 0);
   anim(0.5, (k) => (d.pivot.rotation.y = Math.sin(k * Math.PI * 5) * 0.03 * (1 - k)));
-  if (first) setTimeout(() => say('one door closes', 2.6), 900);
-  await wait(1.4);
-  buildRing(d, d.angle);
-  pendingMany = first;
+  if (first) setTimeout(() => say('one door closes', 2.2), 700);
+  await wait(1.3);
+  // ...it spins you round, and doors appear one by one
+  const fresh = buildRing(d, d.angle);
+  A.whoosh(1.5);
+  const y0 = yaw, y1 = y0 + angDiff(d.angle + Math.PI, y0);
+  await anim(1.5, (k) => (yaw = lerp(y0, y1, ease(k))));
+  fresh.sort((p, q) => Math.abs(angDiff(p.angle, yaw)) - Math.abs(angDiff(q.angle, yaw)));
+  const notes = [60, 62, 64, 67, 69, 72, 74, 76, 79];
+  fresh.forEach((n, i) => wait(0.15 + i * 0.32).then(() => { A.chime(notes[i % notes.length], 0, 0.05); return riseDoor(n, 0, 0.55); }));
+  if (first) setTimeout(() => say('many more open', 3), 900);
+  pendingMany = false;
   busy = false;
 }
 // One door closes, many more open: new doors rise in every gap around you.
@@ -990,7 +1101,7 @@ async function slam(d) {
 function buildRing(anchor, a0, frontArc = false) {
   room.kind = 'ring'; room.no++;
   const R = anchor ? anchor.R : 7;
-  const calm = shuffle(CALM.filter((k) => k !== lastTheme)), drive = shuffle(DRIVE.filter((k) => k !== lastTheme));
+  const calm = shuffle(CALM.filter((k) => k !== lastTheme && open_(k))), drive = shuffle([...DRIVE, ...(life.hired ? [] : ['apply'])].filter((k) => k !== lastTheme && open_(k)));
   const keys = []; for (let i = 0; keys.length < 9; i++) { const k = i % 2 ? calm.shift() : drive.shift(); if (k) keys.push(k); if (!calm.length && !drive.length) break; }
   const used = doors.map((d) => d.word).filter(Boolean), have = new Set(doors.map((d) => d.key));
   const specs = [];
@@ -1001,24 +1112,32 @@ function buildRing(anchor, a0, frontArc = false) {
     const ang = frontArc ? a0 - 1.9 + i * (3.8 / 8) : a0 + Math.PI / 3 + i * ((TAU - 2 * Math.PI / 3) / 8);
     if (!doors.some((d) => Math.abs(angDiff(d.angle, ang)) < 0.4)) slots.push(ang);
   }
-  A.rumble(3);
+  const fresh = [];
   slots.forEach((ang, i) => {
     if (!specs[i]) return;
     const d = makeDoor(specs[i]); d.zone = 'ring';
-    placeDoor(d, ang, R); doors.push(d); riseDoor(d, 0.2 + i * 0.12, 1.4);
+    placeDoor(d, ang, R); doors.push(d); fresh.push(d);   // stays sunk until revealed
   });
   afterSlam = true;
-  if (!frontArc) { awaitLook = true; lookIdle = 0; }
+  return fresh;
 }
 async function budge(d) {
   if (lockedBy(d.key)) return rattle(d);
-  // too tired for a heavy door: it gives a little, then thuds shut
+  // too tired for a heavy door: your energy flashes, the doors that would refill it blink
+  const en = $('energy'); en.classList.add('on'); en.classList.remove('flash'); void en.offsetWidth; en.classList.add('flash');
+  for (const o of doors) if (T[o.key]?.t === 'health') o.beckon = 3;
+  // it gives a little, then thuds shut
   A.open(); await anim(0.35, (k) => (d.pivot.rotation.y = 0.3 * easeOut(k)));
   await anim(0.2, (k) => (d.pivot.rotation.y = 0.3 * (1 - k))); A.knock(0, 0.8); shake = Math.max(shake, 0.25);
 }
 function grow(key, word) {
   const th = T[key], t = th.t;
   if (key === 'family') life.lastHome = room.no;
+  if (key === 'apply') life.applies++;
+  if (key === 'job offer') { life.hired = true; life.applies = 0; }
+  if (key === 'diploma') life.diploma = true;
+  if (key === 'graduate') life.degree = true;
+  if (key === 'quit') life.hired = false;
   if (t === 'health') life.energy = Math.min(life.maxE, life.energy + 1);
   else if (heavy({ key, word })) life.energy = Math.max(0, life.energy - 1);
   if (!t || ((t === 'heart' || t === 'wonder') && life.seen.has(key))) return;
@@ -1329,6 +1448,9 @@ function paint(dt) {
   skyU.top.value.copy(P.calmTop).lerp(P.roughTop, r);
   skyU.hor.value.copy(P.calmHor).lerp(tint, 0.18).lerp(P.roughHor, r);
   skyU.bot.value.copy(P.calmBot).lerp(P.roughBot, r);
+  const age = Math.min(1, (S('goals').n + (known('legacy') ? 1 : 0)) / 4);
+  if (age > 0) { skyU.top.value.lerp(_c.set('#4a3a7a'), age * 0.6); skyU.hor.value.lerp(_c.set('#ff9e7a'), age * 0.45); }
+  if (endingMode) { skyU.top.value.set('#070614'); skyU.hor.value.set('#2b2350'); skyU.bot.value.set('#0c0a1c'); }
   if (flash.k > 0) {
     flash.k = Math.max(0, flash.k - dt * 0.6);
     skyU.hor.value.lerp(flash.col, flash.k); skyU.top.value.lerp(_c.copy(flash.col).multiplyScalar(0.7), flash.k * 0.6);
@@ -1337,10 +1459,11 @@ function paint(dt) {
   floorMat.color.copy(P.floor).lerp(P.roughBot.clone().lerp(P.floorRough, 0.6), r);
   hemi.color.copy(P.hemiSky).lerp(P.hemiRough, r * 0.7); hemi.intensity = 0.7 - r * 0.3;
   sun.intensity = 1.3 - r * 0.6;
+  if (endingMode) { floorMat.color.set('#2a2444'); hemi.intensity = 0.35; sun.intensity = 0.5; }
 }
 
 /* ------------------------------------------------------------------ loop */
-let last = performance.now();
+let last = performance.now(), energyShown = '';
 function frame(now) {
   requestAnimationFrame(frame);
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
@@ -1362,7 +1485,9 @@ function frame(now) {
   for (const d of doors.concat(leaving)) {
     const target = d.prefix > 0 || d.freeText ? 1 : 0;
     d.hot = Math.max(target, d.hot - dt * 3);
+    if (d.beckon > 0) { d.beckon -= dt; d.hot = Math.max(d.hot, (Math.sin(t * 9) > 0 ? 1 : 0)); }
     d.group.position.y = d.rise + Math.sin(t * 0.8 + d.ph) * 0.04;
+    d.label.visible = d.rise > -0.4;
     d.group.rotation.z = Math.sin(t * 0.5 + d.ph) * 0.012 + (d.slammed ? 0.04 : 0);
     const s = d.scale * (1 + Math.min(1, d.hot) * 0.035); d.group.scale.setScalar(s);
     const on = d.slammed ? 0.15 + Math.random() * 0.1 * rough : Math.min(1, d.hot);
@@ -1377,6 +1502,10 @@ function frame(now) {
   starGroup.position.set(camera.position.x, 0, camera.position.z);
   railMat.emissive.set('#4cd28a').multiplyScalar(0.12 * life.energy * (0.85 + 0.15 * Math.sin(t * 3)));
   if (awaitLook && !busy) { lookIdle += dt; if (lookIdle > 7) { awaitLook = false; turnBy(Math.PI / 2, 3.5); } }
+  if (energyShown !== life.energy + '/' + life.maxE) {
+    energyShown = life.energy + '/' + life.maxE;
+    $('energy').innerHTML = Array.from({ length: life.maxE }, (_, i) => `<i class="${i < life.energy ? 'on' : ''}"></i>`).join('');
+  }
   if (A.music) A.music.update(dt);
   renderer.render(scene, camera);
 }
