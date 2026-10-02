@@ -134,13 +134,13 @@ const T = {
   freelance:         { c: '#20c997', l: ['freelance', 'frlnc', 'fl'], v: 18, fx: 'swirl', drive: 1, nx: ['coffee', 'work'] },
   retrain:           { c: '#74c0fc', l: ['retrain', 'rtrn', 'rt'], v: 18, fx: 'books', drive: 1, nx: ['study', 'work'] },
   'move city':       { c: '#63e6be', l: ['move city', 'move', 'mv'], v: 20, fx: 'warp', drive: 1, nx: ['travel', 'friends'] },
-  'get up':          { c: '#ff922b', l: ['get up'], v: 25, fx: 'rise', drive: 1 },
+  'get up':          { c: '#ff922b', l: ['get up'], v: 25, fx: 'rise', drive: 1, once: true },
   wander:            { c: '#ffd166', l: ['wander'], v: 77, fx: 'warp', golden: true, once: true },
 };
 for (const w of ['what if', 'dream big', 'leap', 'say yes', 'wonder', 'adventure'])
   T[w] = { c: '#ffcf4a', l: [w], v: 45, fx: pick(['warp', 'burst', 'bloom']), golden: true, once: true, secret: true };
 Object.assign(T.coffee, { ev: ['out of coffee'] }); Object.assign(T.party, { ev: ['cancelled'] });
-Object.assign(T.travel, { ev: ['grounded'] }); Object.assign(T.scroll, { ev: ['offline'] });
+Object.assign(T.travel, { ev: ['visa denied'] }); Object.assign(T.scroll, { ev: ['offline'] });
 Object.assign(T.friends, { ev: ['moved away'] }); Object.assign(T.music, { ev: ["writer's block"] });
 Object.assign(T.cook, { ev: ['burnt'] }); Object.assign(T.sleep, { ev: ['insomnia'] });
 Object.assign(T.walk, { ev: ['raining'] }); Object.assign(T.library, { ev: ['closed'] });
@@ -216,7 +216,7 @@ Object.assign(T, {
    lanterns that orbit you, wonder pins stars into the sky. Threads lean on each other:
    health is your energy for heavy doors, heart gets you through locked ones. */
 const THREAD = { career: { c: '#ffd84a', g: 8 }, health: { c: '#4cd28a', g: 6 }, heart: { c: '#ff6f91', g: 5 }, wonder: { c: '#b388ff', g: 7 } };
-const life = { turns: 0, getups: 0, customs: [], mirrored: false, hired: false, applies: 0, diploma: false, degree: false, career: 0, health: 0, heart: 0, wonder: 0, energy: 2, maxE: 3, seen: new Set(), scars: [], lastHome: 0, pending: [], unlocked: new Set(), help: false };
+const life = { streakKey: '', streak: 0, reframed: new Set(), turns: 0, getups: 0, customs: [], mirrored: false, hired: false, applies: 0, diploma: false, degree: false, career: 0, health: 0, heart: 0, wonder: 0, energy: 2, maxE: 3, seen: new Set(), scars: [], lastHome: 0, pending: [], unlocked: new Set(), help: false };
 for (const [t, keys] of Object.entries({
   career: ['apply', 'job offer', 'diploma', 'university', 'study', 'exam', 'graduate', 'work', 'overtime', 'promotion', 'retrain', 'freelance', 'new career'],
   health: ['health', 'walk', 'breathe', 'rest', 'sleep'],
@@ -233,14 +233,14 @@ const tired = (d) => heavy(d) && life.energy === 0;
 const blocked = (d) => !!(d.key && (lockedBy(d.key) || tired(d)));
 // slam words come back later as doors you can type your way through, into something better
 const REFRAME = { rejected: 'redirected', fired: 'fired up', failed: 'failed forward', redundant: 'redesigned', replaced: 'replanted', burnout: 'burn bright',
-  injured: 'in recovery', closed: 'clear', 'out of coffee': 'out for coffee', cancelled: 'can do', grounded: 'grow', offline: 'off outside', 'moved away': 'move too',
+  injured: 'in recovery', closed: 'clear', 'out of coffee': 'out for coffee', cancelled: 'can do', 'visa denied': 'visit nearby', offline: 'off outside', 'moved away': 'move too',
   "writer's block": 'write anyway', burnt: 'burn bright', insomnia: 'insight', raining: 'rainbow', 'no clients': 'new clients', 'not hiring': 'now hiring',
   'course full': 'course found', 'no vacancy': 'now open', 'dropped out': 'dropped in', overwhelmed: 'over it', 'burnt out': 'burn bright', scrapped: 'scrapbook',
   plateaued: 'plan ahead', 'false start': 'fresh start' };
 function scarSpec(ev) {
   const w = REFRAME[ev] || 'onward'; let n = 0; while (n < w.length && w[n] === ev[n]) n++;
   const key = 'scar:' + ev;
-  T[key] ??= { c: '#ff8a7a', l: [w], v: 30, fx: 'burst', scarred: true };
+  T[key] ??= { c: '#ff8a7a', l: [w], v: 30, fx: 'burst', scarred: true, once: true, from: ev };
   return { key, word: w, zone: 'front', scar: ev, shared: Math.max(1, n) };
 }
 const POOL = ['health', 'family', 'hug', 'rest', 'scroll', 'party', 'lottery', 'travel', 'music', 'friends', 'cook', 'sleep', 'walk', 'read', 'work', 'study', 'apply'];
@@ -766,9 +766,11 @@ function planRoom(fromKey) {
   const portrait = innerWidth < innerHeight;
   // the rut: the more you take the same door, the fewer others show up
   const rut = T[fromKey] ? S(fromKey).use : 0, shrink = Math.floor(Math.max(0, rut - 1) / 2), narrowing = shrink > 0;
-  const n = Math.max(T[fromKey]?.ev ? 1 : 2, (room.no < 3 ? 2 : portrait ? 3 : pick([3, 3, 4])) - shrink);
+  const n = Math.max(T[fromKey]?.ev && !T[fromKey].grind ? 1 : 2, (room.no < 3 ? 2 : portrait ? 3 : pick([3, 3, 4])) - shrink);
   const th = T[fromKey];
   const must = () => (specs[specs.length - 1].must = true);
+  // doors that never slam step aside after three in a row: they'll be back, but life moves on
+  if (th && !th.ev && life.streakKey === fromKey && life.streak >= 3) used.add(fromKey);
   if (fromKey === 'legacy') { add('the end'); return specs; }
   if (fromKey === 'goals' && open_('legacy') && add('legacy')) must();
   if (th && !th.once && !th.quit && add(fromKey)) must();
@@ -784,6 +786,10 @@ function planRoom(fromKey) {
   if (room.no > 2 && !narrowing && specs.length < n && Math.random() < 0.4) specs.push({ free: true, zone: 'front' });
   let guard = 0;
   while (specs.length < n && guard++ < 40) add(room.no < 4 ? pick(['apply', 'work', 'study', 'health', 'family', 'coffee']) : pick(POOL));
+  // a narrowing room never traps you behind a door you're too tired for
+  if (narrowing && life.energy <= 1 && !specs.some((sp) => T[sp.key]?.t === 'health')) {
+    const h = ['rest', 'breathe', 'walk', 'health', 'sleep'].find((k) => !used.has(k) && open_(k)); if (h && add(h)) must();
+  }
   // at most one roadblock a room, from room 4 on
   if (room.no >= 4 && !narrowing) {
     const fits = (w) => !specs.some((sp) => sp.word && (sp.word.startsWith(w) || w.startsWith(sp.word)));
@@ -852,7 +858,7 @@ function popScore(n, color) {
 }
 
 /* ------------------------------------------------------------------ typing */
-let lastGap = 1, buffer = '', gusto = 1, lastKey = 0, pendingT = 0, idleT = 0;
+let freeMode = false, lastGap = 1, buffer = '', gusto = 1, lastKey = 0, pendingT = 0, idleT = 0;
 const CMDS = {
   '180': () => turnBy(Math.PI), 'one eighty': () => turnBy(Math.PI), 'turn around': () => turnBy(Math.PI), 'u turn': () => turnBy(Math.PI),
   'left': () => turnBy(Math.PI / 2), 'right': () => turnBy(-Math.PI / 2),
@@ -876,15 +882,17 @@ function typeChar(raw) {
   if (!/^[a-z0-9 '\-]$/.test(ch)) return;
   if (ch === ' ' && (!buffer || buffer.endsWith(' '))) return;
   const next = buffer + ch;
-  if (!matchDoors(next).length && !matchCmds(next).length && !freeTarget()) { nope(); return; }
+  const fits = matchDoors(next).length || matchCmds(next).length;
+  if (!buffer) freeMode = !fits && !!freeTarget();
+  if (!fits && !freeMode) { nope(); clearBuffer(); return; }
   const now = performance.now(), gap = (now - lastKey) / 1000; lastKey = now; lastGap = gap;
   if (gap < 0.24) gusto = Math.min(2, gusto + 0.05); else if (gap > 0.9) gusto = Math.max(1, gusto - 0.3);
   roughTarget = Math.max(0, roughTarget - 0.006 * gusto);
   buffer = next; A.key(gusto); dismissTitle(); refresh(true);
   schedule();
 }
-function backspace() { if (busy || !buffer) return; buffer = buffer.slice(0, -1); A.key(1); refresh(); schedule(); }
-function clearBuffer() { buffer = ''; clearTimeout(pendingT); clearTimeout(idleT); refresh(); }
+function backspace() { if (busy || !buffer) return; buffer = buffer.slice(0, -1); if (!buffer) freeMode = false; A.key(1); refresh(); schedule(); }
+function clearBuffer() { buffer = ''; freeMode = false; clearTimeout(pendingT); clearTimeout(idleT); refresh(); }
 function nope() {
   A.nope(); gusto = Math.max(1, gusto - 0.4);
   const b = $('buf'); b.classList.remove('nope'); void b.offsetWidth; b.classList.add('nope');
@@ -897,7 +905,7 @@ function schedule() {
   const longer = ds.some((d) => d.word.length > s.length) || cs.some((k) => k.length > s.length);
   if (exact && !longer) pendingT = setTimeout(() => commit(false), 110);
   else if (exact) pendingT = setTimeout(() => commit(false), 800);
-  else if (!ds.length && freeTarget() && s.trim().length >= 2) idleT = setTimeout(() => commit(false), 1900);
+  else if (freeMode && !ds.length && freeTarget() && s.trim().length >= 2) idleT = setTimeout(() => commit(false), 1900);
 }
 function commit(enter) {
   clearTimeout(pendingT); clearTimeout(idleT);
@@ -907,7 +915,7 @@ function commit(enter) {
   if (ex) { if (ex.slammed) { rattle(ex); clearBuffer(); } else goThrough(ex); return; }
   if (CMDS[s]) { clearBuffer(); CMDS[s](); return; }
   const fd = freeTarget();
-  if (fd && s.length >= 2) { goThroughFree(fd, s); return; }
+  if (freeMode && fd && s.length >= 2) { goThroughFree(fd, s); return; }
   if (enter) { nope(); clearBuffer(); }
 }
 function refresh(newChar = false) {
@@ -920,7 +928,7 @@ function refresh(newChar = false) {
   }
   b.style.color = new THREE.Color('#ffffff').lerp(new THREE.Color('#ffd27a'), (gusto - 1) * 1.2).getStyle();
   const ds = buffer ? matchDoors(buffer) : [];
-  const ft = buffer && !ds.length && !matchCmds(buffer).length ? freeTarget() : null;
+  const ft = freeMode && buffer && !ds.length ? freeTarget() : null;
   for (const d of doors) {
     d.prefix = ds.includes(d) && !d.slammed ? buffer.length : 0;
     d.freeText = d === ft ? buffer : '';
@@ -935,7 +943,9 @@ let roughTarget = 0, rough = 0, lastTheme = null;
 function shouldSlam(key) {
   const th = T[key], st = S(key);
   if (!th.ev || st.use < 2) return false;
-  const p = Math.min(0.2, 0.03 + 0.035 * (st.use - 2)) * (life.energy === 0 ? 2 : 1) * (life.heart >= 3 ? 0.6 : 1);
+  let p = Math.min(0.2, 0.03 + 0.035 * (st.use - 2)) * (life.energy === 0 ? 2 : 1) * (life.heart >= 3 ? 0.6 : 1);
+  const run = life.streakKey === key ? life.streak : 0;
+  if (run >= 6) p = Math.max(p, (run - 5) / 3);   // a long enough streak always ends in a slam
   return Math.random() < p;
 }
 function reward(key, word) {
@@ -945,6 +955,8 @@ function reward(key, word) {
   else if (th.grind) r = th.v * Math.pow(0.6, st.n) * rand(0.6, 1.4);
   else r = th.v * (letters(word) / letters(th.l[0])) * rand(0.6, 1.4);
   if (!th.lotto) { r *= gusto; if (st.n === 0) r += 5; }
+  const run = life.streakKey === key ? life.streak : 0;
+  if (run >= 2) r *= Math.pow(0.6, run - 1);   // the same door again and again pays less and less
   return Math.max(0, Math.round(r));
 }
 function advance(key) {
@@ -1059,7 +1071,9 @@ async function goThrough(d) {
   const extr = th.golden ? 1.6 : 1 / (1 + st.n * 0.9);
   const pts = reward(key, word);
   advance(key);
+  if (life.streakKey === key) life.streak++; else { life.streakKey = key; life.streak = 1; }
   grow(key, word);
+  if (th.scarred) life.reframed.add(th.from);
   if (th.scarred) for (const t in THREAD) if (life[t] < THREAD[t].g / 2) { life[t]++; addKeepsake(t); }
   if (key === 'ask for help') { life.energy = life.maxE; life.help = true; }
   if (afterSlam) {
@@ -1145,7 +1159,7 @@ async function slam(d) {
   const key = d.key, th = T[key], st = S(key);
   const ev = th.ev[st.evIdx++ % th.ev.length];
   if (['work', 'overtime', 'promotion'].includes(key)) life.hired = false;
-  if (REFRAME[ev] && !life.scars.includes(ev)) life.scars.push(ev);
+  if (REFRAME[ev] && !life.scars.includes(ev) && !life.reframed.has(ev)) life.scars.push(ev);
   st.step = 0; st.use = 0; st.n++;
   flags.slams++;
   const first = flags.slams === 1;
