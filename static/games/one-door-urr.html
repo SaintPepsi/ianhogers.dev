@@ -103,7 +103,7 @@ const FONT = 'ui-rounded, "SF Pro Rounded", "Nunito", system-ui, sans-serif';
 const T = {
   open:      { c: '#ffc46b', l: ['open'], v: 6, fx: 'burst' },
   work:      { c: '#5b8cff', l: ['work hard', 'working', 'work', 'wrk', 'wk', 'w'], v: 14, fx: 'paper', ev: ['redundant', 'fired', 'replaced'], nx: ['coffee', 'overtime', 'promotion'] },
-  study:     { c: '#9b7bff', l: ['study hard', 'studying', 'study', 'stdy', 'sdy', 's'], v: 12, fx: 'books', ev: ['rejected', 'failed'], nx: ['exam', 'library', 'coffee', 'graduate'] },
+  study:     { c: '#9b7bff', l: ['study hard', 'studying', 'study', 'stdy', 'sdy', 's'], v: 12, fx: 'books', ev: ['overwhelmed', 'burnt out'], nx: ['exam', 'library', 'coffee', 'graduate'] },
   coffee:    { c: '#c08a5c', l: ['coffee', 'cofee', 'cof', 'c'], v: 4, fx: 'swirl', nx: ['work', 'study'] },
   overtime:  { c: '#3d5294', l: ['overtime', 'more overtime', 'overtime again', 'every weekend overtime'], grind: true, v: 10, fx: 'paper', ev: ['burnout'], nx: ['coffee', 'sleep'] },
   promotion: { c: '#ffd84a', l: ['promotion'], v: 30, fx: 'confetti', once: true, nx: ['work', 'party'] },
@@ -145,14 +145,15 @@ Object.assign(T.friends, { ev: ['moved away'] }); Object.assign(T.music, { ev: [
 Object.assign(T.cook, { ev: ['burnt'] }); Object.assign(T.sleep, { ev: ['insomnia'] });
 Object.assign(T.walk, { ev: ['raining'] }); Object.assign(T.library, { ev: ['closed'] });
 Object.assign(T.freelance, { ev: ['no clients'] }); Object.assign(T['new career'], { ev: ['not hiring'] });
-Object.assign(T.retrain, { ev: ['course full'] }); Object.assign(T['move city'], { ev: ['no vacancy'] });
+Object.assign(T.retrain, { ev: ['course full'] }); Object.assign(T['build something'], { ev: ['scrapped'] });
+Object.assign(T.learn, { ev: ['plateaued'] }); Object.assign(T['start again'], { ev: ['false start'] }); Object.assign(T['move city'], { ev: ['no vacancy'] });
 // Getting somewhere takes steps: a job needs applications, a degree needs a diploma first.
 // Doors with a req only show up once it's met.
 Object.assign(T, {
   apply: { c: '#7aa2ff', l: ['apply for jobs', 'apply for job', 'apply', 'aply', 'ap'], v: 6, fx: 'paper', ev: ['rejected'], nx: ['coffee', 'study', 'job offer'] },
   'job offer': { c: '#ffd84a', l: ['accept the offer'], v: 30, fx: 'confetti', nx: ['work'] },
   diploma: { c: '#6fd3ff', l: ['get my diploma'], v: 30, fx: 'confetti', once: true, nx: ['university', 'apply'] },
-  university: { c: '#6f8cff', l: ['university', 'uni', 'u'], v: 14, fx: 'books', ev: ['dropped out'], nx: ['graduate', 'library', 'party'] },
+  university: { c: '#6f8cff', l: ['university', 'uni', 'u'], v: 14, fx: 'books', ev: ['rejected', 'dropped out'], nx: ['graduate', 'library', 'party'] },
 });
 Object.assign(T.graduate, { l: ['get my degree'], nx: ['apply', 'travel', 'party'] });
 T.study.nx = ['exam', 'library', 'coffee', 'diploma']; T.exam.nx = ['diploma', 'study']; T.quit.once = false;
@@ -234,7 +235,8 @@ const blocked = (d) => !!(d.key && (lockedBy(d.key) || tired(d)));
 const REFRAME = { rejected: 'redirected', fired: 'fired up', failed: 'failed forward', redundant: 'redesigned', replaced: 'replanted', burnout: 'burn bright',
   injured: 'in recovery', closed: 'clear', 'out of coffee': 'out for coffee', cancelled: 'can do', grounded: 'grow', offline: 'off outside', 'moved away': 'move too',
   "writer's block": 'write anyway', burnt: 'burn bright', insomnia: 'insight', raining: 'rainbow', 'no clients': 'new clients', 'not hiring': 'now hiring',
-  'course full': 'course found', 'no vacancy': 'now open', 'dropped out': 'dropped in' };
+  'course full': 'course found', 'no vacancy': 'now open', 'dropped out': 'dropped in', overwhelmed: 'over it', 'burnt out': 'burn bright', scrapped: 'scrapbook',
+  plateaued: 'plan ahead', 'false start': 'fresh start' };
 function scarSpec(ev) {
   const w = REFRAME[ev] || 'onward'; let n = 0; while (n < w.length && w[n] === ev[n]) n++;
   const key = 'scar:' + ev;
