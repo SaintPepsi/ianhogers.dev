@@ -24,6 +24,7 @@
   --bad-bg: #fbe5e2;
   --vacant: #f7f6f2;
   --shadow: 0 1px 2px rgba(0,0,0,.06), 0 2px 8px rgba(0,0,0,.04);
+  --grass: #b9d3a3;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
@@ -31,7 +32,7 @@
     --bg: #141714; --card: #1d211d; --ink: #e8ebe6; --muted: #9aa29a; --line: #323832;
     --accent: #5fae74; --accent-ink: #0d140f; --power: #e3a94c; --power-bg: #33280f;
     --ok: #6fd08f; --ok-bg: #173022; --warn: #f0b456; --warn-bg: #352710;
-    --bad: #f08b80; --bad-bg: #3a1c19; --vacant: #191c19; --shadow: none;
+    --bad: #f08b80; --bad-bg: #3a1c19; --vacant: #191c19; --shadow: none; --grass: #2c3d28;
     color-scheme: dark;
   }
 }
@@ -39,7 +40,7 @@
   --bg: #141714; --card: #1d211d; --ink: #e8ebe6; --muted: #9aa29a; --line: #323832;
   --accent: #5fae74; --accent-ink: #0d140f; --power: #e3a94c; --power-bg: #33280f;
   --ok: #6fd08f; --ok-bg: #173022; --warn: #f0b456; --warn-bg: #352710;
-  --bad: #f08b80; --bad-bg: #3a1c19; --vacant: #191c19; --shadow: none;
+  --bad: #f08b80; --bad-bg: #3a1c19; --vacant: #191c19; --shadow: none; --grass: #2c3d28;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
@@ -176,6 +177,67 @@ dialog::backdrop { background: rgba(0,0,0,.4); }
 }
 .toast.show { opacity: 1; }
 
+main.full { max-width: none; padding: 0; }
+.mapwrap { position: relative; overflow: hidden; background: var(--grass); user-select: none; -webkit-user-select: none; }
+#map { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
+.mtools { position: absolute; left: 8px; right: 8px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; pointer-events: none; }
+.mtools > * { pointer-events: auto; }
+#mtop { top: 8px; right: 56px; }
+.mside { position: absolute; right: 8px; top: 8px; display: flex; flex-direction: column; gap: 6px; }
+.medit { bottom: 20px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 6px; box-shadow: 0 2px 10px rgba(0,0,0,.15); }
+.mtools .grow { flex: 1; pointer-events: none; }
+.mbtn, .seg button {
+  min-width: 38px; height: 38px; padding: 0 10px; border: 1px solid var(--line); background: var(--card); border-radius: 9px;
+  font-weight: 600; font-size: 14px; box-shadow: 0 1px 3px rgba(0,0,0,.12);
+}
+.mbtn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.mbtn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.mbtn.danger { color: var(--bad); }
+.mbtn.warnb { border-color: var(--warn); color: var(--warn); }
+.medit .mbtn { box-shadow: none; }
+.seg { display: inline-flex; box-shadow: 0 1px 3px rgba(0,0,0,.12); border-radius: 9px; }
+.seg button { box-shadow: none; border-radius: 0; }
+.seg button:first-child { border-radius: 9px 0 0 9px; }
+.seg button:last-child { border-radius: 0 9px 9px 0; border-left: 0; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.sep { width: 1px; align-self: stretch; background: var(--line); margin: 0 2px; }
+.hint2 { font-size: 13px; color: var(--muted); padding: 0 4px; }
+.selz { font-size: 12px; font-weight: 700; padding: 3px 8px; border-radius: 999px; border: 2px solid var(--zc); }
+.legend { position: absolute; left: 8px; top: 54px; background: var(--card); border: 1px solid var(--line); border-radius: 10px; font-size: 12px; max-height: calc(100% - 140px); overflow: auto; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+.legend summary { padding: 6px 10px; font-weight: 700; cursor: pointer; }
+.legend #legend { display: grid; padding: 0 4px 4px; }
+.legend button { display: flex; align-items: center; gap: 6px; border: 0; background: none; padding: 5px 6px; text-align: left; border-radius: 6px; }
+.legend button:hover { background: var(--bg); }
+.legend button span { color: var(--muted); margin-left: auto; padding-left: 8px; font-variant-numeric: tabular-nums; }
+.legend i, .pick i.sw { width: 12px; height: 12px; border-radius: 3px; flex: none; display: inline-block; }
+.attrib { position: absolute; right: 4px; bottom: 2px; font-size: 10px; color: #fff; text-shadow: 0 0 2px #000; pointer-events: none; }
+
+.sp rect { fill: var(--zc); fill-opacity: .88; stroke: #1b1b1b; stroke-opacity: .55; stroke-width: .08; }
+.sp.vac rect { fill: #fff; fill-opacity: .55; stroke: var(--zc); stroke-opacity: 1; stroke-width: .14; stroke-dasharray: .35 .2; }
+.sp .front { stroke: #1b1b1b; stroke-opacity: .6; stroke-width: .28; stroke-linecap: round; }
+.sp.vac .front { stroke-opacity: .25; }
+.sp.arr rect { stroke: #1f8f4a; stroke-opacity: 1; stroke-width: .32; }
+.sp.sel rect, .it.sel rect, .it.sel circle { stroke: #1565ff; stroke-opacity: 1; stroke-width: .32; }
+.sp.flash rect { animation: flash .8s 4; }
+@keyframes flash { 50% { stroke: #1565ff; stroke-width: .6; stroke-opacity: 1; } }
+.sp text, .it text { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; pointer-events: none; }
+.sp .nm { fill: #141714; text-anchor: middle; font-weight: 600; }
+.sp.vac .nm { font-style: italic; font-weight: 400; fill-opacity: .55; }
+.sp .code { fill: #141714; fill-opacity: .65; }
+svg.far .nm, svg.far .code { display: none; }
+.badge.ok { fill: #1f8f4a; } .badge.pay { fill: #2b6cb0; } .badge.warn { fill: #d98a00; }
+.bt { fill: #fff; text-anchor: middle; font-weight: 800; }
+.it.area rect { fill: #fff; fill-opacity: .3; stroke: #2b332b; stroke-width: .12; stroke-dasharray: .7 .35; }
+.it.tree circle { fill: #2e6b32; fill-opacity: .55; stroke: #1d451f; stroke-width: .1; }
+.it.tree .trunk { fill: #5b3b1e; fill-opacity: .9; }
+.it.power circle { fill: #f5b400; stroke: #1b1b1b; stroke-width: .06; }
+.it .il, .it .lt { fill: #141714; text-anchor: middle; paint-order: stroke; stroke: #fff; stroke-opacity: .75; stroke-width: .18; }
+.it .lt { font-weight: 800; }
+.it .hit { fill: transparent; }
+.selbox { fill: none; stroke: #1565ff; stroke-dasharray: 4 3; vector-effect: non-scaling-stroke; }
+.arm { stroke: #1565ff; }
+.hdl { fill: #fff; stroke: #1565ff; cursor: pointer; }
+
 #printout { display: none; }
 @media print {
   @page { margin: 12mm; }
@@ -189,8 +251,9 @@ dialog::backdrop { background: rgba(0,0,0,.4); }
   #printout h2 { font-size: 12px; text-decoration: underline; margin: 0 0 4px; }
   #printout table { width: 100%; border-collapse: collapse; }
   #printout td { padding: 2px 4px; border-bottom: 1px solid #ccc; }
+  #printout .pmap { width: 100%; max-height: 240mm; background: #e4efd9; margin-bottom: 8px; break-after: page; }
   #printout td.b { width: 14px; }
-  #printout td.l { width: 40px; color: #555; }
+  #printout td.l { width: 52px; color: #555; white-space: nowrap; }
   #printout .box { display: inline-block; width: 10px; height: 10px; border: 1px solid #000; }
 }
 </style>
@@ -204,15 +267,26 @@ dialog::backdrop { background: rgba(0,0,0,.4); }
     </div>
     <div class="stats" id="stats"></div>
     <nav class="tabs" role="tablist">
-      <button role="tab" data-tab="layout" aria-selected="true">Layout</button>
+      <button role="tab" data-tab="map" aria-selected="true">Map</button>
+      <button role="tab" data-tab="layout" aria-selected="false">List</button>
       <button role="tab" data-tab="stalls" aria-selected="false">Stallholders</button>
       <button role="tab" data-tab="data" aria-selected="false">Data</button>
     </nav>
   </div>
 </header>
 
-<main class="wrap">
-  <section id="tab-layout"></section>
+<main class="wrap" id="main">
+  <section id="tab-map">
+    <div class="mapwrap" id="mapwrap">
+      <svg id="map" xmlns="http://www.w3.org/2000/svg" aria-label="Market map"><g id="tiles"></g><g id="objs"></g><g id="handles"></g></svg>
+      <div class="mtools" id="mtop"></div>
+      <div class="mside" id="mside"></div>
+      <details class="legend" id="legendbox"><summary>Zones</summary><div id="legend"></div></details>
+      <div class="mtools medit" id="medit" hidden></div>
+      <div class="attrib" id="attrib">Imagery © Esri, Maxar, Earthstar Geographics</div>
+    </div>
+  </section>
+  <section id="tab-layout" hidden></section>
   <section id="tab-stalls" hidden></section>
   <section id="tab-data" hidden></section>
 </main>
@@ -289,7 +363,7 @@ function seedState() {
   for (const [name, power] of SEED_CANCELLED) {
     stalls.push({ id: uid(), name, power, status: "cancelled", paid: false, phone: "", notes: "Struck off the 4 Feb sheet" });
   }
-  return { version: 1, date: "", zones, stalls };
+  return migrate({ version: 1, date: "", zones, stalls });
 }
 
 function load() {
@@ -297,14 +371,627 @@ function load() {
     const raw = localStorage.getItem(STORE_KEY);
     if (raw) {
       const s = JSON.parse(raw);
-      if (s && Array.isArray(s.zones) && Array.isArray(s.stalls)) return s;
+      if (s && Array.isArray(s.zones) && Array.isArray(s.stalls)) return migrate(s);
     }
   } catch (e) { /* storage blocked or corrupt; fall back to seed */ }
   return seedState();
 }
 
+// ---------- map ----------
+// World coordinates are metres: x to the east, y to the south. Spots and landmarks
+// are boxes centred on (x, y), w × h metres, rotated rot degrees. A spot's front
+// (where customers stand) is its +y edge, drawn thicker.
+const SPOT_W = 3, SPOT_H = 3, SPOT_GAP = 1;
+const ITEM_KINDS = {
+  area:  { label: "Area",        w: 12, h: 8 },
+  tree:  { label: "Tree",        w: 8,  h: 8 },
+  power: { label: "Power point", w: 1.2, h: 1.2 },
+  label: { label: "Text label",  w: 10, h: 1.6 },
+};
+const VIEW_KEY = STORE_KEY + "-view";
+const snap = (v, step) => Math.round(v / step) * step;
+const rad = (d) => (d * Math.PI) / 180;
+const normDeg = (d) => ((d % 360) + 360) % 360;
+
+let view = (() => { try { const v = JSON.parse(localStorage.getItem(VIEW_KEY)); if (v && v.s > 0) return v; } catch (e) {} return null; })();
+let mapMode = "checkin";        // "checkin" | "edit"
+let zoneMove = false;           // edit mode: drag moves the whole zone
+let aligning = false;           // edit mode: drag moves the satellite imagery
+let sel = null;                 // { type: "spot" | "item", id }
+let gesture = null;
+const pointers = new Map();
+
+function defaultMap() {
+  return {
+    // Approximate centre of Kingston Heath Reserve. Use "Align satellite" to line it up.
+    lat: -37.9668, lng: 145.0896, satellite: true, satOpacity: 0.9,
+    items: [
+      { id: uid(), kind: "area",  label: "Residential fence", x: 38, y: -4, w: 84, h: 1, rot: 0 },
+      { id: uid(), kind: "area",  label: "Playground", x: 80, y: 38, w: 18, h: 16, rot: 0 },
+      { id: uid(), kind: "label", label: "Road / car park", x: 30, y: 58, w: 14, h: 1.8, rot: 0 },
+      { id: uid(), kind: "tree",  label: "", x: -7, y: 24, w: 8, h: 8, rot: 0 },
+      { id: uid(), kind: "tree",  label: "", x: 64, y: 22, w: 10, h: 10, rot: 0 },
+    ],
+  };
+}
+
+// Rough starting rows for the seeded zones; drag them to where they really go.
+const ZONE_START = { RBP: [0, 0], RBN: [30, 0], RCN: [0, 16], PGC: [0, 32], PGB: [36, 32], BMR: [0, 48] };
+const ZONE_COLORS = ["#e07a5f", "#5b8fd6", "#6fb38a", "#e3b54a", "#a07ad6", "#e58fb5", "#4fb0b0", "#b5894a"];
+
+function layoutRow(spots, x0, y0, rot = 0) {
+  const step = SPOT_W + SPOT_GAP;
+  spots.forEach((sp, i) => {
+    Object.assign(sp, { x: x0 + Math.cos(rad(rot)) * step * i, y: y0 + Math.sin(rad(rot)) * step * i, w: SPOT_W, h: SPOT_H, rot });
+  });
+}
+
+function migrate(s) {
+  if (!s.map) s.map = defaultMap();
+  let extra = 0;
+  s.zones.forEach((z, i) => {
+    if (!z.color) z.color = ZONE_COLORS[i % ZONE_COLORS.length];
+    if (z.spots.some((sp) => typeof sp.x !== "number")) {
+      const start = ZONE_START[z.code] || [0, 64 + 16 * extra++];
+      layoutRow(z.spots, start[0], start[1]);
+    }
+  });
+  s.version = 2;
+  return s;
+}
+
+// Next spot along a row: one spot-width further along the reference spot's x axis.
+function nextSpotPos(z, ref) {
+  ref = ref || z.spots[z.spots.length - 1];
+  if (!ref) { const c = viewCentre(); return { x: snap(c.x, 0.5), y: snap(c.y, 0.5), w: SPOT_W, h: SPOT_H, rot: 0 }; }
+  const d = ref.w + SPOT_GAP;
+  return { x: ref.x + Math.cos(rad(ref.rot)) * d, y: ref.y + Math.sin(rad(ref.rot)) * d, w: ref.w, h: ref.h, rot: ref.rot };
+}
+function addSpot(z, ref) {
+  const sp = { id: uid(), label: (z.code || "S") + "-" + (z.spots.length + 1), stallId: null, ...nextSpotPos(z, ref) };
+  const i = ref ? z.spots.indexOf(ref) + 1 : z.spots.length;
+  z.spots.splice(i, 0, sp);
+  return sp;
+}
+function placeNewZone(z) {
+  const c = viewCentre();
+  const n = z.spots.length;
+  layoutRow(z.spots, snap(c.x - ((n - 1) * (SPOT_W + SPOT_GAP)) / 2, 0.5), snap(c.y, 0.5));
+}
+
+// ----- geometry -----
+function bounds(objs) {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const o of objs) {
+    const c = Math.abs(Math.cos(rad(o.rot || 0))), sn = Math.abs(Math.sin(rad(o.rot || 0)));
+    const ex = (o.w * c + o.h * sn) / 2, ey = (o.w * sn + o.h * c) / 2;
+    x0 = Math.min(x0, o.x - ex); y0 = Math.min(y0, o.y - ey); x1 = Math.max(x1, o.x + ex); y1 = Math.max(y1, o.y + ey);
+  }
+  return isFinite(x0) ? { x0, y0, x1, y1 } : { x0: -20, y0: -20, x1: 20, y1: 20 };
+}
+const allSpots = () => state.zones.flatMap((z) => z.spots);
+const allObjs = () => [...allSpots(), ...state.map.items];
+function zoneOfSpot(id) { return state.zones.find((z) => z.spots.some((sp) => sp.id === id)); }
+function selObj() {
+  if (!sel) return null;
+  if (sel.type === "spot") { const f = findSpot(sel.id); return f ? f.spot : null; }
+  return state.map.items.find((i) => i.id === sel.id) || null;
+}
+
+// ----- view -----
+const svg = () => document.getElementById("map");
+function mapSize() { const r = svg().getBoundingClientRect(); return { w: r.width || 1, h: r.height || 1, left: r.left, top: r.top }; }
+function viewCentre() { return view ? { x: view.cx, y: view.cy } : { x: 0, y: 0 }; }
+function toWorld(clientX, clientY) {
+  const m = mapSize();
+  return { x: view.cx + (clientX - m.left - m.w / 2) / view.s, y: view.cy + (clientY - m.top - m.h / 2) / view.s };
+}
+function fitView(objs) {
+  const m = mapSize(), b = bounds(objs && objs.length ? objs : allObjs());
+  const pad = 4;
+  const s = Math.min(m.w / (b.x1 - b.x0 + pad * 2), m.h / (b.y1 - b.y0 + pad * 2));
+  view = { cx: (b.x0 + b.x1) / 2, cy: (b.y0 + b.y1) / 2, s: Math.max(0.5, Math.min(80, s)) };
+  applyView();
+}
+let viewSaveTimer;
+function applyView() {
+  const m = mapSize(), el = svg();
+  el.setAttribute("viewBox", `${view.cx - m.w / 2 / view.s} ${view.cy - m.h / 2 / view.s} ${m.w / view.s} ${m.h / view.s}`);
+  el.classList.toggle("far", view.s < 9);
+  updateTiles();
+  renderHandles();
+  clearTimeout(viewSaveTimer);
+  viewSaveTimer = setTimeout(() => { try { localStorage.setItem(VIEW_KEY, JSON.stringify(view)); } catch (e) {} }, 300);
+}
+function zoomAt(clientX, clientY, factor) {
+  const before = toWorld(clientX, clientY);
+  view.s = Math.max(0.5, Math.min(80, view.s * factor));
+  const m = mapSize();
+  view.cx = before.x - (clientX - m.left - m.w / 2) / view.s;
+  view.cy = before.y - (clientY - m.top - m.h / 2) / view.s;
+  applyView();
+}
+function ensureVisible(o) {
+  const m = mapSize(), hw = m.w / 2 / view.s, hh = m.h / 2 / view.s;
+  if (Math.abs(o.x - view.cx) > hw * 0.8 || Math.abs(o.y - view.cy) > hh * 0.8) { view.cx = o.x; view.cy = o.y; }
+  if (view.s < 10) view.s = 14;
+  applyView();
+}
+
+// ----- satellite tiles (Esri World Imagery) -----
+const M_PER_DEG_LAT = 111132;
+const mPerDegLng = () => 111320 * Math.cos(rad(state.map.lat));
+const llToWorld = (lat, lng) => ({ x: (lng - state.map.lng) * mPerDegLng(), y: (state.map.lat - lat) * M_PER_DEG_LAT });
+const worldToLL = (x, y) => ({ lat: state.map.lat - y / M_PER_DEG_LAT, lng: state.map.lng + x / mPerDegLng() });
+const tileLng = (tx, z) => (tx / 2 ** z) * 360 - 180;
+const tileLat = (ty, z) => (Math.atan(Math.sinh(Math.PI * (1 - (2 * ty) / 2 ** z))) * 180) / Math.PI;
+const lngTile = (lng, z) => ((lng + 180) / 360) * 2 ** z;
+const latTile = (lat, z) => ((1 - Math.log(Math.tan(rad(lat)) + 1 / Math.cos(rad(lat))) / Math.PI) / 2) * 2 ** z;
+let tileKey = "";
+function updateTiles() {
+  const g = document.getElementById("tiles");
+  const attrib = document.getElementById("attrib");
+  if (!state.map.satellite) { g.innerHTML = ""; tileKey = ""; if (attrib) attrib.hidden = true; return; }
+  if (attrib) attrib.hidden = false;
+  const m = mapSize();
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  let z = Math.max(14, Math.min(19, Math.round(Math.log2(156543.03 * Math.cos(rad(state.map.lat)) * view.s * dpr))));
+  const nw = worldToLL(view.cx - m.w / 2 / view.s, view.cy - m.h / 2 / view.s);
+  const se = worldToLL(view.cx + m.w / 2 / view.s, view.cy + m.h / 2 / view.s);
+  let tx0, tx1, ty0, ty1;
+  for (;;) {
+    tx0 = Math.floor(lngTile(nw.lng, z)); tx1 = Math.floor(lngTile(se.lng, z));
+    ty0 = Math.floor(latTile(nw.lat, z)); ty1 = Math.floor(latTile(se.lat, z));
+    if ((tx1 - tx0 + 1) * (ty1 - ty0 + 1) <= 80 || z <= 14) break;
+    z--;
+  }
+  const key = [z, tx0, tx1, ty0, ty1, state.map.lat, state.map.lng, state.map.satOpacity].join(",");
+  if (key === tileKey) return;
+  tileKey = key;
+  let html = "";
+  for (let tx = tx0; tx <= tx1; tx++) for (let ty = ty0; ty <= ty1; ty++) {
+    const a = llToWorld(tileLat(ty, z), tileLng(tx, z));
+    const b = llToWorld(tileLat(ty + 1, z), tileLng(tx + 1, z));
+    html += `<image href="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${ty}/${tx}"
+      x="${a.x}" y="${a.y}" width="${b.x - a.x + 0.02}" height="${b.y - a.y + 0.02}" preserveAspectRatio="none"/>`;
+  }
+  g.setAttribute("opacity", state.map.satOpacity);
+  g.innerHTML = html;
+}
+
+// ----- drawing -----
+function wrapName(name, w, fs) {
+  const max = Math.max(4, Math.floor((w - 0.3) / (fs * 0.56)));
+  const lines = [];
+  let cur = "";
+  for (const word of name.split(/\s+/)) {
+    if (!cur) cur = word;
+    else if ((cur + " " + word).length <= max) cur += " " + word;
+    else { lines.push(cur); cur = word; }
+  }
+  if (cur) lines.push(cur);
+  const out = lines.slice(0, 3).map((l) => (l.length > max ? l.slice(0, max - 1) + "…" : l));
+  if (lines.length > 3) out[2] = out[2].slice(0, max - 1) + "…";
+  return out;
+}
+const upright = (rot) => { const r = normDeg(rot); return r > 90 && r < 270 ? ' transform="rotate(180)"' : ""; };
+
+function spotSvg(z, sp, selected) {
+  const s = sp.stallId ? stallById(sp.stallId) : null;
+  const arrived = s && s.status === "arrived";
+  const mismatch = s && s.power && !z.power;
+  const hw = sp.w / 2, hh = sp.h / 2;
+  const fs = Math.min(0.55, sp.h / 5);
+  const lines = s ? wrapName(s.name, sp.w, fs) : ["Vacant"];
+  const ty = -((lines.length - 1) * fs * 1.1) / 2 + fs * 0.35;
+  const cls = ["sp", s ? "" : "vac", arrived ? "arr" : "", selected ? "sel" : "", flashSpot === sp.id ? "flash" : ""].join(" ");
+  return `<g class="${cls}" data-obj="spot" data-id="${sp.id}" transform="translate(${sp.x} ${sp.y}) rotate(${sp.rot})">
+    <rect x="${-hw}" y="${-hh}" width="${sp.w}" height="${sp.h}" rx="0.25" style="--zc:${esc(z.color)}"/>
+    <line class="front" x1="${-hw + 0.15}" y1="${hh}" x2="${hw - 0.15}" y2="${hh}" style="--zc:${esc(z.color)}"/>
+    <g${upright(sp.rot)}>
+      <text class="code" x="${-hw + 0.2}" y="${-hh + 0.5}" font-size="0.4">${esc(sp.label)}</text>
+      <text class="nm" y="${ty}" font-size="${fs}">${lines.map((l, i) => `<tspan x="0" dy="${i ? fs * 1.1 : 0}">${esc(l)}</tspan>`).join("")}</text>
+    </g>
+    ${arrived ? `<circle class="badge ok" cx="${hw - 0.45}" cy="${-hh + 0.45}" r="0.38"/><text class="bt" x="${hw - 0.45}" y="${-hh + 0.6}" font-size="0.5">✓</text>` : ""}
+    ${s && s.paid ? `<circle class="badge pay" cx="${hw - 0.45}" cy="${-hh + 1.25}" r="0.38"/><text class="bt" x="${hw - 0.45}" y="${-hh + 1.4}" font-size="0.5">$</text>` : ""}
+    ${mismatch ? `<circle class="badge warn" cx="${-hw + 0.45}" cy="${hh - 0.5}" r="0.38"/><text class="bt" x="${-hw + 0.45}" y="${hh - 0.33}" font-size="0.5">⚡</text>` : ""}
+  </g>`;
+}
+
+function itemSvg(it, selected) {
+  const hw = it.w / 2, hh = it.h / 2;
+  const cls = `it ${it.kind}${selected ? " sel" : ""}`;
+  const t = `transform="translate(${it.x} ${it.y}) rotate(${it.rot})"`;
+  const lbl = esc(it.label);
+  switch (it.kind) {
+    case "tree":
+      return `<g class="${cls}" data-obj="item" data-id="${it.id}" ${t}><circle r="${hw}"/><circle class="trunk" r="${Math.min(0.5, hw / 4)}"/>
+        ${lbl ? `<text class="il" y="${hw + 0.9}" font-size="0.8">${lbl}</text>` : ""}</g>`;
+    case "power":
+      return `<g class="${cls}" data-obj="item" data-id="${it.id}" ${t}><circle r="${hw}"/><text class="bt" y="${hw * 0.45}" font-size="${hw * 1.3}">⚡</text>
+        ${lbl ? `<text class="il" y="${hw + 0.8}" font-size="0.6">${lbl}</text>` : ""}</g>`;
+    case "label":
+      return `<g class="${cls}" data-obj="item" data-id="${it.id}" ${t}><rect class="hit" x="${-hw}" y="${-hh}" width="${it.w}" height="${it.h}"/>
+        <text class="lt" y="${it.h * 0.33}" font-size="${it.h * 0.9}"${upright(it.rot)}>${lbl}</text></g>`;
+    default:
+      return `<g class="${cls}" data-obj="item" data-id="${it.id}" ${t}><rect x="${-hw}" y="${-hh}" width="${it.w}" height="${it.h}" rx="0.3"/>
+        ${lbl ? `<g${upright(it.rot)}><text class="il" y="0.4" font-size="${Math.max(0.6, Math.min(1.4, it.h / 2.5, it.w / Math.max(4, lbl.length * 0.6)))}">${lbl}</text></g>` : ""}</g>`;
+  }
+}
+
+function mapContent(forPrint) {
+  const selZone = !forPrint && sel && sel.type === "spot" && zoneMove ? zoneOfSpot(sel.id) : null;
+  let html = state.map.items.map((it) => itemSvg(it, !forPrint && sel && sel.type === "item" && sel.id === it.id)).join("");
+  for (const z of state.zones) for (const sp of z.spots) {
+    html += spotSvg(z, sp, !forPrint && sel && ((sel.type === "spot" && sel.id === sp.id) || selZone === z));
+  }
+  return html;
+}
+
+function renderHandles() {
+  const g = document.getElementById("handles");
+  if (!g) return;
+  const o = mapMode === "edit" && !zoneMove && !aligning ? selObj() : null;
+  if (!o) { g.innerHTML = ""; return; }
+  const r = 11 / view.s, hw = o.w / 2, hh = o.h / 2, arm = hh + 26 / view.s;
+  g.innerHTML = `<g transform="translate(${o.x} ${o.y}) rotate(${o.rot})">
+    <rect class="selbox" x="${-hw}" y="${-hh}" width="${o.w}" height="${o.h}" stroke-width="${2 / view.s}"/>
+    <line class="arm" x1="0" y1="${-hh}" x2="0" y2="${-arm}" stroke-width="${1.5 / view.s}"/>
+    <circle class="hdl" data-h="rot" cx="0" cy="${-arm}" r="${r}" stroke-width="${2 / view.s}"/>
+    <rect class="hdl" data-h="size" x="${hw - r}" y="${hh - r}" width="${r * 2}" height="${r * 2}" stroke-width="${2 / view.s}"/>
+  </g>`;
+}
+
+function renderMap() {
+  const objs = document.getElementById("objs");
+  if (sel && !selObj()) sel = null;
+  objs.innerHTML = mapContent(false);
+  renderHandles();
+  const unplaced = state.stalls.filter((s) => s.status !== "cancelled" && !spotOfStall(s.id));
+  const o = selObj();
+  const z = sel && sel.type === "spot" ? zoneOfSpot(sel.id) : null;
+  document.getElementById("mtop").innerHTML = `
+    <div class="seg" role="group" aria-label="Mode">
+      <button data-m="mode-checkin" aria-pressed="${mapMode === "checkin"}">Check-in</button>
+      <button data-m="mode-edit" aria-pressed="${mapMode === "edit"}">Edit layout</button>
+    </div>
+    ${unplaced.length ? `<button class="mbtn warnb" data-m="unplaced">${unplaced.length} not placed</button>` : ""}
+`;
+  document.getElementById("mside").innerHTML = `
+    <button class="mbtn" data-m="zin" title="Zoom in" aria-label="Zoom in">+</button>
+    <button class="mbtn" data-m="zout" title="Zoom out" aria-label="Zoom out">−</button>
+    <button class="mbtn" data-m="fit" title="Fit everything" aria-label="Fit everything">⤢</button>
+    <button class="mbtn" data-m="sat" aria-pressed="${!!state.map.satellite}" title="Satellite photo" aria-label="Satellite photo">🛰</button>`;
+  const bar = document.getElementById("medit");
+  if (mapMode !== "edit") { bar.hidden = true; }
+  else {
+    bar.hidden = false;
+    bar.innerHTML = aligning
+      ? `<span class="hint2">Drag the map to line the satellite photo up with your layout.</span><span class="grow"></span>
+         <button class="mbtn" data-m="sat-settings">Settings…</button><button class="mbtn primary" data-m="align">Done</button>`
+      : `
+      <button class="mbtn" data-m="add-spot">+ Spot</button>
+      <button class="mbtn" data-m="add-item">+ Landmark</button>
+      ${o ? `
+        <span class="sep"></span>
+        ${sel.type === "spot" ? `<button class="mbtn" data-m="zone-move" aria-pressed="${zoneMove}" title="Drag and rotate the whole zone">Whole zone</button>` : ""}
+        <button class="mbtn" data-m="rot-" title="Rotate left">⟲</button>
+        <button class="mbtn" data-m="rot+" title="Rotate right">⟳</button>
+        <button class="mbtn" data-m="edit-sel">Edit…</button>
+        <button class="mbtn" data-m="dup" title="Duplicate">⧉</button>
+        <button class="mbtn danger" data-m="del" title="Delete">🗑</button>
+        ${z ? `<span class="selz" style="--zc:${esc(z.color)}">${esc(z.name)}</span>` : ""}`
+      : `<span class="hint2">Tap a spot or landmark to select it. Drag to move.</span>`}
+      <span class="grow"></span>
+      ${state.map.satellite ? `<button class="mbtn" data-m="align">Align satellite</button>` : ""}`;
+  }
+  document.getElementById("legend").innerHTML = state.zones.map((zz) => {
+    const filled = zz.spots.filter((sp) => sp.stallId).length;
+    return `<button data-m="zone" data-id="${zz.id}"><i style="background:${esc(zz.color)}"></i>${esc(zz.name)}${zz.power ? " ⚡" : ""} <span>${filled}/${zz.spots.length}</span></button>`;
+  }).join("");
+  if (!view) { requestAnimationFrame(() => fitView()); }
+  else applyView();
+  if (flashSpot) {
+    const f = findSpot(flashSpot);
+    flashSpot = null;
+    if (f) ensureVisible(f.spot);
+  }
+}
+
+// ----- gestures -----
+function startGesture(e) {
+  const p = toWorld(e.clientX, e.clientY);
+  const h = e.target.closest("[data-h]");
+  const objEl = e.target.closest("[data-obj]");
+  const base = { id: e.pointerId, sx: e.clientX, sy: e.clientY, moved: false };
+  if (mapMode === "edit" && aligning) return { ...base, type: "align", lat: state.map.lat, lng: state.map.lng, mlng: mPerDegLng() };
+  if (mapMode === "edit" && h && selObj()) {
+    const o = selObj();
+    return { ...base, type: h.dataset.h, o, orig: { ...o } };
+  }
+  if (mapMode === "edit" && objEl) {
+    const type = objEl.dataset.obj, id = objEl.dataset.id;
+    const already = sel && sel.type === type && sel.id === id;
+    const sameZone = zoneMove && sel && sel.type === "spot" && type === "spot" && zoneOfSpot(sel.id) === zoneOfSpot(id);
+    if (!already && !sameZone) { sel = { type, id }; if (type !== "spot") zoneMove = false; renderMap(); }
+    else if (sameZone) sel = { type, id };
+    const group = type === "spot" && zoneMove ? zoneOfSpot(id).spots : [type === "spot" ? findSpot(id).spot : state.map.items.find((i) => i.id === id)];
+    return { ...base, type: "move", start: p, group, orig: group.map((o) => ({ x: o.x, y: o.y })) };
+  }
+  return { ...base, type: "pan", cx: view.cx, cy: view.cy, tap: objEl ? { type: objEl.dataset.obj, id: objEl.dataset.id } : null };
+}
+
+function onDown(e) {
+  if (e.button && e.button !== 0) return;
+  svg().setPointerCapture(e.pointerId);
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (pointers.size === 2) {
+    const [a, b] = [...pointers.values()];
+    const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+    if (gesture && gesture.type === "move") gesture.group.forEach((o, i) => Object.assign(o, gesture.orig[i]));
+    gesture = { type: "pinch", d0: Math.hypot(a.x - b.x, a.y - b.y) || 1, s0: view.s, w0: toWorld(mid.x, mid.y), moved: true };
+    renderMap();
+    return;
+  }
+  if (pointers.size > 2) return;
+  gesture = startGesture(e);
+}
+
+function onMove(e) {
+  if (!pointers.has(e.pointerId)) return;
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  const g = gesture;
+  if (!g) return;
+  if (g.type === "pinch") {
+    if (pointers.size < 2) return;
+    const [a, b] = [...pointers.values()];
+    const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+    const m = mapSize();
+    view.s = Math.max(0.5, Math.min(80, (g.s0 * Math.hypot(a.x - b.x, a.y - b.y)) / g.d0));
+    view.cx = g.w0.x - (mid.x - m.left - m.w / 2) / view.s;
+    view.cy = g.w0.y - (mid.y - m.top - m.h / 2) / view.s;
+    applyView();
+    return;
+  }
+  if (e.pointerId !== g.id) return;
+  const dxs = e.clientX - g.sx, dys = e.clientY - g.sy;
+  if (!g.moved && Math.hypot(dxs, dys) < 6) return;
+  g.moved = true;
+  const dx = dxs / view.s, dy = dys / view.s;
+  if (g.type === "pan") { view.cx = g.cx - dx; view.cy = g.cy - dy; applyView(); return; }
+  if (g.type === "align") {
+    state.map.lng = g.lng - dx / g.mlng;
+    state.map.lat = g.lat + dy / M_PER_DEG_LAT;
+    updateTiles();
+    return;
+  }
+  const p = toWorld(e.clientX, e.clientY);
+  if (g.type === "move") {
+    const sx = snap(g.orig[0].x + dx, 0.25) - g.orig[0].x, sy = snap(g.orig[0].y + dy, 0.25) - g.orig[0].y;
+    g.group.forEach((o, i) => { o.x = g.orig[i].x + sx; o.y = g.orig[i].y + sy; });
+  } else if (g.type === "rot") {
+    g.o.rot = normDeg(snap((Math.atan2(p.y - g.o.y, p.x - g.o.x) * 180) / Math.PI + 90, 5));
+  } else if (g.type === "size") {
+    const c = Math.cos(rad(-g.o.rot)), s = Math.sin(rad(-g.o.rot));
+    const lx = (p.x - g.o.x) * c - (p.y - g.o.y) * s, ly = (p.x - g.o.x) * s + (p.y - g.o.y) * c;
+    let w = Math.max(0.5, snap(Math.abs(lx) * 2, 0.5)), h = Math.max(0.5, snap(Math.abs(ly) * 2, 0.5));
+    if (g.o.kind === "tree" || g.o.kind === "power") w = h = Math.max(w, h);
+    g.o.w = w; g.o.h = h;
+  }
+  document.getElementById("objs").innerHTML = mapContent(false);
+  renderHandles();
+}
+
+function onUp(e) {
+  if (!pointers.has(e.pointerId)) return;
+  pointers.delete(e.pointerId);
+  const g = gesture;
+  if (!g) return;
+  if (g.type === "pinch") { if (pointers.size === 0) gesture = null; return; }
+  if (e.pointerId !== g.id) return;
+  gesture = null;
+  if (e.type === "pointercancel") { if (g.orig && g.group) g.group.forEach((o, i) => Object.assign(o, g.orig[i])); renderMap(); return; }
+  if (g.type === "pan" && !g.moved) {
+    if (g.tap && g.tap.type === "spot" && mapMode === "checkin") spotDialog(g.tap.id);
+    else if (g.tap && g.tap.type === "item" && mapMode === "checkin") { /* landmarks are scenery in check-in mode */ }
+    else if (mapMode === "edit" && sel) { sel = null; zoneMove = false; renderMap(); }
+    return;
+  }
+  if (g.moved && g.type !== "pan") { save(); if (g.type === "align") tileKey = ""; renderMap(); }
+}
+
+function rotateSel(delta) {
+  const o = selObj();
+  if (!o) return;
+  if (sel.type === "spot" && zoneMove) {
+    const spots = zoneOfSpot(sel.id).spots;
+    const cx = spots.reduce((a, s) => a + s.x, 0) / spots.length, cy = spots.reduce((a, s) => a + s.y, 0) / spots.length;
+    const c = Math.cos(rad(delta)), s = Math.sin(rad(delta));
+    spots.forEach((sp) => {
+      const x = sp.x - cx, y = sp.y - cy;
+      sp.x = cx + x * c - y * s; sp.y = cy + x * s + y * c; sp.rot = normDeg(sp.rot + delta);
+    });
+  } else o.rot = normDeg(o.rot + delta);
+  commit();
+}
+
+function itemDialog(itemId, atPoint) {
+  const it = itemId ? state.map.items.find((i) => i.id === itemId) : null;
+  openDialog(`
+    <h2>${it ? "Edit landmark" : "Add landmark"}</h2>
+    <label>Type<select id="ik">${Object.entries(ITEM_KINDS).map(([k, v]) => `<option value="${k}" ${it && it.kind === k ? "selected" : ""}>${v.label}</option>`).join("")}</select></label>
+    <label>Label<input type="text" id="il" value="${esc(it ? it.label : "")}" placeholder="e.g. Toilets, Info tent, Gate"></label>
+    ${it ? `<div style="display:flex;gap:8px"><label style="flex:1">Width (m)<input type="text" inputmode="decimal" id="iw" value="${it.w}"></label>
+      <label style="flex:1">Depth (m)<input type="text" inputmode="decimal" id="ih" value="${it.h}"></label></div>` : ""}
+    <div class="acts">
+      ${it ? `<button type="button" class="btn danger left" data-x="del">Delete</button>` : ""}
+      <button type="button" class="btn" data-x="cancel">Cancel</button>
+      <button type="submit" class="btn primary">${it ? "Save" : "Add"}</button>
+    </div>`, (f) => {
+    f.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const kind = f.querySelector("#ik").value, label = f.querySelector("#il").value.trim();
+      if (it) {
+        const w = parseFloat(f.querySelector("#iw").value), h = parseFloat(f.querySelector("#ih").value);
+        Object.assign(it, { kind, label });
+        if (w > 0) it.w = w;
+        if (h > 0) it.h = h;
+        if (kind === "tree" || kind === "power") it.h = it.w;
+      } else {
+        const c = atPoint || viewCentre();
+        const n = { id: uid(), kind, label, x: snap(c.x, 0.5), y: snap(c.y, 0.5), w: ITEM_KINDS[kind].w, h: ITEM_KINDS[kind].h, rot: 0 };
+        state.map.items.push(n);
+        sel = { type: "item", id: n.id }; zoneMove = false;
+      }
+      closeDialog(); commit();
+    });
+    f.addEventListener("click", (e) => {
+      const x = e.target.closest("[data-x]")?.dataset.x;
+      if (x === "cancel") closeDialog();
+      if (x === "del") { state.map.items = state.map.items.filter((i) => i !== it); sel = null; closeDialog(); commit(); }
+    });
+  });
+}
+
+function pickZoneDialog(then) {
+  openDialog(`<h2>Add a spot to which zone?</h2>
+    <div class="pick">${state.zones.map((z) => `<button type="button" data-z="${z.id}"><i class="sw" style="background:${esc(z.color)}"></i>${esc(zoneTitle(z))}<span class="meta">${z.spots.length} spots</span></button>`).join("")}</div>
+    <div class="acts"><button type="button" class="btn" data-x="newzone">+ New zone</button><button class="btn">Cancel</button></div>`, (f) => {
+    f.addEventListener("click", (e) => {
+      const b = e.target.closest("[data-z]");
+      if (b) { closeDialog(); then(state.zones.find((z) => z.id === b.dataset.z)); }
+      if (e.target.closest("[data-x=newzone]")) zoneDialog(null);
+    });
+  });
+}
+
+function satDialog() {
+  const m = state.map;
+  openDialog(`<h2>Satellite photo</h2>
+    <label class="row"><input type="checkbox" id="son" ${m.satellite ? "checked" : ""}> Show satellite photo</label>
+    <label>Opacity<input type="range" id="sop" min="0.2" max="1" step="0.05" value="${m.satOpacity}"></label>
+    <div style="display:flex;gap:8px"><label style="flex:1">Latitude<input type="text" inputmode="decimal" id="slat" value="${m.lat.toFixed(6)}"></label>
+    <label style="flex:1">Longitude<input type="text" inputmode="decimal" id="slng" value="${m.lng.toFixed(6)}"></label></div>
+    <p class="hint">This point sits at the middle of the plan. Paste coordinates from Google Maps (long-press a spot), then fine-tune with Align satellite.</p>
+    <div class="acts"><button type="button" class="btn" data-x="cancel">Cancel</button><button type="submit" class="btn primary">Save</button></div>`, (f) => {
+    f.addEventListener("submit", (e) => {
+      e.preventDefault();
+      m.satellite = f.querySelector("#son").checked;
+      m.satOpacity = parseFloat(f.querySelector("#sop").value) || 0.9;
+      const lat = parseFloat(f.querySelector("#slat").value), lng = parseFloat(f.querySelector("#slng").value);
+      if (Math.abs(lat) <= 85 && Math.abs(lng) <= 180) {
+        // Keep the layout's centre on the new coordinates.
+        const b = bounds(allObjs());
+        const c = worldToLL((b.x0 + b.x1) / 2, (b.y0 + b.y1) / 2);
+        m.lat = lat - (m.lat - c.lat); m.lng = lng - (c.lng - m.lng);
+      }
+      tileKey = ""; closeDialog(); commit();
+    });
+    f.addEventListener("click", (e) => { if (e.target.closest("[data-x=cancel]")) closeDialog(); });
+  });
+}
+
+function onMapAction(e) {
+  const b = e.target.closest("[data-m]");
+  if (!b) return;
+  const m = mapSize();
+  switch (b.dataset.m) {
+    case "mode-checkin": mapMode = "checkin"; sel = null; zoneMove = false; aligning = false; renderMap(); break;
+    case "mode-edit": mapMode = "edit"; renderMap(); break;
+    case "fit": fitView(); break;
+    case "zin": zoomAt(m.left + m.w / 2, m.top + m.h / 2, 1.4); break;
+    case "zout": zoomAt(m.left + m.w / 2, m.top + m.h / 2, 1 / 1.4); break;
+    case "sat": if (state.map.satellite) { state.map.satellite = false; aligning = false; commit(); } else { state.map.satellite = true; tileKey = ""; commit(); } break;
+    case "sat-settings": satDialog(); break;
+    case "align": aligning = !aligning; sel = null; zoneMove = false; renderMap(); if (aligning) toast("Drag to move the satellite photo"); break;
+    case "unplaced": {
+      const list = state.stalls.filter((s) => s.status !== "cancelled" && !spotOfStall(s.id));
+      openDialog(`<h2>Not placed yet</h2><div class="pick">${list.map((s) => `<button type="button" data-p="${s.id}">${esc(s.name)}${s.power ? " ⚡" : ""}<span class="meta">${esc(s.notes || "")}</span></button>`).join("")}</div>
+        <div class="acts"><button class="btn">Close</button></div>`, (f) => {
+        f.addEventListener("click", (ev) => { const p = ev.target.closest("[data-p]"); if (p) placeDialog(p.dataset.p); });
+      });
+      break;
+    }
+    case "zone": {
+      const z = state.zones.find((q) => q.id === b.dataset.id);
+      if (!z || !z.spots.length) { if (z) zoneDialog(z.id); break; }
+      if (mapMode === "edit") { sel = { type: "spot", id: z.spots[0].id }; zoneMove = true; aligning = false; renderMap(); }
+      fitView(z.spots);
+      break;
+    }
+    case "zone-move": zoneMove = !zoneMove; renderMap(); break;
+    case "rot-": rotateSel(-15); break;
+    case "rot+": rotateSel(15); break;
+    case "edit-sel":
+      if (sel.type === "spot") { if (zoneMove) zoneDialog(zoneOfSpot(sel.id).id); else spotDialog(sel.id); }
+      else itemDialog(sel.id);
+      break;
+    case "dup": {
+      const o = selObj();
+      if (sel.type === "spot") { const sp = addSpot(zoneOfSpot(sel.id), o); sel = { type: "spot", id: sp.id }; zoneMove = false; }
+      else { const n = { ...o, id: uid(), x: o.x + o.w + 1 }; state.map.items.push(n); sel = { type: "item", id: n.id }; }
+      commit(); break;
+    }
+    case "del": {
+      if (sel.type === "spot") {
+        const z = zoneOfSpot(sel.id);
+        if (zoneMove) { zoneDialog(z.id); break; }
+        const f = findSpot(sel.id), who = f.spot.stallId ? stallById(f.spot.stallId) : null;
+        if (who && !confirm(`Delete ${f.spot.label}? ${who.name} will go to "Not placed".`)) break;
+        z.spots = z.spots.filter((s) => s.id !== sel.id);
+      } else state.map.items = state.map.items.filter((i) => i.id !== sel.id);
+      sel = null; commit(); break;
+    }
+    case "add-spot": {
+      const go = (z) => { const sp = addSpot(z, sel && sel.type === "spot" && zoneOfSpot(sel.id) === z ? selObj() : null); sel = { type: "spot", id: sp.id }; zoneMove = false; commit(); };
+      if (sel && sel.type === "spot") go(zoneOfSpot(sel.id));
+      else if (state.zones.length) pickZoneDialog(go);
+      else zoneDialog(null);
+      break;
+    }
+    case "add-item": itemDialog(null); break;
+  }
+}
+
+function initMap() {
+  const el = svg();
+  el.addEventListener("pointerdown", onDown);
+  el.addEventListener("pointermove", onMove);
+  el.addEventListener("pointerup", onUp);
+  el.addEventListener("pointercancel", onUp);
+  el.addEventListener("wheel", (e) => { e.preventDefault(); zoomAt(e.clientX, e.clientY, Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.0015))); }, { passive: false });
+  document.getElementById("mapwrap").addEventListener("click", onMapAction);
+  if (window.innerWidth > 700) document.getElementById("legendbox").open = true;
+  window.addEventListener("resize", () => { sizeMap(); if (tab === "map" && view) applyView(); });
+  document.addEventListener("keydown", (e) => {
+    if (tab !== "map" || dlg.open || mapMode !== "edit") return;
+    if (e.key === "Escape") { sel = null; zoneMove = false; aligning = false; renderMap(); }
+    const o = selObj();
+    if (!o || /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)) return;
+    const step = e.shiftKey ? 1 : 0.25;
+    const d = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] }[e.key];
+    if (d) {
+      e.preventDefault();
+      const group = sel.type === "spot" && zoneMove ? zoneOfSpot(sel.id).spots : [o];
+      group.forEach((g) => { g.x += d[0]; g.y += d[1]; });
+      commit();
+    }
+    if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); document.querySelector('[data-m="del"]')?.click(); }
+  });
+}
+function sizeMap() {
+  const wrap = document.getElementById("mapwrap");
+  const top = document.querySelector("header.top").getBoundingClientRect().height;
+  wrap.style.height = Math.max(320, window.innerHeight - top) + "px";
+}
+
+function printMapSvg() {
+  const b = bounds(allObjs()), pad = 2;
+  return `<svg class="pmap" viewBox="${b.x0 - pad} ${b.y0 - pad} ${b.x1 - b.x0 + pad * 2} ${b.y1 - b.y0 + pad * 2}" xmlns="http://www.w3.org/2000/svg">${mapContent(true)}</svg>`;
+}
+
 let state = load();
-let tab = "layout";
+let tab = "map";
 let filter = { q: "", show: "all" };
 let flashSpot = null;
 
@@ -348,10 +1035,12 @@ function unassign(stallId) {
 function render() {
   document.getElementById("date").value = state.date || "";
   renderStats();
-  for (const t of ["layout", "stalls", "data"]) {
+  document.getElementById("main").classList.toggle("full", tab === "map");
+  for (const t of ["map", "layout", "stalls", "data"]) {
     document.getElementById("tab-" + t).hidden = t !== tab;
     document.querySelector(`[data-tab="${t}"]`).setAttribute("aria-selected", String(t === tab));
   }
+  if (tab === "map") { sizeMap(); renderMap(); }
   if (tab === "layout") renderLayout();
   if (tab === "stalls") renderStalls();
   if (tab === "data") renderData();
@@ -505,6 +1194,7 @@ function renderPrint() {
   document.getElementById("printout").innerHTML = `
     <h1>Kingston Farmers Market — Kingston Heath Reserve</h1>
     <p class="sub">${esc(d || "Stallholder listing")} · ✓ = arrived, $ = paid</p>
+    ${printMapSvg()}
     <div class="cols">${state.zones.map((z) => `<section>
       <h2>${esc(zoneTitle(z))}</h2>
       <table>${z.spots.map((sp) => {
@@ -541,6 +1231,8 @@ function spotDialog(spotId) {
     <h2>${esc(spot.label)} · ${esc(zoneTitle(zone))}</h2>
     ${cur ? `<p style="margin:0">Currently <b>${esc(cur.name)}</b></p>
       <div class="acts" style="justify-content:flex-start">
+        <button type="button" class="btn ${cur.status === "arrived" ? "primary" : ""}" data-x="arrived">✓ Arrived</button>
+        <button type="button" class="btn ${cur.paid ? "primary" : ""}" data-x="paid">$ Paid</button>
         <button type="button" class="btn" data-x="edit">Edit stallholder</button>
         <button type="button" class="btn danger" data-x="clear">Make vacant</button>
       </div>` : ""}
@@ -566,6 +1258,8 @@ function spotDialog(spotId) {
       if (!x) return;
       if (x === "done") { saveLabel(); commit(); }
       if (x === "clear") { spot.stallId = null; closeDialog(); commit(); }
+      if (x === "arrived") { saveLabel(); cur.status = cur.status === "arrived" ? "expected" : "arrived"; closeDialog(); commit(); }
+      if (x === "paid") { saveLabel(); cur.paid = !cur.paid; closeDialog(); commit(); }
       if (x === "edit") { saveLabel(); stallDialog(cur.id); }
       if (x === "new") { saveLabel(); stallDialog(null, spot.id, zone.power); }
       if (x === "del-spot") {
@@ -605,7 +1299,7 @@ function placeDialog(stallId) {
     </div>`, (f) => {
     f.addEventListener("click", (e) => {
       const p = e.target.closest("[data-spot-pick]");
-      if (p) { assign(stallId, p.dataset.spotPick); closeDialog(); tab = "layout"; commit(); return; }
+      if (p) { assign(stallId, p.dataset.spotPick); closeDialog(); commit(); return; }
       if (e.target.closest("[data-x=unplace]")) { unassign(stallId); closeDialog(); commit(); }
     });
   });
@@ -669,6 +1363,7 @@ function zoneDialog(zoneId) {
     <label>Name<input type="text" id="zn" value="${esc(z ? z.name : "")}" required></label>
     <label>Spot code prefix<input type="text" id="zc" value="${esc(z ? z.code : "")}" placeholder="e.g. BMR"></label>
     <label class="row"><input type="checkbox" id="zp" ${z && z.power ? "checked" : ""}> Powered spots ⚡</label>
+    <label class="row"><input type="color" id="zcol" value="${esc(z ? z.color : ZONE_COLORS[state.zones.length % ZONE_COLORS.length])}"> Colour on the map</label>
     ${z ? "" : `<label>Number of spots<input type="text" inputmode="numeric" id="zs" value="6"></label>`}
     ${z ? `<label class="row"><input type="checkbox" id="zr"> Renumber spot labels (${esc(z.code || "?")}-1, -2, …)</label>
     <div class="acts" style="justify-content:flex-start">
@@ -686,12 +1381,16 @@ function zoneDialog(zoneId) {
       if (!name) return;
       const code = f.querySelector("#zc").value.trim().toUpperCase() || name.split(/\s+/).map((w) => w[0]).join("").toUpperCase();
       const power = f.querySelector("#zp").checked;
+      const color = f.querySelector("#zcol").value;
       if (z) {
-        Object.assign(z, { name, code, power });
+        Object.assign(z, { name, code, power, color });
         if (f.querySelector("#zr").checked) z.spots.forEach((sp, i) => (sp.label = code + "-" + (i + 1)));
       } else {
         const n = Math.max(0, Math.min(200, parseInt(f.querySelector("#zs").value, 10) || 0));
-        state.zones.push({ id: uid(), name, code, power, spots: Array.from({ length: n }, (_, i) => ({ id: uid(), label: code + "-" + (i + 1), stallId: null })) });
+        const nz = { id: uid(), name, code, power, color, spots: Array.from({ length: n }, (_, i) => ({ id: uid(), label: code + "-" + (i + 1), stallId: null })) };
+        placeNewZone(nz);
+        state.zones.push(nz);
+        if (n) { sel = { type: "spot", id: nz.spots[0].id }; zoneMove = true; }
       }
       closeDialog(); commit();
     });
@@ -741,7 +1440,7 @@ function importJson(file) {
       const s = JSON.parse(r.result);
       if (!s || !Array.isArray(s.zones) || !Array.isArray(s.stalls)) throw new Error("bad");
       if (!confirm("Replace everything here with the imported file?")) return;
-      state = s; commit(); toast("Imported");
+      state = migrate(s); view = null; commit(); toast("Imported");
     } catch (e) { toast("That file isn't a market export"); }
   };
   r.readAsText(file);
@@ -774,8 +1473,7 @@ document.querySelector("main").addEventListener("click", (e) => {
     case "add-zone": zoneDialog(null); break;
     case "add-spot": {
       const z = state.zones.find((q) => q.id === id);
-      const sp = { id: uid(), label: (z.code || "S") + "-" + (z.spots.length + 1), stallId: null };
-      z.spots.push(sp); flashSpot = sp.id; commit(); break;
+      flashSpot = addSpot(z).id; commit(); break;
     }
     case "toggle-arrived": {
       const s = stallById(id); s.status = s.status === "arrived" ? "expected" : "arrived"; commit(); break;
@@ -808,6 +1506,7 @@ document.querySelector("main").addEventListener("change", (e) => {
 });
 dlg.addEventListener("close", () => { dlg.innerHTML = ""; });
 
+initMap();
 render();
 </script>
 </body>
