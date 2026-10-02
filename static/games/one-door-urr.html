@@ -929,7 +929,7 @@ async function portal(d, th, extr, pts) {
     keep.position.copy(room.o); keep.rotation.y = room.yaw0;
     if (life.help) { life.help = false; for (const n of doors) if (lockedBy(n.key)) life.unlocked.add(n.key); }
     refreshEmblems();
-    spawnBurst(th, extr, doorPos, a);
+    spawnBurst(th, extr, o2, a);
     setProps(d.key);
     popScore(pts, th.c);
     // the door you came through swings shut behind you and sinks away
@@ -1187,10 +1187,14 @@ Object.assign(T.music, { sp: 'note' }); Object.assign(T.sleep, { sp: 'star' }); 
 const MOTION = { paper: 'fall', books: 'tumble', swirl: 'swirl', rise: 'rise', hearts: 'rise', confetti: 'fall', warp: 'warp', burst: 'burst', bloom: 'burst', tumble: 'tumble' };
 const bursts = [], flash = { col: new THREE.Color(), k: 0 };
 const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Euler(), _p = new THREE.Vector3(), _s = new THREE.Vector3();
-// The show as you cross a threshold: a burst of the door's theme, bigger the newer the door.
+// The show when you arrive: the new room celebrates around you, never in your face.
+// Things fall and rise in a ring out by the doors, swirl round the room at a distance,
+// streak up from the horizon, or go off as fireworks high in the sky ahead.
+// Bigger the newer the door.
+const _cam = new THREE.Vector3();
 function spawnBurst(th, extr, at, a) {
   const x = Math.min(1.6, extr), motion = MOTION[th.fx] || 'burst', col = new THREE.Color(th.c);
-  const N = Math.round(40 + 300 * x);
+  const N = Math.round(50 + 300 * x);
   const kind = th.sp || FX_SPRITE[th.fx];
   let im;
   if (kind) {
@@ -1200,32 +1204,39 @@ function spawnBurst(th, extr, at, a) {
   } else im = new THREE.InstancedMesh(SHAPES[th.fx] || SHAPES.burst, mat('#ffffff', { emissive: col, emissiveIntensity: 0.3, side: THREE.DoubleSide, amp: 0.05 }), N);
   im.frustumCulled = false;
   const grp = new THREE.Group(); grp.position.copy(at); grp.rotation.y = a; grp.add(im); scene.add(grp);
-  const confetti = th.fx === 'confetti';
+  const confetti = th.fx === 'confetti', fireworks = motion === 'burst' || motion === 'tumble';
+  // firework shells hang in the sky ahead of you (local -z is forward)
+  const shells = Array.from({ length: fireworks ? randInt(3, 5) : 0 }, () => {
+    const t = rand(-1, 1), r = rand(13, 22);
+    return [Math.sin(t) * r, rand(7, 12), -Math.cos(t) * r];
+  });
+  const ring = () => { const t = rand(0, TAU), r = rand(6, 16); return [Math.sin(t) * r, Math.cos(t) * r]; };
   const s = { p: new Float32Array(N * 3), v: new Float32Array(N * 3), r: new Float32Array(N * 3), rv: new Float32Array(N * 3), sc: new Float32Array(N) };
   for (let i = 0; i < N; i++) {
     const i3 = i * 3, p = s.p, v = s.v;
     im.setColorAt(i, OWN_COLOUR.has(kind) ? _c.set('#ffffff').lerp(col, rand(0, 0.2)) : col.clone().offsetHSL(confetti ? rand(-0.5, 0.5) : rand(-0.05, 0.05), confetti ? 0.2 : rand(-0.1, 0.1), rand(-0.12, 0.15)));
-    p[i3] = rand(-0.7, 0.7); p[i3 + 1] = EYE + rand(-1, 1); p[i3 + 2] = rand(-0.5, 0.5);
-    if (motion === 'fall') { p[i3] = rand(-7, 7); p[i3 + 1] = rand(3, 9); p[i3 + 2] = rand(-11, 1); v[i3] = rand(-0.4, 0.4); v[i3 + 1] = -rand(1.5, 3.5); }
-    else if (motion === 'rise') { p[i3] = rand(-7, 7); p[i3 + 1] = rand(-1, 2); p[i3 + 2] = rand(-11, 1); v[i3 + 1] = rand(1.5, 3.5); }
-    else if (motion === 'swirl') { v[i3] = rand(0, TAU); v[i3 + 1] = rand(1.2, 5); v[i3 + 2] = rand(1, 2.5) * (Math.random() < 0.5 ? -1 : 1); p[i3 + 2] = rand(-10, 1); }
-    else if (motion === 'warp') { const t = rand(0, TAU), r = rand(1.2, 6); p[i3] = Math.cos(t) * r; p[i3 + 1] = EYE + Math.sin(t) * r; p[i3 + 2] = rand(-2, 2); v[i3 + 2] = -rand(8, 22); }
-    else { _p.randomDirection().multiplyScalar(motion === 'tumble' ? rand(1.5, 4) : rand(3, 9)); v[i3] = _p.x; v[i3 + 1] = _p.y + 1; v[i3 + 2] = _p.z - 3; }
-    const spin = motion === 'warp' ? 0.5 : motion === 'burst' ? 2 : 3, flat = kind && !OWN_COLOUR.has(kind) && kind !== 'confetti';
+    if (motion === 'fall') { const [rx, rz] = ring(); p[i3] = rx; p[i3 + 1] = rand(5, 11); p[i3 + 2] = rz; v[i3] = rand(-0.4, 0.4); v[i3 + 1] = -rand(1.5, 3); }
+    else if (motion === 'rise') { const [rx, rz] = ring(); p[i3] = rx; p[i3 + 1] = rand(-0.5, 1.5); p[i3 + 2] = rz; v[i3 + 1] = rand(1.5, 3); }
+    else if (motion === 'swirl') { v[i3] = rand(0, TAU); v[i3 + 1] = rand(7, 14); v[i3 + 2] = rand(0.4, 0.9) * (Math.random() < 0.5 ? -1 : 1); p[i3 + 1] = rand(1, 8); }
+    else if (motion === 'warp') { const t = rand(0, TAU), r = rand(8, 18); p[i3] = Math.sin(t) * r; p[i3 + 1] = rand(-1, 2); p[i3 + 2] = Math.cos(t) * r; v[i3 + 1] = rand(6, 14); }
+    else { const c = shells[i % shells.length]; p[i3] = c[0]; p[i3 + 1] = c[1]; p[i3 + 2] = c[2]; _p.randomDirection().multiplyScalar(rand(2.5, 5.5)); v[i3] = _p.x; v[i3 + 1] = _p.y; v[i3 + 2] = _p.z; }
+    const spin = motion === 'warp' ? 0 : motion === 'burst' ? 2 : 3, flat = kind && !OWN_COLOUR.has(kind) && kind !== 'confetti';
     for (let j = 0; j < 3; j++) { s.r[i3 + j] = flat && j < 2 ? rand(-0.5, 0.5) : rand(0, TAU); s.rv[i3 + j] = rand(-spin, spin) * (flat && j < 2 ? 0.2 : 1); }
-    s.sc[i] = rand(0.6, 1.6) * (motion === 'tumble' ? 1.4 : 1);
+    if (motion === 'warp') s.r[i3] = s.r[i3 + 1] = s.r[i3 + 2] = 0;
+    s.sc[i] = rand(1.2, 2.6) * (motion === 'tumble' ? 1.3 : 1);
   }
-  // a soft sparkle layer on top
+  // soft sparkles where the action is
   const M = Math.round(30 + 140 * x), pg = new THREE.BufferGeometry(), pp = new Float32Array(M * 3), pv = new Float32Array(M * 3), pc = new Float32Array(M * 3);
   for (let i = 0; i < M; i++) {
-    pp[i * 3] = rand(-0.6, 0.6); pp[i * 3 + 1] = EYE + rand(-1.2, 1.2); pp[i * 3 + 2] = rand(-0.4, 0.4);
-    _p.randomDirection().multiplyScalar(rand(1.5, 6)); pv[i * 3] = _p.x; pv[i * 3 + 1] = _p.y + 0.6; pv[i * 3 + 2] = _p.z - 2.5;
+    if (fireworks) { const c = shells[i % shells.length]; pp[i * 3] = c[0]; pp[i * 3 + 1] = c[1]; pp[i * 3 + 2] = c[2]; _p.randomDirection().multiplyScalar(rand(3, 7)); }
+    else { const [rx, rz] = ring(); pp[i * 3] = rx; pp[i * 3 + 1] = rand(1, 9); pp[i * 3 + 2] = rz; _p.randomDirection().multiplyScalar(rand(0.3, 1.2)); }
+    pv[i * 3] = _p.x; pv[i * 3 + 1] = _p.y; pv[i * 3 + 2] = _p.z;
     _c.copy(col).lerp(new THREE.Color('#ffffff'), rand(0.3, 0.8)); pc[i * 3] = _c.r; pc[i * 3 + 1] = _c.g; pc[i * 3 + 2] = _c.b;
   }
   pg.setAttribute('position', new THREE.BufferAttribute(pp, 3)); pg.setAttribute('color', new THREE.BufferAttribute(pc, 3));
-  const pts = new THREE.Points(pg, new THREE.PointsMaterial({ map: sprite('glow'), size: 0.55, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+  const pts = new THREE.Points(pg, new THREE.PointsMaterial({ map: sprite('glow'), size: 1.1, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
   pts.frustumCulled = false; grp.add(pts);
-  bursts.push({ grp, im, s, motion, t: 0, life: 0.9 + 1.0 * Math.min(1, x), N, pts, pv, M });
+  bursts.push({ grp, im, s, motion, t: 0, life: 1.4 + 1.0 * Math.min(1, x), N, pts, pv, M, fireworks });
   flash.col.copy(col); flash.k = 0.15 + 0.4 * Math.min(1, x);
 }
 function updateBursts(dt) {
@@ -1234,26 +1245,29 @@ function updateBursts(dt) {
     if (k >= 1) { scene.remove(B.grp); B.im.material.dispose(); B.im.dispose(); B.pts.geometry.dispose(); B.pts.material.dispose(); bursts.splice(b, 1); continue; }
     const fade = k < 0.08 ? k / 0.08 : k > 0.6 ? 1 - (k - 0.6) / 0.4 : 1;
     const s = B.s, p = s.p, v = s.v, m = B.motion;
+    B.grp.worldToLocal(_cam.copy(camera.position));
     for (let i = 0; i < B.N; i++) {
       const i3 = i * 3;
       if (m === 'swirl') {
-        v[i3] += v[i3 + 2] * dt; v[i3 + 1] += dt * 0.8;
-        p[i3] = Math.cos(v[i3]) * v[i3 + 1]; p[i3 + 1] = EYE + Math.sin(v[i3]) * v[i3 + 1];
+        v[i3] += v[i3 + 2] * dt; p[i3 + 1] += dt * 0.5;
+        p[i3] = Math.sin(v[i3]) * v[i3 + 1]; p[i3 + 2] = Math.cos(v[i3]) * v[i3 + 1];
       } else {
-        if (m === 'burst' || m === 'tumble') { const drag = Math.exp(-dt * 1.2); v[i3] *= drag; v[i3 + 1] *= drag; v[i3 + 2] *= drag; }
+        if (B.fireworks) { const drag = Math.exp(-dt * 1.1); v[i3] *= drag; v[i3 + 1] = v[i3 + 1] * drag - 1.4 * dt; v[i3 + 2] *= drag; }
         p[i3] += v[i3] * dt; p[i3 + 1] += v[i3 + 1] * dt; p[i3 + 2] += v[i3 + 2] * dt;
         if (m === 'fall') p[i3] += Math.sin(B.t * 2 + i) * dt * 0.6;
       }
       for (let j = 0; j < 3; j++) s.r[i3 + j] += s.rv[i3 + j] * dt;
-      _e.set(s.r[i3], s.r[i3 + 1], s.r[i3 + 2]); if (m === 'warp') _e.set(0, 0, s.r[i3 + 2]);
+      _e.set(s.r[i3], s.r[i3 + 1], s.r[i3 + 2]);
       _q.setFromEuler(_e); _p.set(p[i3], p[i3 + 1], p[i3 + 2]);
-      const sc = s.sc[i] * fade; _s.set(sc, sc, m === 'warp' ? sc * 7 : sc);
+      // anything that drifts near your face shrinks away
+      const near = clamp((_p.distanceTo(_cam) - 2) / 2, 0, 1);
+      const sc = s.sc[i] * fade * near + 0.0001; _s.set(sc, m === 'warp' ? sc * 5 : sc, sc);
       _m.compose(_p, _q, _s); B.im.setMatrixAt(i, _m);
     }
     B.im.instanceMatrix.needsUpdate = true;
-    const pa = B.pts.geometry.attributes.position, drag = Math.exp(-dt * 1.6);
+    const pa = B.pts.geometry.attributes.position, drag = Math.exp(-dt * 1.2);
     for (let i = 0; i < B.M * 3; i++) { B.pv[i] *= drag; pa.array[i] += B.pv[i] * dt; }
-    pa.needsUpdate = true; B.pts.material.opacity = fade; B.pts.material.size = 0.55 * (0.6 + 0.6 * Math.sin(B.t * 9) ** 2);
+    pa.needsUpdate = true; B.pts.material.opacity = fade; B.pts.material.size = 1.1 * (0.6 + 0.6 * Math.sin(B.t * 9) ** 2);
   }
 }
 
