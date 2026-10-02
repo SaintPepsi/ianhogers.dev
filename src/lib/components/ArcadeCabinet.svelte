@@ -128,7 +128,7 @@
               bind:this={frame}
               title={game.title}
               src={game.embed}
-              allow="fullscreen; autoplay; gamepad"
+              allow="fullscreen; autoplay; gamepad; microphone"
               onload={onLoad}
             ></iframe>
           {/key}
