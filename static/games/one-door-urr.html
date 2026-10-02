@@ -643,7 +643,7 @@ function resize() {
   relayout();
 }
 const frontSpread = (n) => Math.min(0.5, (2 * hHalf * 0.72) / Math.max(1, n));
-const frontRadius = (n) => clamp(2.6 / Math.max(0.01, frontSpread(n)), 7, 13);
+const frontRadius = (n) => clamp(3.0 / Math.max(0.01, frontSpread(n)), 7, 14);
 // Every room is a circle of doors around its own centre (o), facing the way you walked in (y0).
 function layoutRoom(list, o, y0) {
   const front = list.filter((d) => d.zone === 'front'), n = front.length;
@@ -689,8 +689,9 @@ function planRoom(fromKey) {
   const portrait = innerWidth < innerHeight;
   const n = room.no < 3 ? 2 : portrait ? 3 : pick([3, 3, 4]);
   const th = T[fromKey];
-  if (th && !th.once && !th.quit) add(fromKey);
-  if (life.pending.length) { const k = life.pending[0]; if (add(k)) life.pending.shift(); }
+  const must = () => (specs[specs.length - 1].must = true);
+  if (th && !th.once && !th.quit && add(fromKey)) must();
+  if (life.pending.length) { const k = life.pending[0]; if (add(k)) { life.pending.shift(); must(); } }
   for (const k of shuffle([...(th?.nx || [])])) if (specs.length < n - 1 && Math.random() < 0.6) add(k);
   if (S('work').n >= 2 && !known('quit') && used.has('work') && Math.random() < 0.45) add('quit');
   if (room.no > 2 && specs.length < n && Math.random() < 0.4) specs.push({ free: true, zone: 'front' });
@@ -699,22 +700,28 @@ function planRoom(fromKey) {
   // at most one roadblock a room, from room 4 on
   if (room.no >= 4) {
     const fits = (w) => !specs.some((sp) => sp.word && (sp.word.startsWith(w) || w.startsWith(sp.word)));
-    if (life.scars.length && Math.random() < 0.5) { const sp = scarSpec(life.scars[0]); if (fits(sp.word)) { life.scars.shift(); specs.push(sp); } }
+    if (life.scars.length && Math.random() < 0.5) { const sp = scarSpec(life.scars[0]); if (fits(sp.word)) { life.scars.shift(); specs.push({ ...sp, must: true }); } }
     else if (room.no - life.lastHome >= 6 && !used.has('family')) {
       const w = wordFor('family'), r = [...w].reverse().join('');
-      if (fits(r)) { used.add('family'); specs.push({ key: 'family', word: r, zone: 'front', mirror: true, orig: w }); }
+      if (fits(r)) { used.add('family'); specs.push({ key: 'family', word: r, zone: 'front', mirror: true, orig: w, must: true }); }
     }
   }
   if (life.heart >= 2 && specs.some((sp) => sp.key && (lockedBy(sp.key) || ((letters(sp.word) >= 10 || T[sp.key].grind) && life.energy === 0)))) add('ask for help', 'right');
+  // never more doors in front than fit side by side: extras step out to your left or right
+  const freeSide = () => ['left', 'right'].find((z) => !specs.some((sp) => sp.zone === z));
+  for (let front = specs.filter((sp) => sp.zone === 'front'); front.length > (portrait ? 3 : 4); front = specs.filter((sp) => sp.zone === 'front')) {
+    const drop = [...front].reverse().find((sp) => !sp.must) || front[front.length - 1], side = freeSide();
+    if (side) drop.zone = side; else specs.splice(specs.indexOf(drop), 1);
+  }
   shuffle(specs);
   if (room.no > 2 && Math.random() < 0.65) {
     const secrets = Object.keys(T).filter((k) => T[k].secret && !known(k));
     if (secrets.length) { const k = pick(secrets); specs.push({ key: k, word: T[k].l[0], zone: 'back' }); }
     else specs.push({ free: true, zone: 'back' });
   }
-  if (room.no > 3 && Math.random() < 0.35) {
-    guard = 0; const before = specs.length;
-    while (specs.length === before && guard++ < 20) add(pick(POOL), pick(['left', 'right']));
+  if (room.no > 3 && Math.random() < 0.35 && freeSide()) {
+    guard = 0; const before = specs.length, side = freeSide();
+    while (specs.length === before && guard++ < 20) add(pick(POOL), side);
   }
   return specs;
 }
@@ -1024,9 +1031,27 @@ function rattle(d) {
 }
 
 /* ------------------------------------------------------------------ commands */
+// Turning settles on the doors, not on a bare compass angle: centre on the group of doors
+// near where you'd face that fits on screen together.
+function snapYaw(target) {
+  const rel = doors.filter((d) => d.rise > -4).map((d) => angDiff(d.angle, target)).sort((a, b) => a - b);
+  if (!rel.length) return target;
+  const near = rel.reduce((a, b) => (Math.abs(b) < Math.abs(a) ? b : a));
+  if (Math.abs(near) > 1.0) return target;
+  const span = 2 * (hHalf * 0.96 - 0.08 - 0.15);
+  let best = null;
+  for (let i = 0; i < rel.length; i++) {
+    let j = i; while (j + 1 < rel.length && rel[j + 1] - rel[i] <= span) j++;
+    if (rel[i] > near || rel[j] < near) continue;
+    const centre = (rel[i] + rel[j]) / 2, score = (j - i) * 10 - Math.abs(centre);
+    if (!best || score > best.score) best = { centre, score };
+  }
+  return target + (best ? best.centre : near);
+}
 async function turnBy(delta, dur = 1) {
   if (busy) return;
   busy = true; onLooked();
+  delta += angDiff(snapYaw(yaw + delta), yaw + delta);
   const y0 = yaw; await anim(dur, (k) => (yaw = y0 + delta * ease(k)));
   yaw = ((yaw % TAU) + TAU) % TAU; if (yaw > Math.PI) yaw -= TAU;
   if (Math.abs(delta) >= Math.PI - 0.01) unmirror();
