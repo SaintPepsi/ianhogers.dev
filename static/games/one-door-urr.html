@@ -387,7 +387,24 @@ class Music {
 /* ------------------------------------------------------------------ renderer + scene */
 const canvas = $('gl');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, stencil: true });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+// Adaptive resolution: a notch down when frames run slow, a notch back up after a steady spell.
+// A level that proved too slow right after a raise becomes the ceiling, so it never see-saws.
+const DPR = { max: Math.min(devicePixelRatio, 2), v: 0, cap: 0, sum: 0, n: 0, good: 0, raised: 0, warm: 3 };
+DPR.v = DPR.cap = DPR.max;
+renderer.setPixelRatio(DPR.v);
+function tuneDpr(ms) {
+  if (ms > 250) { DPR.sum = DPR.n = 0; return; }   // tab switch or a one-off stall: start a fresh window
+  if (DPR.warm > 0) { DPR.warm -= ms / 1000; return; }   // shaders are still compiling
+  DPR.sum += ms; DPR.n++;
+  if (DPR.sum < 1000) return;
+  const avg = DPR.sum / DPR.n, lo = Math.min(1, DPR.max); DPR.sum = DPR.n = 0;
+  let v = DPR.v;
+  if (avg > 19 && v > lo) { if (DPR.raised > 0) DPR.cap = v - 0.25; v = Math.max(lo, v - 0.25); DPR.good = 0; }
+  else if (avg < 17.5) { if (++DPR.good >= 4 && v < DPR.cap) { v = Math.min(DPR.cap, v + 0.25); DPR.good = 0; DPR.raised = 3; } }
+  else DPR.good = 0;
+  if (DPR.raised > 0 && v === DPR.v) DPR.raised--;
+  if (v !== DPR.v) renderer.setPixelRatio((DPR.v = v));
+}
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.05;
 const scene = new THREE.Scene();
@@ -463,7 +480,29 @@ sky.renderOrder = -1; scene.add(sky);
 
 const world = new THREE.Group(); scene.add(world);
 const floorMat = mat('#d9cbff', { amp: 0.55, roughness: 0.85 });
-const floor = new THREE.Mesh(new THREE.PlaneGeometry(140, 140, 150, 150), floorMat);
+// The floor is a 140x140 plane on a 150x150 grid, but only the middle (about ±40) keeps every vertex;
+// out in the fog it keeps every other one. Every vertex sits exactly where the full grid had it, so the
+// jagged noise lands the same, and coarse cells that touch fine ones fan from their centre so no seam cracks.
+function floorGeo(size = 140, seg = 150, near = 21) {
+  const half = size / 2, st = size / seg, B = seg / 2, c0 = (B - 1) / 2, ids = new Map(), pos = [], idx = [];
+  const v = (x, y) => { const k = y * (seg + 1) + x; let i = ids.get(k); if (i === undefined) { ids.set(k, (i = pos.length / 3)); pos.push(x * st - half, -(y * st - half), 0); } return i; };
+  const fine = (bx, by) => Math.abs(bx - c0) <= near && Math.abs(by - c0) <= near;
+  for (let by = 0; by < B; by++) for (let bx = 0; bx < B; bx++) {
+    const x = bx * 2, y = by * 2;
+    if (fine(bx, by)) {   // same cells and diagonals as PlaneGeometry
+      for (let j = y; j < y + 2; j++) for (let i = x; i < x + 2; i++) idx.push(v(i, j), v(i, j + 1), v(i + 1, j), v(i, j + 1), v(i + 1, j + 1), v(i + 1, j));
+    } else if (fine(bx, by - 1) || fine(bx + 1, by) || fine(bx, by + 1) || fine(bx - 1, by)) {
+      const ring = [[x, y], fine(bx, by - 1) && [x + 1, y], [x + 2, y], fine(bx + 1, by) && [x + 2, y + 1], [x + 2, y + 2], fine(bx, by + 1) && [x + 1, y + 2], [x, y + 2], fine(bx - 1, by) && [x, y + 1]].filter(Boolean);
+      const c = v(x + 1, y + 1);
+      ring.forEach((p, i) => { const q = ring[(i + 1) % ring.length]; idx.push(c, v(q[0], q[1]), v(p[0], p[1])); });
+    } else idx.push(v(x, y), v(x, y + 2), v(x + 2, y), v(x, y + 2), v(x + 2, y + 2), v(x + 2, y));
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('normal', new THREE.Float32BufferAttribute(new Float32Array(pos.length).map((_, i) => (i % 3 === 2 ? 1 : 0)), 3));
+  g.setIndex(idx); return g;
+}
+const floor = new THREE.Mesh(floorGeo(), floorMat);
 floor.rotation.x = -Math.PI / 2; world.add(floor);
 let rail = null;
 
@@ -479,7 +518,10 @@ const PG = {
     const g = new THREE.ExtrudeGeometry(sh, { depth: 0.25, bevelEnabled: true, bevelSize: 0.08, bevelThickness: 0.08, bevelSegments: 3 }); g.center(); return g;
   })(),
 };
-const pm = (c, o = {}) => mat(c, { amp: 0.45, roughness: 0.42, ...o });
+// Props and keepsakes share one material per colour + options; they are never stencilled or recoloured per object.
+const MATS = new Map();
+const cmat = (c, o = {}) => { const k = c + JSON.stringify(o); let m = MATS.get(k); if (!m) MATS.set(k, (m = mat(c, o))); return m; };
+const pm = (c, o = {}) => cmat(c, { amp: 0.45, roughness: 0.42, ...o });
 function part(g, geo, m, p = [0, 0, 0], r = [0, 0, 0], sc = [1, 1, 1]) {
   const x = new THREE.Mesh(geo, m); x.position.set(...p); x.rotation.set(...r); x.scale.set(...sc); g.add(x); return x;
 }
@@ -504,7 +546,7 @@ const PROP = {
   moon: () => { const g = new THREE.Group(); part(g, PG.sph, pm('#fff3b0', { emissive: '#7a6a20', emissiveIntensity: 0.4 }), [0, 0, 0], [0, 0, 0], [0.9, 0.9, 0.9]); return g; },
   star: (c) => { const g = new THREE.Group(); part(g, PG.star, pm(c === '#ffffff' ? '#ffd84a' : tone(c, 0.3), { emissive: '#806010', emissiveIntensity: 0.3 })); return g; },
   note: (c) => { const g = new THREE.Group(); part(g, PG.sph, pm(c), [0, 0, 0], [0, 0, 0.5], [0.42, 0.3, 0.3]); part(g, PG.cyl, pm(c), [0.36, 0.85, 0], [0, 0, 0], [0.06, 1.7, 0.06]); part(g, PG.box, pm(c), [0.6, 1.55, 0], [0, 0, -0.5], [0.55, 0.12, 0.1]); return g; },
-  disco: () => { const g = new THREE.Group(); const m = new THREE.Mesh(PG.ico, mat('#e6e6f5', { metalness: 0.95, roughness: 0.15, envMapIntensity: 1.4, flatShading: true, amp: 0.45 })); m.scale.setScalar(0.9); g.add(m); return g; },
+  disco: () => { const g = new THREE.Group(); const m = new THREE.Mesh(PG.ico, cmat('#e6e6f5', { metalness: 0.95, roughness: 0.15, envMapIntensity: 1.4, flatShading: true, amp: 0.45 })); m.scale.setScalar(0.9); g.add(m); return g; },
   dart: () => { const g = new THREE.Group(); part(g, PG.dart, pm('#ffffff'), [0, 0, 0], [-Math.PI / 2, 0, 0], [1, 1, 0.25]); return g; },
   suitcase: (c) => { const g = new THREE.Group(); part(g, PG.box, pm(c), [0, 0, 0], [0, 0, 0], [1.2, 1.6, 0.5]); part(g, PG.tor, pm('#5a3d2b'), [0, 0.92, 0], [0, 0, 0], [0.25, 0.2, 0.25]); return g; },
   phone: () => { const g = new THREE.Group(); part(g, PG.box, pm('#2d2a3a'), [0, 0, 0], [0, 0, 0], [0.8, 1.6, 0.1]); part(g, PG.box, pm('#9fd8ff', { emissive: '#4a8cff', emissiveIntensity: 0.8 }), [0, 0, 0.05], [0, 0, 0], [0.7, 1.42, 0.02]); return g; },
@@ -530,13 +572,11 @@ const SETS = {
 const PASTEL = ['#ffd6e8', '#c9f2ff', '#fff1b8', '#d9c8ff', '#c8ffd9', '#ffd0b0'];
 function setProps(key) {
   const th = T[key], set = SETS[key] || (th && th.golden ? ['star', 'dart', 'globe'] : ['blob']);
-  if (!set.length) { for (const f of floaters) { scene.remove(f); f.traverse((o) => o.material && o.material.dispose()); } floaters = []; propSet = ''; return; }
+  if (!set.length) { for (const f of floaters) scene.remove(f); floaters = []; propSet = ''; return; }
   const name = set.join();
   if (name === propSet) return; propSet = name;
   for (const f of floaters) {
-    const ff = f; anim(0.6, (k) => (ff.userData.g = 1 - easeOut(k))).then(() => {
-      scene.remove(ff); ff.traverse((o) => o.material && o.material.dispose());
-    });
+    const ff = f; anim(0.6, (k) => (ff.userData.g = 1 - easeOut(k))).then(() => scene.remove(ff));
   }
   floaters = [];
   for (let i = 0; i < 24; i++) {
@@ -571,6 +611,7 @@ const G = {
   stud: new THREE.SphereGeometry(0.05, 12, 8),
 };
 const roomGroup = new THREE.Group(); scene.add(roomGroup);
+const _sm = new THREE.Matrix4();
 let doors = [];
 
 function makeDoor(spec) {
@@ -596,9 +637,10 @@ function makeDoor(spec) {
   disc.position.set(0.88, 2.35, 0.12); pivot.add(disc);
   const knob = new THREE.Mesh(G.knob, mat('#ffd27a', { metalness: 0.8, roughness: 0.25, envMapIntensity: 1.2 }));
   knob.position.set(1.55, 1.45, 0.14); pivot.add(knob);
-  if (heavy) for (let i = 0; i < 10; i++) {
-    const s = new THREE.Mesh(G.stud, mat('#c9c2d8', { metalness: 0.7, roughness: 0.3 }));
-    s.position.set(0.12 + (i % 2) * 1.52, 0.25 + Math.floor(i / 2) * 0.68, 0.08); pivot.add(s);
+  if (heavy) {   // ten studs, one draw
+    const s = new THREE.InstancedMesh(G.stud, mat('#c9c2d8', { metalness: 0.7, roughness: 0.3 }), 10);
+    for (let i = 0; i < 10; i++) s.setMatrixAt(i, _sm.makeTranslation(0.12 + (i % 2) * 1.52, 0.25 + Math.floor(i / 2) * 0.68, 0.08));
+    pivot.add(s);
   }
   const bulbMat = new THREE.MeshStandardMaterial({ color: '#552233', emissive: '#000000', roughness: 0.3 });
   const bulb = new THREE.Mesh(G.bulb, bulbMat); bulb.position.set(0, 3.9, 0.05); group.add(bulb);
@@ -622,7 +664,7 @@ function makeDoor(spec) {
 }
 function disposeDoor(d) {
   roomGroup.remove(d.group);
-  d.group.traverse((o) => { if (o.material) { o.material.map?.dispose(); o.material.dispose(); } });
+  d.group.traverse((o) => { if (o.material) { o.material.map?.dispose(); o.material.dispose(); } if (o.isInstancedMesh) o.dispose(); });
 }
 function placeDoor(d, angle, R, o = room.o) {
   d.angle = angle; d.R = R;
@@ -738,8 +780,10 @@ function relayout() {
   setRail(layoutRoom(doors, room.o, room.yaw0));
 }
 function setRail(R) {
-  if (rail) { scene.remove(rail); rail.geometry.dispose(); }
-  rail = new THREE.Mesh(new THREE.TorusGeometry(R, 0.05, 10, 160), railMat);
+  // most rooms have the same radius: keep the torus rather than rebuild it
+  const geo = rail && rail.geometry.parameters.radius === R ? rail.geometry : new THREE.TorusGeometry(R, 0.05, 10, 160);
+  if (rail) { scene.remove(rail); if (rail.geometry !== geo) rail.geometry.dispose(); }
+  rail = new THREE.Mesh(geo, railMat);
   rail.rotation.x = Math.PI / 2; rail.position.set(room.o.x, 0.04, room.o.z); scene.add(rail);
 }
 const railMat = mat('#ffffff', { roughness: 0.3, metalness: 0.3, amp: 0.3 });
@@ -1488,28 +1532,32 @@ const keep = new THREE.Group(); scene.add(keep);
 const stairs = new THREE.Group(), tree = new THREE.Group(); keep.add(stairs, tree);
 stairs.position.set(-3, 0, 12); tree.position.set(-12, 0, 1);   // behind you, and to your left
 const lanterns = [], starGroup = new THREE.Group(); scene.add(starGroup);
+const KEEP = { lantern: new THREE.MeshStandardMaterial({ color: '#ffd1dc', emissive: '#ff6f91', emissiveIntensity: 1.4 }), star: new THREE.MeshBasicMaterial({ color: '#fff3b0', fog: false }) };
 const STAR_AT = [[-2, 0], [-2, 3], [-1, 4.2], [1, 4.2], [2, 3], [2, 0], [0.9, 1.6]];
 const popIn = (m, s = 1) => { m.scale.setScalar(0.001); return anim(0.7, (k) => m.scale.setScalar(Math.max(0.001, s * easeOut(k)))); };
 function addKeepsake(t) {
   const n = life[t], g = THREAD[t].g;
   if (t === 'career') {
-    const i = (n - 1) % 16, st = new THREE.Mesh(PG.box, mat('#ffeaa8', { emissive: '#ffcf4a', emissiveIntensity: 0.45, amp: 0.3 }));
-    st.position.set(i * 0.85, 0.2 + i * 0.45, 0); stairs.add(st);
-    st.scale.set(0.001, 0.001, 0.001); anim(0.7, (k) => st.scale.set(2.2 * easeOut(k) + 0.001, 0.35 * easeOut(k) + 0.001, 0.9 * easeOut(k) + 0.001));
+    // past the 16th step a new one would only grow inside an old one, unseen
+    const i = (n - 1) % 16, st = n <= 16 && new THREE.Mesh(PG.box, cmat('#ffeaa8', { emissive: '#ffcf4a', emissiveIntensity: 0.45, amp: 0.3 }));
+    if (st) {
+      st.position.set(i * 0.85, 0.2 + i * 0.45, 0); stairs.add(st);
+      st.scale.set(0.001, 0.001, 0.001); anim(0.7, (k) => st.scale.set(2.2 * easeOut(k) + 0.001, 0.35 * easeOut(k) + 0.001, 0.9 * easeOut(k) + 0.001));
+    }
   } else if (t === 'health') {
-    if (n === 1) { const tr = new THREE.Mesh(PG.cap, mat('#a8744f', { amp: 0.3 })); tr.position.y = 1.4; tr.scale.set(0.35, 1.6, 0.35); tree.add(tr); popIn(tr, 1).then(() => tr.scale.set(0.35, 1.6, 0.35)); }
+    if (n === 1) { const tr = new THREE.Mesh(PG.cap, cmat('#a8744f', { amp: 0.3 })); tr.position.y = 1.4; tr.scale.set(0.35, 1.6, 0.35); tree.add(tr); popIn(tr, 1).then(() => tr.scale.set(0.35, 1.6, 0.35)); }
     const a = n * 2.4, y = 1.4 + n * 0.45, br = new THREE.Group(); br.position.set(Math.cos(a) * 0.4, y, Math.sin(a) * 0.4); br.rotation.set(Math.sin(a) * 0.9, a, Math.cos(a) * 0.9); tree.add(br);
-    const leaf = new THREE.Mesh(PG.sph, mat(n >= g ? '#ffc2dc' : '#7fdc8a', { amp: 0.4 })); leaf.position.y = 0.8; leaf.scale.setScalar(0.75); br.add(leaf);
-    const twig = new THREE.Mesh(PG.cyl, mat('#a8744f')); twig.scale.set(0.08, 0.9, 0.08); twig.position.y = 0.35; br.add(twig);
+    const leaf = new THREE.Mesh(PG.sph, cmat(n >= g ? '#ffc2dc' : '#7fdc8a', { amp: 0.4 })); leaf.position.y = 0.8; leaf.scale.setScalar(0.75); br.add(leaf);
+    const twig = new THREE.Mesh(PG.cyl, cmat('#a8744f')); twig.scale.set(0.08, 0.9, 0.08); twig.position.y = 0.35; br.add(twig);
     popIn(br);
     if (n === g) tree.traverse((o) => { if (o.geometry === PG.sph) o.material.color.set('#ffc2dc'); });
   } else if (t === 'heart') {
-    const m = new THREE.Mesh(G.bulb, new THREE.MeshStandardMaterial({ color: '#ffd1dc', emissive: '#ff6f91', emissiveIntensity: 1.4 }));
+    const m = new THREE.Mesh(G.bulb, KEEP.lantern);
     scene.add(m); lanterns.push({ m, ph: rand(0, TAU) }); popIn(m, 1.4);
   } else if (t === 'wonder') {
     const i = (n - 1) % 14;
     const [sx, sy] = STAR_AT[i % 7], off = i >= 7 ? 9 : 0;
-    const m = new THREE.Mesh(PG.star, new THREE.MeshBasicMaterial({ color: '#fff3b0', fog: false }));
+    const m = new THREE.Mesh(PG.star, KEEP.star);
     m.position.set(sx * 5 + off, 34 + sy * 5, -95); starGroup.add(m); popIn(m, 1.6);
     if (n === g) {
       const pts = [0, 1, 2, 3, 4, 5].map((j) => new THREE.Vector3(STAR_AT[j][0] * 5, 34 + STAR_AT[j][1] * 5, -95));
@@ -1562,6 +1610,7 @@ function paint(dt) {
 let last = performance.now(), energyShown = '';
 function frame(now) {
   requestAnimationFrame(frame);
+  tuneDpr(now - last);
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
   U.uTime.value += dt;
   runTweens(dt);
@@ -1696,6 +1745,14 @@ setProps('open');
 { const d = makeDoor({ key: 'open', word: 'open' }); d.zone = 'front'; doors.push(d); relayout(); riseDoor(d, 0.4, 1.6); }
 room.no = 0;
 lastTheme = null;
+// Compile the burst, sparkle and glow shaders up front so the first door through doesn't stall on them.
+// The warm-up materials are kept (never disposed), which keeps their programs alive.
+const WARM = new THREE.Group(), glowTex = sprite('glow');
+for (const m of [mat('#ffffff', { map: glowTex, emissiveMap: glowTex, emissive: '#ffffff', emissiveIntensity: 0.35, alphaTest: 0.3, side: THREE.DoubleSide, amp: 0 }),
+  mat('#ffffff', { emissive: '#ffffff', emissiveIntensity: 0.3, side: THREE.DoubleSide, amp: 0.05 })]) { const im = new THREE.InstancedMesh(SHAPES.burst, m, 1); im.setColorAt(0, _c); WARM.add(im); }
+WARM.add(new THREE.Points(new THREE.BufferGeometry(), new THREE.PointsMaterial({ map: glowTex, size: 1.1, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })));
+WARM.add(new THREE.Mesh(G.glow, new THREE.MeshBasicMaterial({ fog: false })));
+renderer.compile(WARM, camera, scene);
 requestAnimationFrame((t) => { last = t; frame(t); });
 focusInput();
 </script>
