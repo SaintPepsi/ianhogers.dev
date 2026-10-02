@@ -206,6 +206,7 @@ Object.assign(T, {
   goals: { c: '#f0e6ff', l: ['chase goals', 'chase bigger goals', 'chase even bigger goals', 'chase the biggest goals'], grind: true, v: 24, fx: 'warp', nx: ['goals'], req: () => room.no >= 10 },
   legacy: { c: '#ffcf4a', l: ['leave a legacy'], v: 60, fx: 'warp', golden: true, once: true, req: () => S('goals').n >= 3 },
   'the end': { c: '#3a3358', l: ['the end'], v: 0, fx: 'bloom', once: true, ending: true },
+  'stay a while': { c: '#8cc5d6', l: ['stay a while'], v: 0, fx: 'bloom', once: true, ending: true, wander: true, req: () => room.no >= 18 && S('goals').n === 0 },
   'begin again': { c: '#ffd6e8', l: ['begin again'], v: 0, fx: 'bloom', restart: true },
 });
 
@@ -214,7 +215,7 @@ Object.assign(T, {
    lanterns that orbit you, wonder pins stars into the sky. Threads lean on each other:
    health is your energy for heavy doors, heart gets you through locked ones. */
 const THREAD = { career: { c: '#ffd84a', g: 8 }, health: { c: '#4cd28a', g: 6 }, heart: { c: '#ff6f91', g: 5 }, wonder: { c: '#b388ff', g: 7 } };
-const life = { hired: false, applies: 0, diploma: false, degree: false, career: 0, health: 0, heart: 0, wonder: 0, energy: 2, maxE: 3, seen: new Set(), scars: [], lastHome: 0, pending: [], unlocked: new Set(), help: false };
+const life = { turns: 0, getups: 0, customs: [], mirrored: false, hired: false, applies: 0, diploma: false, degree: false, career: 0, health: 0, heart: 0, wonder: 0, energy: 2, maxE: 3, seen: new Set(), scars: [], lastHome: 0, pending: [], unlocked: new Set(), help: false };
 for (const [t, keys] of Object.entries({
   career: ['apply', 'job offer', 'diploma', 'university', 'study', 'exam', 'graduate', 'work', 'overtime', 'promotion', 'retrain', 'freelance', 'new career'],
   health: ['health', 'walk', 'breathe', 'rest', 'sleep'],
@@ -775,6 +776,7 @@ function planRoom(fromKey) {
   const keepSpare = n >= 3 ? 1 : 0;
   for (const k of shuffle([...(th?.nx || [])])) if (specs.length < n - keepSpare) add(k);
   for (const k of shuffle([...new Set((th?.nx || []).flatMap((x) => T[x]?.nx || []))])) if (specs.length < n - keepSpare) add(k);
+  if (!narrowing && open_('stay a while') && specs.length < n && Math.random() < 0.35) add('stay a while');
   if (!narrowing && open_('goals') && !used.has('goals') && specs.length < n && Math.random() < 0.3) add('goals');
   if (used.has('work') && specs.length < n && Math.random() < 0.3) add('quit');
   if (room.no > 2 && !narrowing && specs.length < n && Math.random() < 0.4) specs.push({ free: true, zone: 'front' });
@@ -786,7 +788,7 @@ function planRoom(fromKey) {
     if (life.scars.length && Math.random() < 0.5) { const sp = scarSpec(life.scars[0]); if (fits(sp.word)) { life.scars.shift(); specs.push({ ...sp, must: true }); } }
     else if (room.no - life.lastHome >= 6 && !used.has('family')) {
       const w = wordFor('family'), r = [...w].reverse().join('');
-      if (fits(r)) { used.add('family'); specs.push({ key: 'family', word: r, zone: 'front', mirror: true, orig: w, must: true }); }
+      if (fits(r)) { used.add('family'); specs.push({ key: 'family', word: r, zone: 'front', mirror: true, orig: w, must: true }); life.mirrored = true; }
     }
   }
   if (life.heart >= 2 && specs.some((sp) => sp.key && (lockedBy(sp.key) || (T[sp.key].grind && life.energy === 0)))) add('ask for help', 'right');
@@ -947,27 +949,100 @@ function advance(key) {
   const th = T[key], st = S(key); st.n++; st.use++;
   if (th.grind || Math.random() < 0.65) st.step = Math.min(st.step + 1, th.l.length - 1);
 }
-let endingMode = 0;
+/* Endings. Which one you get depends on how you lived. Secrets first, then the
+   rut, then the rest; 'night' is what's left when nothing stands out. */
+let endingMode = 0, endingKind = 'night', endingK = 0, lanternHome = null;
+const ENDINGS = {
+  night:    { sky: ['#070614', '#2b2350', '#0c0a1c'], floor: '#2a2444', lines: ['enjoy the journey', "don't fight the tide too hard"] },
+  balanced: { sky: ['#ffb38a', '#fff0c9', '#e3d6ff'], floor: '#efe6ff', lines: ['a full life', 'you enjoyed the journey'], bright: true },
+  career:   { sky: ['#1a1430', '#6b4a6e', '#120e20'], floor: '#2a2444', lines: ['a long way up', 'was it worth the climb?'] },
+  wanderer: { sky: ['#1f3557', '#8cc5d6', '#18263b'], floor: '#3a4f6b', lines: ['you never chased the end', 'and the journey was enough'] },
+  phoenix:  { sky: ['#ffb38a', '#ffe3b0', '#e3d6ff'], from: ['#120914', '#6e2433', '#1c0f1c'], floor: '#efe6ff', lines: ['every door that closed', 'turned you round'], bright: true },
+  home:     { sky: ['#1a1230', '#5a3a5a', '#120e20'], floor: '#2e2440', lines: ['home', 'was the destination all along'] },
+  rut:      { sky: ['#2a2838', '#5a5870', '#1e1c28'], floor: '#3a3848', lines: ['same door', 'every day'] },
+  free:     { sky: ['#0f0b24', '#3d2a6b', '#0c0a1c'], floor: '#241d3d', lines: ['you wrote', 'your own doors'] },
+  getup:    { sky: ['#ffb38a', '#ffe3b0', '#e3d6ff'], floor: '#efe6ff', lines: ['you got up', 'every time'], bright: true },
+  forward:  { sky: ['#070614', '#2b2350', '#0c0a1c'], floor: '#2a2444', lines: ['you never looked back', 'look how far you came'] },
+};
+function pickEnding(wander) {
+  const counts = Object.entries(stats).filter(([k]) => k !== 'open').sort((a, b) => b[1].n - a[1].n);
+  const passes = counts.reduce((a, [, st]) => a + st.n, 0);
+  const half = (t) => life[t] >= THREAD[t].g / 2;
+  if (life.getups >= 3) return 'getup';
+  if (life.turns === 0 && room.no > 6) return 'forward';
+  if (wander) return 'wanderer';
+  if (counts.length && passes >= 8 && counts[0][1].n / passes >= 0.5) return 'rut';
+  if (flags.slams >= 3) return 'phoenix';
+  if (life.heart >= 3 && life.heart >= Math.max(life.career, life.health, life.wonder) && !life.mirrored) return 'home';
+  if (life.customs.length >= 4) return 'free';
+  if (life.career >= 5 && life.health <= 1 && life.heart <= 1 && life.wonder <= 1) return 'career';
+  if (Object.keys(THREAD).every(half)) return 'balanced';
+  return 'night';
+}
+function textSprite(text, col = '#fff3b0') {
+  const cv = document.createElement('canvas'); cv.width = 512; cv.height = 128; const c = cv.getContext('2d');
+  c.font = `800 72px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle';
+  c.shadowColor = col; c.shadowBlur = 24; c.fillStyle = col; c.fillText(text, 256, 68);
+  const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace;
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, transparent: true, depthWrite: false, fog: false }));
+  sp.scale.set(26, 6.5, 1); return sp;
+}
+const ahead = (dist, ang = yaw) => new THREE.Vector3(room.o.x - Math.sin(ang) * dist, 0, room.o.z - Math.cos(ang) * dist);
+function endingScene(kind) {
+  if (kind === 'career') anim(5, (k) => stairs.scale.setScalar(1 + 1.8 * ease(k)));
+  if (kind === 'phoenix') { rough = 1; roughTarget = 1; }
+  if (kind === 'home') {
+    const house = PROP.house('#ffb3c7'); house.position.copy(ahead(9)).setY(1.6); house.scale.setScalar(2.6); house.rotation.y = yaw;
+    scene.add(house); lanternHome = house.position.clone().setY(0);
+  }
+  if (kind === 'rut') {
+    const top = Object.entries(stats).filter(([k]) => k !== 'open').sort((a, b) => b[1].n - a[1].n)[0][0];
+    for (let i = 0; i < 12; i++) {
+      const d = makeDoor({ key: top, word: T[top].l[0] }); d.zone = 'rut';
+      placeDoor(d, yaw + (i * TAU) / 12, 7); leaving.push(d); riseDoor(d, 0.3 + i * 0.15, 0.8);
+    }
+  }
+  if (kind === 'free') life.customs.forEach((w, i) => {
+    const sp = textSprite(w); const a = yaw + (i / Math.max(1, life.customs.length)) * TAU;
+    sp.position.copy(ahead(38, a)).setY(12 + (i % 3) * 6); scene.add(sp);
+  });
+  if (kind === 'getup') {
+    const b = $('buf'); b.className = ''; b.textContent = '';
+    for (const ch of 'give up') { const sp = document.createElement('span'); sp.textContent = ch; sp.style.animationDelay = rand(0, 0.3) + 's'; b.appendChild(sp); }
+    b.classList.add('fall'); setTimeout(() => { b.classList.remove('fall'); b.textContent = ''; }, 1500);
+  }
+}
 async function ending(d) {
-  // the last door: everything falls away, night comes, and you see what you made along the way
+  // the last door: everything falls away, and you see what you made along the way
+  endingKind = pickEnding(!!T[d.key].wander);
+  const E = ENDINGS[endingKind];
   A.open(); d.glow.visible = true;
-  if (A.music) { A.music.tT = 0; A.music.iT = 0.05; }
+  if (A.music) { A.music.tT = 0; A.music.iT = E.bright ? 0.35 : 0.05; }
   roughTarget = 0;
   await anim(0.9, (k) => (d.pivot.rotation.y = 1.9 * ease(k)));
   const p0 = camPos.clone(), p1 = new THREE.Vector3(d.group.position.x, EYE, d.group.position.z);
   const y0 = yaw, y1 = yaw + angDiff(d.angle, yaw);
   await anim(1.8, (k) => { const e = ease(k); camPos.lerpVectors(p0, p1, e * 0.9); yaw = lerp(y0, y1, Math.min(1, e * 2)); });
-  await veil('#0b0a18', 1.6, 1);
+  await veil(E.sky[1], 1.6, 1);
   for (const o of doors.concat(leaving)) disposeDoor(o); doors = []; leaving = [];
   setProps('the end'); if (rail) rail.visible = false;
-  camPos.set(room.o.x, EYE, room.o.z); endingMode = 1; pitch = 0.18;
-  await veil('#0b0a18', 2.4, 0);
-  setTimeout(() => say('enjoy the journey', 4.5), 800);
-  setTimeout(() => say("don't fight the tide too hard", 5), 7000);
-  const ys = yaw; await anim(15, (k) => (yaw = ys + TAU * ease(k)));
+  camPos.set(room.o.x, EYE, room.o.z); endingMode = 1; endingK = 0; pitch = 0.18;
+  endingScene(endingKind);
+  await veil(E.sky[1], 2.4, 0);
+  const [l1, l2] = E.lines;
+  setTimeout(() => say(l1, 4.5), endingKind === 'getup' ? 1800 : 800);
+  setTimeout(() => say(l2, 5), 7000);
+  const ys = yaw;
+  await anim(15, (k) => {
+    // the one who never looked back holds still a while before the turn
+    const e = endingKind === 'forward' ? ease(clamp((k - 0.3) / 0.7, 0, 1)) : ease(k);
+    yaw = ys + TAU * e; endingK = k;
+    if (endingKind === 'phoenix') roughTarget = Math.max(0, 1 - k * 1.6);
+  });
   pitch = 0.04;
   const again = makeDoor({ key: 'begin again', word: 'begin again' }); again.zone = 'front';
-  placeDoor(again, yaw, 6); doors.push(again); riseDoor(again, 0, 2);
+  placeDoor(again, yaw, endingKind === 'rut' ? 4.5 : 6); doors.push(again); riseDoor(again, 0, 2);
+  if (endingKind === 'rut') again.beckon = 9999;
   busy = false; refresh();
 }
 async function goThrough(d) {
@@ -1058,7 +1133,8 @@ async function portal(d, th, extr, pts) {
   yaw = a;
 }
 function goThroughFree(d, text) {
-  const key = themeForWord(text);
+  const fresh = !T[text], key = themeForWord(text);
+  if (fresh && T[key].custom) life.customs.push(text);
   d.free = false; d.key = key; d.word = text; d.color = new THREE.Color(T[key].c);
   d.group.traverse((o) => { if (o.material?.color && o.parent === d.pivot && o.geometry === G.panel) o.material.color.copy(d.color); });
   goThrough(d);
@@ -1138,6 +1214,7 @@ function grow(key, word) {
   if (key === 'diploma') life.diploma = true;
   if (key === 'graduate') life.degree = true;
   if (key === 'quit') life.hired = false;
+  if (key === 'get up') life.getups++;
   if (t === 'health') life.energy = Math.min(life.maxE, life.energy + 1);
   else if (heavy({ key, word })) life.energy = Math.max(0, life.energy - 1);
   if (!t || ((t === 'heart' || t === 'wonder') && life.seen.has(key))) return;
@@ -1169,7 +1246,7 @@ function snapYaw(target) {
 }
 async function turnBy(delta, dur = 1) {
   if (busy) return;
-  busy = true; onLooked();
+  busy = true; onLooked(); life.turns++;
   delta += angDiff(snapYaw(yaw + delta), yaw + delta);
   const y0 = yaw; await anim(dur, (k) => (yaw = y0 + delta * ease(k)));
   yaw = ((yaw % TAU) + TAU) % TAU; if (yaw > Math.PI) yaw -= TAU;
@@ -1223,7 +1300,7 @@ function wanderer() {
 }
 async function goBack() {
   if (busy) return;
-  busy = true; onLooked();
+  busy = true; onLooked(); life.turns++;
   const ghost = new THREE.Group();
   const gm = new THREE.MeshStandardMaterial({ color: lastTheme ? T[lastTheme].c : '#ffffff', transparent: true, opacity: 0.7 });
   for (const x of [-1.04, 1.04]) { const p = new THREE.Mesh(G.post, gm); p.position.set(x, 1.75, 0); ghost.add(p); }
@@ -1450,7 +1527,10 @@ function paint(dt) {
   skyU.bot.value.copy(P.calmBot).lerp(P.roughBot, r);
   const age = Math.min(1, (S('goals').n + (known('legacy') ? 1 : 0)) / 4);
   if (age > 0) { skyU.top.value.lerp(_c.set('#4a3a7a'), age * 0.6); skyU.hor.value.lerp(_c.set('#ff9e7a'), age * 0.45); }
-  if (endingMode) { skyU.top.value.set('#070614'); skyU.hor.value.set('#2b2350'); skyU.bot.value.set('#0c0a1c'); }
+  if (endingMode) {
+    const E = ENDINGS[endingKind], f = E.from ? clamp(endingK * 1.4, 0, 1) : 1;
+    [skyU.top.value, skyU.hor.value, skyU.bot.value].forEach((c, i) => c.set(E.from ? E.from[i] : E.sky[i]).lerp(_c.set(E.sky[i]), f));
+  }
   if (flash.k > 0) {
     flash.k = Math.max(0, flash.k - dt * 0.6);
     skyU.hor.value.lerp(flash.col, flash.k); skyU.top.value.lerp(_c.copy(flash.col).multiplyScalar(0.7), flash.k * 0.6);
@@ -1459,7 +1539,7 @@ function paint(dt) {
   floorMat.color.copy(P.floor).lerp(P.roughBot.clone().lerp(P.floorRough, 0.6), r);
   hemi.color.copy(P.hemiSky).lerp(P.hemiRough, r * 0.7); hemi.intensity = 0.7 - r * 0.3;
   sun.intensity = 1.3 - r * 0.6;
-  if (endingMode) { floorMat.color.set('#2a2444'); hemi.intensity = 0.35; sun.intensity = 0.5; }
+  if (endingMode) { const E = ENDINGS[endingKind]; floorMat.color.set(E.floor); hemi.intensity = E.bright ? 0.8 : 0.35; sun.intensity = E.bright ? 1.3 : 0.5; }
 }
 
 /* ------------------------------------------------------------------ loop */
@@ -1498,7 +1578,8 @@ function frame(now) {
     f.scale.setScalar(Math.max(0.001, u.s * u.g));
   }
   dust.rotation.y += dt * 0.01;
-  lanterns.forEach((L, i) => { const a = t * 0.35 + (i * TAU) / lanterns.length; L.m.position.set(camPos.x + Math.cos(a) * 2.8, 3 + Math.sin(t * 1.3 + L.ph) * 0.15, camPos.z + Math.sin(a) * 2.8); });
+  const lc = lanternHome || camPos, lr = lanternHome ? 4.5 : 2.8;
+  lanterns.forEach((L, i) => { const a = t * 0.35 + (i * TAU) / lanterns.length; L.m.position.set(lc.x + Math.cos(a) * lr, (lanternHome ? 4 : 3) + Math.sin(t * 1.3 + L.ph) * 0.15, lc.z + Math.sin(a) * lr); });
   starGroup.position.set(camera.position.x, 0, camera.position.z);
   railMat.emissive.set('#4cd28a').multiplyScalar(0.12 * life.energy * (0.85 + 0.15 * Math.sin(t * 3)));
   if (awaitLook && !busy) { lookIdle += dt; if (lookIdle > 7) { awaitLook = false; turnBy(Math.PI / 2, 3.5); } }
