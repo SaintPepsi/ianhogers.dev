@@ -115,7 +115,7 @@ const PERK_LOOK = {
   jugg: { body: '#7a0c12', trim: '#d4af37', glow: '#ff2a2a', name: 'JUGGER-NOG' },
   speed: { body: '#0f5a24', trim: '#c9c9c9', glow: '#3cff6a', name: 'SPEED COLA' },
   tap: { body: '#5a3410', trim: '#e0b040', glow: '#ffb030', name: 'DOUBLE TAP' },
-  revive: { body: '#e8eef2', trim: '#3a8ad0', glow: '#5ac8ff', name: 'QUICK REVIVE' },
+  revive: { body: '#b9c6cf', trim: '#3a8ad0', glow: '#5ac8ff', name: 'QUICK REVIVE' },
 };
 
 export function perkMachine(kind) {
@@ -140,7 +140,7 @@ export function perkMachine(kind) {
   g.userData = {
     kind,
     setPower(on, t = 0) {
-      const v = on ? 1.6 + Math.sin(t * 3) * 0.25 : 0.05;
+      const v = on ? 1.1 + Math.sin(t * 3) * 0.2 : 0.05;
       glow.emissiveIntensity = v;
       sign.emissiveIntensity = on ? 0.6 : 0;
       top.visible = on;
@@ -176,8 +176,9 @@ export function mysteryBox() {
   qf.position.set(0, 0.5, 0.38);
   g.add(qf);
   // light beam marking where the box is
-  const beamMat = new THREE.MeshBasicMaterial({ color: '#9fd3ff', transparent: true, opacity: 0.18, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, toneMapped: false });
-  const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.8, 9, 16, 1, true), beamMat);
+  // fades out towards the top, so from above it reads as light rising, not a tube
+  const beamMat = new THREE.MeshBasicMaterial({ color: '#9fd3ff', alphaMap: beamFade(), transparent: true, opacity: 0.2, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.FrontSide, toneMapped: false });
+  const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.42, 9, 16, 1, true), beamMat);
   beam.position.y = 4.8;
   beam.renderOrder = 15;
   g.add(beam);
@@ -193,11 +194,29 @@ export function mysteryBox() {
     },
     setBeam(v) {
       beam.visible = v > 0.01;
-      beamMat.opacity = 0.18 * v;
+      beamMat.opacity = 0.2 * v;
     },
     lift: 0,
   };
   return g;
+}
+
+let beamFadeTex = null;
+/** Vertical alpha ramp for light beams: solid at the bottom, gone at the top. */
+function beamFade() {
+  if (beamFadeTex) return beamFadeTex;
+  const c = document.createElement('canvas');
+  c.width = 4;
+  c.height = 64;
+  const x = c.getContext('2d');
+  const gr = x.createLinearGradient(0, 0, 0, 64);
+  gr.addColorStop(0, '#000');
+  gr.addColorStop(0.55, '#555');
+  gr.addColorStop(1, '#fff');
+  x.fillStyle = gr;
+  x.fillRect(0, 0, 4, 64);
+  beamFadeTex = new THREE.CanvasTexture(c);
+  return beamFadeTex;
 }
 
 /** Rubble left where the box isn't. */
@@ -456,6 +475,7 @@ export function trapHandle() {
 export function chandelier() {
   const g = new THREE.Group();
   const brass = std('#b8913a', { metalness: 0.85, roughness: 0.35 });
+  const brassColor = brass.color.clone();
   const crystal = new THREE.MeshStandardMaterial({ color: '#fff4d8', emissive: '#ffd890', emissiveIntensity: 0.2, roughness: 0.1, metalness: 0.1, transparent: true, opacity: 0.85 });
   cyl(g, brass, 0, 0, 0, 0.08, 1.2);
   for (const [r, y, n] of [[1.4, -0.6, 12], [0.9, -0.95, 8], [0.45, -1.25, 6]]) {
@@ -471,9 +491,23 @@ export function chandelier() {
       g.add(c);
     }
   }
+  let lit = 0;
   g.userData = {
     setLit(v) {
-      crystal.emissiveIntensity = 0.2 + v * 2.2;
+      lit = v;
+      crystal.emissiveIntensity = 0.2 + v * 1.1;
+    },
+    /** 1 = solid, lower = see-through (it hangs right in front of the camera near the stage). */
+    setFade(a) {
+      const solid = a > 0.99;
+      brass.transparent = !solid;
+      brass.opacity = a;
+      // dim the metal too: its own light sits inside the lowest ring and would still bloom
+      brass.color.copy(brassColor).multiplyScalar(a);
+      brass.depthWrite = solid;
+      crystal.opacity = 0.85 * a;
+      crystal.depthWrite = solid;
+      crystal.emissiveIntensity = (0.2 + lit * 1.1) * a;
     },
   };
   return g;

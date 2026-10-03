@@ -22,8 +22,11 @@ const DEFAULTS = { scheme: 'wasd', master: 0.8, music: 0.55, sfx: 0.9, quality: 
 const settings = { ...DEFAULTS, ...store.get('kino.settings', {}) };
 if (!SCHEMES[settings.scheme]) settings.scheme = 'wasd';
 const saveSettings = () => store.set('kino.settings', settings);
-const isTouch = matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
+// touch layout when the main pointer is a finger (a touchscreen laptop with a mouse keeps the desktop HUD)
+const isTouch = matchMedia('(pointer: coarse)').matches || ('ontouchstart' in window && !matchMedia('(any-pointer: fine)').matches);
 if (isTouch) document.body.classList.add('touch');
+// the touch HUD has no ability bar to click ranks on, so ranks are always spent for you
+if (isTouch) settings.autoLevel = true;
 if (matchMedia('(max-width: 900px)').matches && settings.quality === 'high' && isTouch && !store.get('kino.settings', null)) settings.quality = 'low';
 
 let R, fx, world, map, crowd, tex, game = null, hud, screens, input;
@@ -644,6 +647,7 @@ function loop(now) {
   }
 }
 function tick(dt) {
+  if (testMode && window.__kinoFreeze) return; // tests drive the simulation and rendering themselves
   if (state === 'playing') stepGame(dt, true);
   else if (state === 'menu' || state === 'select') menuView(dt);
   else if (state === 'paused' || state === 'over') renderGameFrame(0);
@@ -706,9 +710,23 @@ function renderGameFrame(dt, it) {
       c.mats.blade.emissiveIntensity = 1.6;
     }
     // Zhonya's stasis turns you gold
-    c.root.traverse((o) => {
-      if (o.isMesh) o.material.wireframe = false;
-    });
+    if (p.buffs.stasis > 0) {
+      for (const m of Object.values(c.mats)) {
+        if (!m.emissive) continue;
+        m.emissive.set('#ffc640');
+        m.emissiveIntensity = 0.9;
+      }
+      c.gilded = true;
+    } else if (c.gilded) {
+      c.gilded = false;
+      for (const m of Object.values(c.mats)) {
+        const b = m.userData.baseEmissive;
+        if (m.emissive && b) {
+          m.emissive.copy(b.c);
+          m.emissiveIntensity = b.i;
+        }
+      }
+    }
   }
   crowd.sync(g.zombies, g.time);
   world.update(dt, g.time, world.state || {});
@@ -717,6 +735,7 @@ function renderGameFrame(dt, it) {
   const lead = it && it.aim && settings.scheme === 'wasd' && !isTouch ? { x: clamp((it.aim.x - p.x) * 0.15, -2, 2), z: clamp((it.aim.z - p.z) * 0.15, -1.6, 1.6) } : { x: 0, z: 0 };
   R.follow(p.x, p.y, p.z, dt || 0.016, { snap, leadX: lead.x, leadZ: lead.z });
   snap = false;
+  fadeChandelier(p, dt || 0.016);
   if (fovKick > 0) {
     fovKick = Math.max(0, fovKick - (dt || 0.016) * 2);
     R.camera.fov += 30 * fovKick * 0.5;
@@ -729,8 +748,9 @@ function renderGameFrame(dt, it) {
   R.scene.fog.color.set(fogOn ? '#2a2e38' : '#050304');
   R.setXray(p.x, p.y, p.z, !p.vanished);
   // lighting: a warm lantern on the champion, the room lights around
-  R.playerLight.position.set(p.x, p.y + 2.6, p.z + 0.4);
-  R.playerLight.intensity = g.power ? 18 : 26;
+  // hung high so it lights the floor around you without blowing out the champion
+  R.playerLight.position.set(p.x, p.y + 5.5, p.z + 0.4);
+  R.playerLight.intensity = g.power ? 55 : 80;
   R.hemi.intensity = g.power ? 0.72 : 0.42;
   R.updateLights(world.lights, p.x, p.z);
   setListener(p.x, p.z);
@@ -749,6 +769,25 @@ function renderGameFrame(dt, it) {
     R.camera.updateProjectionMatrix();
   }
   hud.frame(dt || 0);
+}
+// The theatre chandelier hangs between the camera and the floor near the stage. Whenever its
+// picture covers the space around the champion, it turns see-through.
+let chandelierFade = 1;
+function fadeChandelier(p, dt) {
+  const ch = world.chandelier && world.chandelier.mesh;
+  if (!ch) return;
+  R.camera.updateMatrixWorld();
+  const c = R.worldToScreen(ch.position.x, ch.position.y - 0.6, ch.position.z);
+  const me = R.worldToScreen(p.x, p.y + 1, p.z);
+  // its on-screen radius: 1.5 m at its depth
+  const edge = R.worldToScreen(ch.position.x + 1.5, ch.position.y - 0.6, ch.position.z);
+  const rad = Math.hypot(edge.x - c.x, edge.y - c.y);
+  const zone = Math.min(window.innerWidth, window.innerHeight) * 0.3;
+  const over = !c.behind && Math.hypot(c.x - me.x, c.y - me.y) < zone + rad;
+  const want = over ? 0.07 : 1;
+  chandelierFade += (want - chandelierFade) * Math.min(1, dt * 6);
+  if (Math.abs(chandelierFade - want) < 0.01) chandelierFade = want;
+  ch.userData.setFade(chandelierFade);
 }
 function setPapGlow(m, v) {
   const b = m.userData.baseEmissive;
@@ -772,6 +811,10 @@ function menuView(dt) {
   R.follow(tx, 0, tz, dt, { snap: menuT < 0.1 });
   R.rig.want = 22;
   R.setXray(0, 0, 0, false);
+  if (chandelierFade !== 1 && world.chandelier) {
+    chandelierFade = 1;
+    world.chandelier.mesh.userData.setFade(1);
+  }
   R.playerLight.position.set(tx, 3, tz);
   R.playerLight.intensity = 10;
   R.hemi.intensity = 0.7;

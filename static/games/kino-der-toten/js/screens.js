@@ -254,7 +254,7 @@ export function createScreens(o) {
       el.appendChild(r);
     };
     seg('Controls', "WASD is League's keyboard mode (left click attacks, right click is Q). Classic is right-click to move.", 'scheme', [['wasd', 'WASD'], ['classic', 'Classic']]);
-    seg('Auto rank abilities', 'Spend skill points for you in the usual order', 'autoLevel', [[true, 'On'], [false, 'Off']]);
+    if (!isTouch) seg('Auto rank abilities', 'Spend skill points for you in the usual order', 'autoLevel', [[true, 'On'], [false, 'Off']]);
     seg('Graphics', 'Low turns off bloom and renders at 1x', 'quality', [['high', 'High'], ['low', 'Low']]);
     seg('Damage numbers', '', 'numbers', [[true, 'On'], [false, 'Off']]);
     seg('Screen shake', '', 'shake', [[true, 'On'], [false, 'Off']]);

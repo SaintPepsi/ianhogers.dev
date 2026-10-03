@@ -339,7 +339,7 @@ export function createWorld(scene, map, tex, opts = {}) {
     const m = place(props.perkMachine(kind), p.x, p.z, s.face);
     const v = faceVec(s.face);
     blockRect(p.x, p.z, Math.abs(v.x) ? 0.9 : 1.2, Math.abs(v.x) ? 1.2 : 0.9);
-    perks[kind] = { mesh: m, x: p.x, z: p.z, ix: p.x + v.x * 1.1, iz: p.z + v.z * 1.1, light: light(p.x + v.x * 0.8, 1.8, p.z + v.z * 0.8, m.userData.color, 5, 6, { power: kind !== 'revive' }), gone: false };
+    perks[kind] = { mesh: m, x: p.x, z: p.z, ix: p.x + v.x * 1.1, iz: p.z + v.z * 1.1, light: light(p.x + v.x * 1.3, 1.9, p.z + v.z * 1.3, m.userData.color, 3.2, 6, { power: kind !== 'revive' }), gone: false };
   }
 
   // ------------------------------------------------------------------ box spots

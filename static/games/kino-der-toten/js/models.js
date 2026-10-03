@@ -471,16 +471,17 @@ function buildYi() {
 
 function buildAmumu() {
   const k = skeleton({ leg: 0.42, torso: 0.36, shoulder: 0.2, arm: 0.2, fore: 0.18, head: 0.44, hipW: 0.09, limbW: 0.13, chestW: 0.42, chestD: 0.32 });
-  const wrap = std('#b9a77e', { roughness: 0.95 });
-  const wrapDark = std('#8f7d58', { roughness: 0.95 });
-  const skin = std('#5f8f86', { roughness: 0.9 });
+  const wrap = std('#a9b796', { roughness: 0.95 });
+  const wrapDark = std('#7b8a6c', { roughness: 0.95 });
+  const skin = std('#4f8a80', { roughness: 0.9 });
   const eye = new THREE.MeshStandardMaterial({ color: '#ffe36b', emissive: '#ffcf2e', emissiveIntensity: 2.4, roughness: 0.3 });
   dress(k, { pelvis: wrapDark, torso: wrap, head: wrap, uArm: wrap, fArm: wrap, thigh: wrapDark, shin: wrap });
   // bandage bands around the body
   for (let i = 0; i < 4; i++) add(k.spine, GEO.cyl, i % 2 ? wrapDark : wrap, [0, 0.05 + i * 0.08, 0], [0.44 - i * 0.03, 0.045, 0.34 - i * 0.02], [0.08 * (i % 2 ? 1 : -1), 0, 0.06]);
-  // big round head, bands across it, one glowing eye peeking out, teal skin under the gap
-  add(k.head, GEO.sphere, skin, [0.05, 0.22, 0.14], [0.26, 0.2, 0.2]);
-  add(k.head, GEO.sphere, eye, [0.08, 0.24, 0.2], [0.11, 0.1, 0.07]);
+  // big round head, bands across it, two sad glowing eyes in the gap, teal skin under it
+  add(k.head, GEO.sphere, skin, [0, 0.22, 0.14], [0.32, 0.2, 0.2]);
+  add(k.head, GEO.sphere, eye, [0.09, 0.24, 0.2], [0.1, 0.09, 0.07]);
+  add(k.head, GEO.sphere, eye, [-0.09, 0.23, 0.2], [0.09, 0.08, 0.07]);
   add(k.head, GEO.cyl, wrapDark, [0, 0.33, 0.01], [0.47, 0.06, 0.47], [0.18, 0, 0.1]);
   add(k.head, GEO.cyl, wrapDark, [0, 0.12, 0], [0.46, 0.06, 0.46], [-0.12, 0, -0.08]);
   add(k.head, GEO.cyl, wrap, [-0.05, 0.25, 0.07], [0.42, 0.08, 0.42], [0.05, 0, 0.3]);

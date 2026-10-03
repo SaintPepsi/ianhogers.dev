@@ -103,7 +103,7 @@ export function createRenderer(canvas, settings) {
     const rt = new THREE.WebGLRenderTarget(size.x, size.y, { type: THREE.HalfFloatType, samples: settings.quality === 'high' ? 4 : 0 });
     composer = new EffectComposer(renderer, rt);
     composer.addPass(new RenderPass(scene, camera));
-    bloom = new UnrealBloomPass(new THREE.Vector2(size.x / 2, size.y / 2), 0.75, 0.45, 0.82);
+    bloom = new UnrealBloomPass(new THREE.Vector2(size.x / 2, size.y / 2), 0.62, 0.42, 0.9);
     composer.addPass(bloom);
     composer.addPass(new OutputPass());
   }
