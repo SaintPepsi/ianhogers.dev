@@ -21,8 +21,8 @@ const W_U = 4400, H_U = 5100; // map units covered by the grid
 export const ROOMS = [
   { id: 'lobby', name: 'Lobby', zone: 'lobby', rects: [[-402, -1501, 554, -816]], floor: 'tiles', h: 0 },
   { id: 'mezz', name: 'Lobby Balcony', zone: 'lobby', rects: [[-578, -816, 580, -512]], floor: 'carpet', h: 0.6 },
-  { id: 'theater', name: 'Theater', zone: 'theater', rects: [[-768, -512, -192, -188], [192, -512, 768, -188], [-768, -188, 768, 930]], floor: 'carpet', ramp: { axis: 'Y', a: -512, b: 930, h0: 0.05, h1: -0.85 } },
-  { id: 'vest', name: 'Theater Entrance', zone: 'theater', rects: [[-192, -512, 192, -188]], floor: 'carpet', ramp: { axis: 'Y', a: -512, b: -188, h0: 0.6, h1: 0.05 } },
+  { id: 'theater', name: 'Theatre', zone: 'theater', rects: [[-768, -512, -192, -188], [192, -512, 768, -188], [-768, -188, 768, 930]], floor: 'carpet', ramp: { axis: 'Y', a: -512, b: 930, h0: 0.05, h1: -0.85 } },
+  { id: 'vest', name: 'Theatre Entrance', zone: 'theater', rects: [[-192, -512, 192, -188]], floor: 'carpet', ramp: { axis: 'Y', a: -512, b: -188, h0: 0.6, h1: 0.05 } },
   { id: 'stage', name: 'Stage', zone: 'theater', rects: [[-517, 930, 747, 1225]], floor: 'wood', h: 0 },
   { id: 'backstage', name: 'Backstage', zone: 'stage', rects: [[-517, 1225, 747, 1907], [-1154, 1220, -517, 1648]], floor: 'wood', h: 0 },
   { id: 'backroom', name: 'Back Room', zone: 'westBalcony', rects: [[-1763, 1159, -1160, 1640]], floor: 'concrete', h: 1.2 },
@@ -40,8 +40,8 @@ export const ROOMS = [
   // stairs and steps (walled on the sides, open at both ends)
   { id: 'stairL', name: 'Lobby', zone: 'lobby', rects: [[-340, -1010, -220, -816]], floor: 'stairs', ramp: { axis: 'Y', a: -1010, b: -816, h0: 0, h1: 0.6 }, stairs: 'Y' },
   { id: 'stairR', name: 'Lobby', zone: 'lobby', rects: [[220, -1010, 360, -816]], floor: 'stairs', ramp: { axis: 'Y', a: -1010, b: -816, h0: 0, h1: 0.6 }, stairs: 'Y' },
-  { id: 'stepL', name: 'Theater', zone: 'theater', rects: [[-430, 850, -290, 930]], floor: 'stairs', ramp: { axis: 'Y', a: 850, b: 930, h0: -0.82, h1: 0 }, stairs: 'Y' },
-  { id: 'stepR', name: 'Theater', zone: 'theater', rects: [[290, 850, 420, 930]], floor: 'stairs', ramp: { axis: 'Y', a: 850, b: 930, h0: -0.82, h1: 0 }, stairs: 'Y' },
+  { id: 'stepL', name: 'Theatre', zone: 'theater', rects: [[-430, 850, -290, 930]], floor: 'stairs', ramp: { axis: 'Y', a: 850, b: 930, h0: -0.82, h1: 0 }, stairs: 'Y' },
+  { id: 'stepR', name: 'Theatre', zone: 'theater', rects: [[290, 850, 420, 930]], floor: 'stairs', ramp: { axis: 'Y', a: 850, b: 930, h0: -0.82, h1: 0 }, stairs: 'Y' },
   { id: 'wingStairs', name: 'Backstage', zone: 'stage', rects: [[-1154, 1380, -880, 1480]], floor: 'stairs', ramp: { axis: 'X', a: -1154, b: -880, h0: 1.2, h1: 0 }, stairs: 'X' },
   { id: 'yardStairs', name: 'Yard', zone: 'westBalcony', rects: [[-1763, 813, -1648, 1159]], floor: 'stairs', ramp: { axis: 'Y', a: 880, b: 1159, h0: 0, h1: 1.2 }, stairs: 'Y' },
   { id: 'galleryStairs', name: 'Foyer', zone: 'dining', rects: [[1000, 470, 1240, 620]], floor: 'stairs', ramp: { axis: 'X', a: 1000, b: 1240, h0: 1.0, h1: 0 }, stairs: 'X' },
@@ -82,8 +82,8 @@ export const OPENINGS = [
   { kind: 'open', rect: [935, -825, 995, -712] }, // Upper Hall split (trap e2)
   { kind: 'open', rect: [990, 1439, 1045, 1619] }, // dressing passage (trap e4)
   // power doors and the curtain
-  { kind: 'power', id: 'pdS', rect: [-90, -545, 90, -480], label: 'Theater doors' },
-  { kind: 'power', id: 'pdN', rect: [-90, -220, 90, -155], label: 'Theater doors' },
+  { kind: 'power', id: 'pdS', rect: [-90, -545, 90, -480], label: 'Theatre doors' },
+  { kind: 'power', id: 'pdN', rect: [-90, -220, 90, -155], label: 'Theatre doors' },
   { kind: 'curtain', id: 'curtain', rect: [-400, 1195, 640, 1255] },
   // bought doors: cost from the map's zombie_cost values
   { kind: 'door', id: 'd1', cost: 750, rect: [-610, -700, -545, -582], to: 'Lower Hall', style: 'double', axis: 'X' },
@@ -91,9 +91,9 @@ export const OPENINGS = [
   { kind: 'door', id: 'd3', cost: 1000, rect: [-1384, -444, -1320, -324], to: 'Alley', style: 'metal', axis: 'X' },
   { kind: 'door', id: 'd4', cost: 1000, rect: [1349, -351, 1469, -287], to: 'Foyer', style: 'double', axis: 'Y', also: [1349, -64, 1469, 0] },
   { kind: 'door', id: 'd5', cost: 1250, rect: [-1607, 781, -1487, 845], to: 'Back Room', style: 'gate', axis: 'Y' },
-  { kind: 'door', id: 'd6', cost: 1250, rect: [-1192, 1380, -1122, 1480], to: 'Stage', style: 'metal', axis: 'X' },
+  { kind: 'door', id: 'd6', cost: 1250, rect: [-1192, 1380, -1122, 1480], to: 'Backstage', style: 'metal', axis: 'X' },
   { kind: 'door', id: 'd7', cost: 1250, rect: [1384, 873, 1504, 937], to: 'Dressing Room', style: 'double', axis: 'Y' },
-  { kind: 'door', id: 'd8', cost: 1250, rect: [728, 1479, 792, 1599], to: 'Stage', style: 'double', axis: 'X' },
+  { kind: 'door', id: 'd8', cost: 1250, rect: [728, 1479, 792, 1599], to: 'Backstage', style: 'double', axis: 'X' },
 ];
 
 // The curtain spans the middle of the curtain line; proscenium walls stay either side.
@@ -143,7 +143,7 @@ export const BOX_SPOTS = [
   { id: 'stage_chest', X: 1, Y: 1880, face: 'S', name: 'Backstage' },
   { id: 'dressing_chest', X: 1512, Y: 1450, face: 'W', name: 'Dressing Room' },
   { id: 'dining_chest', X: 1657, Y: 878, face: 'S', name: 'Foyer' },
-  { id: 'theater_chest', X: 49, Y: 136, face: 'S', name: 'Theater' },
+  { id: 'theater_chest', X: 49, Y: 136, face: 'S', name: 'Theatre' },
 ];
 
 // Wall chalk: Kino's wall guns at their prices, sold as League items here.

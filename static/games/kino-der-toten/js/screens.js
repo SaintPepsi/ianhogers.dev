@@ -171,7 +171,7 @@ export function createScreens(o) {
       <h3>The idea</h3>
       <p>Kino der Toten, the Black Ops zombies map, rebuilt from its own layout and rules: same rooms, doors and prices, same perks, the Mystery Box, the teleporter to Pack-a-Punch, traps, Hellhound rounds and Nova 6 crawlers. The guns are gone. You hold the line with a League of Legends champion and their real kit instead. Survive as many rounds as you can.</p>
       <h3>Controls (${wasd ? 'WASD' : 'Classic'}${isTouch ? ', touch' : ''})</h3>
-      ${isTouch ? `<p>Left stick moves. The big button attacks the nearest zombie. Tap an ability to cast it at the nearest zombie, or drag from it to aim. <b>USE</b> buys, opens and rebuilds (hold it at a window).</p>` : ''}
+      ${isTouch ? `<p>Left stick moves. The big button attacks the nearest zombie. Tap an ability to cast it at the nearest zombie, or drag from it to aim. <b>USE</b> buys, opens and rebuilds (hold it at a window). <b>Flash</b> blinks you 4m straight ahead, or the way you drag it.</p>` : ''}
       <table>
       ${wasd
         ? `<tr><td>${k('W')}${k('A')}${k('S')}${k('D')}</td><td>Move</td></tr>
@@ -196,8 +196,8 @@ export function createScreens(o) {
         <li>Points: 10 per hit that doesn't kill, 60 for a kill, 100 for a crit or a landed skillshot kill (the headshot), 130 for a basic-attack kill (the knife kill). Board repairs pay 10 each, capped per round. Going down costs 5%.</li>
         <li>Two bites put a champion without Juggernog close to going down; Juggernog multiplies your health by 2.5, like 100 to 250 in Black Ops. Health comes back on its own a few seconds after you stop getting hit.</li>
         <li>Perks: Juggernog 2500, Speed Cola 3000 (cooldowns instead of reloads), Double Tap 2000 (attack speed instead of fire rate), Quick Revive 500 in solo (gets you back up once; the machine leaves after three). Going down loses them all.</li>
-        <li>Turn on the power backstage, either way round: Lower Hall, Alley, Back Room, Stage (750, 1000, 1250, 1250) or Upper Hall, Foyer, Dressing Room, Stage (750, 1000, 1250, 1250).</li>
-        <li>Teleporter: start the link at the stage pad, finish it at the mainframe in the Lobby, then step on the pad. 30 seconds in the projector room with Pack-a-Punch, then home. Re-link every trip.</li>
+        <li>Turn on the power backstage, either way round: Lower Hall, Alley, Back Room, Backstage (750, 1000, 1250, 1250) or Upper Hall, Foyer, Dressing Room, Backstage (750, 1000, 1250, 1250).</li>
+        <li>Teleporter: start the link at the stage pad, finish it at the mainframe in the Lobby, then press F on the pad and stay on it while it charges. 30 seconds in the Projector Room with Pack-a-Punch, sometimes a detour through a secret room, then home. Re-link every trip.</li>
         <li>Mystery Box (950) gives League items instead of guns. Tibbers is the teddy bear. Fire Sale makes every box 10.</li>
         <li>Wall chalk sells items at the price of the gun that used to hang there. Traps cost 1000 and kill anything that walks in, including you without Juggernog.</li>
         <li>Hellhound rounds start on round 5, 6 or 7. Nova 6 crawlers come through the roof once the curtains open; kill them in melee to stop the gas.</li>
@@ -270,7 +270,7 @@ export function createScreens(o) {
     pause(game) {
       backTo = 'pause';
       const p = game.player;
-      $('pauseInfo').innerHTML = `${CHAMPS[p.id].name}, level ${p.level} · Round ${game.round} · ${fmt(game.points)} points · ${game.stats.kills} kills`;
+      $('pauseInfo').innerHTML = `${CHAMPS[p.id].name}, Level ${p.level} · Round ${game.round} · ${fmt(game.points)} points · ${game.stats.kills} ${game.stats.kills === 1 ? 'kill' : 'kills'}`;
       show('pause');
     },
     over(info, prevBest) {

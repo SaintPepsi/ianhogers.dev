@@ -285,7 +285,7 @@ body.touch .kb-only { display: none; }
 #tW { right: 102px; bottom: 72px; }
 #tE { right: 54px; bottom: 120px; }
 #tR { right: 2px; bottom: 112px; }
-#tFlash { right: 168px; bottom: 60px; }
+#tFlash { right: 168px; bottom: 60px; font-size: 10px; letter-spacing: 0.02em; }
 #tUse { right: 156px; bottom: 132px; }
 .tb.aiming { border-color: #fff; }
 

@@ -14,9 +14,9 @@ import { CHAMPS } from './champdata.js';
 
 const EXTRA_ITEMS = {
   boots: { name: 'Boots', gold: 300, stats: { ms: 25 }, text: '+25 move speed.', icon: { bg: ['#4a3a2a', '#14100b'], glyph: 'boot', fg: '#e8d0b0' } },
-  kindlegem: { name: 'Kindlegem', gold: 800, stats: { hp: 200, ah: 10 }, text: '+200 HP, +10 ability haste.', icon: { bg: ['#5a1a1a', '#180606'], glyph: 'gem', fg: '#ff9a9a' } },
+  kindlegem: { name: 'Kindlegem', gold: 800, stats: { hp: 200, ah: 10 }, text: '+200 HP, +10 haste.', icon: { bg: ['#5a1a1a', '#180606'], glyph: 'gem', fg: '#ff9a9a' } },
   recurve: {
-    name: 'Recurve Bow', gold: 700, stats: { as: 15 }, text: '+15% attack speed. Attacks deal 15 bonus physical damage.', icon: { bg: ['#3a4a2a', '#10140b'], glyph: 'claw', fg: '#d8f0a8' },
+    name: 'Recurve Bow', gold: 700, stats: { as: 15 }, text: '+15% AS. Attacks deal 15 bonus physical damage.', icon: { bg: ['#3a4a2a', '#10140b'], glyph: 'claw', fg: '#d8f0a8' },
     onHit(c, z, eff, g) {
       if (!z.dead) g.damage(z, 15 * eff, { type: 'physical', src: 'item', noHitPoints: true });
     },
@@ -35,7 +35,7 @@ const EXTRA_ITEMS = {
     },
   },
   sheen: {
-    name: 'Sheen', gold: 900, stats: { ah: 10 }, text: '+10 haste. Spellblade: after an ability, your next attack deals 100% base AD bonus physical damage (1.5s).', icon: { bg: ['#2a3a6a', '#0a0f1e'], glyph: 'sword', fg: '#bfd6ff' },
+    name: 'Sheen', gold: 900, stats: { ah: 10 }, text: '+10 haste. Spellblade: after an ability, your next attack deals 100% base AD bonus physical damage (lasts 10s, 1.5s cooldown).', icon: { bg: ['#2a3a6a', '#0a0f1e'], glyph: 'sword', fg: '#bfd6ff' },
     onCast(c) {
       if ((c.stacks.sheenCd || 0) <= c.g.time) c.stacks.sheen = c.g.time + 10;
     },
@@ -1415,6 +1415,7 @@ export function createGame(env) {
         if (dist(p.x, p.z, world.teleporter.x, world.teleporter.z) > 2.2 || p.downed) {
           T.trip = null;
           T.cooldown = R.TELEPORT_COOLDOWN;
+          if (!p.downed) ui.toast('You stepped off the pad. The teleporter needs to cool down.', true);
           return;
         }
         sfx.tpZap();
@@ -1669,7 +1670,7 @@ export function createGame(env) {
       const rects = [d.rect].concat(d.also ? [d.also] : []);
       for (const r of rects) {
         const cx = toX((r[0] + r[2]) / 2), cz = toZ((r[1] + r[3]) / 2);
-        add(cx, cz, 2.3, 0, { text: `to open the door to ${d.to}`, cost: d.cost, use: () => g.spend(d.cost) && openDoorObj(d) });
+        add(cx, cz, 2.3, 0, { text: `to open the door to the ${d.to}`, cost: d.cost, use: () => g.spend(d.cost) && openDoorObj(d) });
       }
     }
     // windows
@@ -1714,8 +1715,8 @@ export function createGame(env) {
       const st = g.trapState[tr.id] || { on: 0, cd: 0 };
       for (const h of tr.handles) {
         if (!g.power) add(h.x, h.z, 1.4, 0, { text: 'You must turn on the power first!', bare: true });
-        else if (st.on > 0) add(h.x, h.z, 1.4, 0, { text: 'Trap is active', bare: true });
-        else if (st.cd > 0) add(h.x, h.z, 1.4, 0, { text: 'Trap is cooling down', bare: true });
+        else if (st.on > 0) add(h.x, h.z, 1.4, 0, { text: 'The trap is active', bare: true });
+        else if (st.cd > 0) add(h.x, h.z, 1.4, 0, { text: 'The trap is cooling down', bare: true });
         else add(h.x, h.z, 1.4, 0, { text: `to activate the ${tr.kind === 'fire' ? 'fire trap' : 'electric trap'}`, cost: R.TRAP_COST, use: () => buyTrap(tr) });
       }
     }

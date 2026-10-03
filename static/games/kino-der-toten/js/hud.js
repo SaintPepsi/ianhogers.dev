@@ -416,7 +416,7 @@ export function createHud(holder, settings, opts) {
       // channel bar (Meditate, Death Lotus, rebuilding, teleporter, Pack-a-Punch)
       let ch = null;
       if (p.channel) ch = { lbl: p.channel.kind === 'lotus' ? 'Death Lotus' : 'Meditate', f: 1 - p.channel.t / p.channel.max };
-      else if (G().tele.trip && G().tele.trip.phase === 'pap') ch = { lbl: 'Projector room', f: 1 - G().tele.trip.t / 30 };
+      else if (G().tele.trip && G().tele.trip.phase === 'pap') ch = { lbl: 'Projector Room', f: 1 - G().tele.trip.t / 30 };
       else if (G().tele.trip && G().tele.trip.phase === 'charge') ch = { lbl: 'Teleporting', f: G().tele.trip.t / 1.8 };
       else if (G().papState.state === 'working') ch = { lbl: 'Pack-a-Punch', f: G().papState.t / 4.35 };
       else if (G().papState.state === 'ready') ch = { lbl: 'Take it before it slides back in!', f: 1 - G().papState.t / 15 };

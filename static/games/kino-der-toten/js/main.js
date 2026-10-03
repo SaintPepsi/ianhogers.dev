@@ -730,6 +730,9 @@ function renderGameFrame(dt, it) {
     const c = champModel;
     c.root.visible = !p.vanished;
     c.root.position.set(p.x, p.y, p.z);
+    // Elixir of Iron makes you bigger, like in League
+    c.baseScale ??= c.root.scale.x;
+    c.root.scale.setScalar(c.baseScale * (g.elixir && g.elixir.id === 'elixirIron' ? 1.15 : 1));
     c.root.rotation.y = yawOf(p.ang);
     const castT = p.cast ? p.cast.t / Math.max(0.05, p.cast.dur) : -1;
     animateChampion(c, {

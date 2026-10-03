@@ -128,7 +128,7 @@ export const ITEMS = {
   steraks: {
     name: "Sterak's Gage", gold: 3200, pool: ['yi'], unique: 'lifeline',
     stats: { hp: 400 },
-    text: '+400 HP, bonus AD equal to 50% of base AD. Dropping below 30% health grants a shield of 60% of your bonus health that decays over 4.5s (90s).',
+    text: '+400 HP, bonus AD equal to 50% of base AD. Dropping below 30% health grants a 120 (+60% bonus health) shield for 4.5s (90s).',
     icon: ICON('shield', '#5a4a3a', '#17120e', '#ffd9a8'),
   },
   statikk: {
@@ -181,7 +181,7 @@ export const ITEMS = {
   lichbane: {
     name: 'Lich Bane', gold: 2900, pool: ['katarina'],
     stats: { ap: 100, msPct: 6, ah: 10 },
-    text: '+100 AP, +6% MS, +10 haste. After an ability, the next attack gains 50% AS and deals 75% base AD + 45% AP bonus magic damage (1.5s).',
+    text: '+100 AP, +6% MS, +10 haste. After an ability, the next attack gains 50% AS and deals 75% base AD + 45% AP bonus magic damage (lasts 10s, 1.5s cooldown).',
     icon: ICON('staff', '#2a3a6a', '#0a0f1e', '#a8c4ff'),
     onCast(c, key, g) {
       if (c.buffs.lichCd <= 0) {
@@ -366,7 +366,7 @@ export const ITEMS = {
 /** Trinket-slot throwable from the box: Kino's Cymbal Monkey becomes a Poro. */
 export const PORO = {
   id: 'poro', name: 'Poro-Snax', charges: 3, weight: 0.8,
-  text: 'Throw a snack (key 4). A Poro chases it, and every zombie nearby chases the Poro for 7s until it pops. 3 charges; Max Ammo refills them.',
+  text: 'Throw a snack (key 4). A Poro chases it, and every zombie nearby chases the Poro for 7s until it pops for 1000 magic damage (or 70% of max health, if more) within 4m. 3 charges; Max Ammo refills them.',
   icon: ICON('poro', '#5a7a9a', '#16212a', '#ffffff'),
 };
 
