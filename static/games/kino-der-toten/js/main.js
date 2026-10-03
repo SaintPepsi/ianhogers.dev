@@ -662,6 +662,7 @@ function loop(now) {
   let dt = (now - last) / 1000;
   last = now;
   if (!(dt > 0)) dt = 0.016;
+  watchPerf(dt);
   dt = Math.min(dt, 0.05);
   try {
     tick(dt);
@@ -671,6 +672,26 @@ function loop(now) {
       tick.failed = true;
       fail(err);
     }
+  }
+}
+// A slow machine steps the graphics down once instead of stuttering through a run: first
+// render at 1x pixel ratio, then switch bloom off for the session. Never undoes your own choice.
+const perf = { slow: 0, step: 0 };
+function watchPerf(rawDt) {
+  if (testMode || state !== 'playing' || perf.step >= 2 || settings.quality !== 'high') return;
+  if (rawDt > 2) return; // coming back from another tab
+  // each frame counts for at most 0.25 s, so it takes a dozen slow frames, not one hitch
+  perf.slow = rawDt > 1 / 32 ? perf.slow + Math.min(rawDt, 0.25) : Math.max(0, perf.slow - rawDt * 0.5);
+  if (perf.slow < 3) return;
+  perf.slow = 0;
+  if (perf.step === 0 && (window.devicePixelRatio || 1) > 1) {
+    perf.step = 1;
+    R.setDprCap(1);
+  } else {
+    perf.step = 2;
+    settings.quality = 'low';
+    R.applyQuality();
+    hud.toast('Graphics set to Low to keep things smooth. You can change it in Settings.');
   }
 }
 function tick(dt) {

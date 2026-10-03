@@ -108,9 +108,10 @@ export function createRenderer(canvas, settings) {
     composer.addPass(new OutputPass());
   }
 
+  let dprCap = 2;
   function applyQuality() {
     const high = settings.quality === 'high';
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, high ? 2 : 1));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, high ? dprCap : 1));
     if (composer) {
       composer.renderTarget1.dispose();
       composer.renderTarget2.dispose();
@@ -238,5 +239,11 @@ export function createRenderer(canvas, settings) {
 
   applyQuality();
 
-  return { renderer, scene, camera, hemi, moon, playerLight, rig, follow, zoom, shake, screenToWorld, worldToScreen, setXray, updateLights, render, resize, applyQuality, get bloom() { return bloom; } };
+  /** Lower the high-quality pixel ratio ceiling (slow machines). */
+  function setDprCap(v) {
+    dprCap = v;
+    applyQuality();
+  }
+
+  return { renderer, scene, camera, hemi, moon, playerLight, rig, follow, zoom, shake, screenToWorld, worldToScreen, setXray, updateLights, render, resize, applyQuality, setDprCap, get bloom() { return bloom; } };
 }
