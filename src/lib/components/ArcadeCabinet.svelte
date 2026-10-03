@@ -212,6 +212,8 @@
     height: min(100%, 96vh);
     display: grid;
     grid-template-rows: auto 1fr auto;
+    /* one column that never grows past the cabinet, so a long title ellipsizes instead */
+    grid-template-columns: minmax(0, 1fr);
     background: #1e1a28;
     border: 4px solid #2a2438;
     box-shadow:
@@ -251,6 +253,7 @@
   }
   .marquee-title {
     flex: 1;
+    min-width: 0;
     margin: 0;
     font-size: clamp(1.25rem, 3vw, 2.25rem);
     color: #fff;

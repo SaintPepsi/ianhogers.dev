@@ -80,4 +80,17 @@ export const games: Game[] = [
     accent: 'amber',
     theme: '#ffb38a',
   },
+  {
+    slug: 'kino-der-toten',
+    title: 'Kino der Toten: Rift Edition',
+    blurb:
+      "Black Ops' Kino der Toten, rebuilt room by room and rule by rule: the same doors and prices, the Mystery Box and its teddy bear, the perks, the teleporter, Pack-a-Punch, hellhound rounds, crawlers in the roof. One change. The guns are gone. You hold the theatre as Amumu, Katarina or Master Yi, with their actual kits. See what round you reach.",
+    cover: '/assets/games/kino-der-toten.webp',
+    play: '/games/kino-der-toten/index.html',
+    embed: '/games/kino-der-toten/index.html',
+    tags: ['round-based zombies', 'league of legends', 'three.js', 'fan tribute'],
+    accent: 'crimson',
+    theme: '#c8aa6e',
+    hint: 'WASD move · click attacks · RMB Shift E R cast · F buys',
+  },
 ];
