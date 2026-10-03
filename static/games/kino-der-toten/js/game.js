@@ -471,11 +471,13 @@ export function createGame(env) {
       if (Math.random() < dt * 6) fx.glow.spawn(pu.x + rand(-0.3, 0.3), pu.mesh.position.y, pu.z + rand(-0.3, 0.3), 0, 0.6, 0, 0.8, 0.25, 0.5, 1, 0.4, 0.8);
       if (pu.age >= R.POWERUP_LIFE) {
         scene.remove(pu.mesh);
+        env.dispose(pu.mesh);
         g.powerups.splice(i, 1);
         continue;
       }
       if (!p.downed && !g.away && dist(p.x, p.z, pu.x, pu.z) < 1.25 + p.r) {
         scene.remove(pu.mesh);
+        env.dispose(pu.mesh);
         g.powerups.splice(i, 1);
         grab(pu.kind);
       }
@@ -1115,6 +1117,7 @@ export function createGame(env) {
   function removeFireBox(f) {
     const B = g.box;
     scene.remove(f.mesh);
+    env.dispose(f.mesh);
     env.hideItemFloat(f);
     const i = B.fire.indexOf(f);
     if (i >= 0) B.fire.splice(i, 1);
@@ -1588,6 +1591,7 @@ export function createGame(env) {
         if (!z.dead) g.slowZombie(z, 0.4, 2);
       });
       scene.remove(s.mesh);
+      env.dispose(s.mesh);
       g.shrooms.splice(i, 1);
     }
   }
@@ -1634,6 +1638,7 @@ export function createGame(env) {
           g.damage(zz, Math.max(1000, zz.maxHp * 0.7), { type: 'magic', src: 'item' });
         });
         scene.remove(po.mesh);
+        env.dispose(po.mesh);
         g.poros.splice(i, 1);
       }
     }
@@ -1783,6 +1788,7 @@ export function createGame(env) {
     if (g.reels.carried) return ui.toast('You can only carry one reel', true);
     r.taken = true;
     scene.remove(r.mesh);
+    env.dispose(r.mesh);
     g.reels.carried = r;
     sfx.pickup();
     ui.toast('Film reel: load it into the projector in the projector room');

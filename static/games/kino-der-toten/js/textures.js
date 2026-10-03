@@ -237,6 +237,8 @@ export function makeTextures() {
     grain(g, 128, 256, 16, rnd);
     T.curtain = tex(c);
   }
+  // made once at boot and reused by every rebuilt world: never disposed with one
+  for (const t of Object.values(T)) t.userData.shared = true;
   return T;
 }
 

@@ -710,6 +710,7 @@ const KITS = {
   katarina(c) {
     const g = c.g;
     const daggers = []; // { x, z, y, land (time it lands), expire, mesh, shadow }
+    const flying = new Set(); // Bouncing Blade meshes in the air
     const lastHitAt = new WeakMap();
     let lotusAcc = 0;
     const qDmg = () => [0, 80, 115, 150, 185, 220][c.ranks.Q] + 0.4 * c.s.ap;
@@ -864,6 +865,8 @@ const KITS = {
       onDowned() {},
       dispose() {
         for (let i = daggers.length - 1; i >= 0; i--) removeDagger(i);
+        for (const m of flying) g.scene.remove(m);
+        flying.clear();
         daggerMat.dispose();
         ringMat.dispose();
       },
@@ -897,6 +900,7 @@ const KITS = {
       const fly = dist(c.x, c.z, first.x, first.z) / 16;
       const mesh = new THREE.Mesh(daggerGeo, daggerMat);
       g.scene.add(mesh);
+      flying.add(mesh);
       let from = { x: c.x, y: c.y + 1.1, z: c.z };
       let leg = 0, t = 0;
       const legs = chain.map((z, i) => ({ z, dur: i === 0 ? Math.max(0.05, fly) : 0.15 }));
@@ -904,6 +908,7 @@ const KITS = {
       g.addTask((dt) => {
         if (leg >= legs.length) {
           g.scene.remove(mesh);
+          flying.delete(mesh);
           return false;
         }
         const L = legs[leg];

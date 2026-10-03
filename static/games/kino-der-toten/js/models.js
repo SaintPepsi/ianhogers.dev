@@ -15,6 +15,8 @@ const GEO = {
   torso: new THREE.CylinderGeometry(0.5, 0.36, 1, 10),
   cone: new THREE.ConeGeometry(0.5, 1, 10),
 };
+for (const g of Object.values(GEO)) g.userData.shared = true; // also used by the zombie crowd
+
 // Capsules are 2 units tall at scale 1; halve their Y so scale.y == length.
 GEO.capsule.scale(1, 0.5, 1);
 

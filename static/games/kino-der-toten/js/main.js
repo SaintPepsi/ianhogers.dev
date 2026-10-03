@@ -229,6 +229,7 @@ function startGame(champId) {
     makeShroom,
     makePoro: () => props.poroModel(),
     makeReel,
+    dispose: disposeTree,
     startSong: () => {
       playMusic('rock', { loopIt: true });
       songT = 240;
@@ -259,12 +260,19 @@ function teardown() {
   if (!game) return;
   for (const z of game.zombies) crowd.remove(z);
   game.zombies.length = 0;
-  for (const pu of game.powerups) R.scene.remove(pu.mesh);
-  for (const s of game.shrooms) R.scene.remove(s.mesh);
-  for (const p of game.poros) R.scene.remove(p.mesh);
-  for (const r of game.reels.spots) R.scene.remove(r.mesh);
-  if (game.box) for (const f of game.box.fire) R.scene.remove(f.mesh);
-  for (const f of floats) R.scene.remove(f);
+  const drop = (m) => {
+    R.scene.remove(m);
+    disposeTree(m);
+  };
+  for (const pu of game.powerups) drop(pu.mesh);
+  for (const s of game.shrooms) drop(s.mesh);
+  for (const p of game.poros) drop(p.mesh);
+  for (const r of game.reels.spots) drop(r.mesh);
+  if (game.box) {
+    for (const f of game.box.fire) drop(f.mesh);
+    for (const st of [game.box, ...game.box.fire]) if (st.bear) drop(st.bear);
+  }
+  for (const f of floats) drop(f);
   floats.length = 0;
   game.player.dispose();
   if (champModel) {
@@ -278,9 +286,19 @@ function teardown() {
   setFog(false);
   game = null;
 }
+const TEX_SLOTS = ['map', 'emissiveMap', 'alphaMap', 'normalMap', 'roughnessMap', 'metalnessMap', 'bumpMap', 'aoMap', 'lightMap'];
+/** Free a dropped object tree's GPU resources, except the boot-time pieces marked shared. */
 function disposeTree(o) {
+  const seen = new Set();
   o.traverse((n) => {
-    if (n.isMesh && n.geometry && !n.geometry.userData.shared) n.geometry.dispose();
+    if (!n.isMesh && !n.isPoints && !n.isSprite && !n.isLine) return;
+    if (n.geometry && !n.geometry.userData.shared && !n.isSprite) n.geometry.dispose(); // sprites share one quad
+    for (const m of Array.isArray(n.material) ? n.material : [n.material]) {
+      if (!m || seen.has(m) || m.userData.shared) continue;
+      seen.add(m);
+      for (const k of TEX_SLOTS) if (m[k] && !m[k].userData.shared) m[k].dispose();
+      m.dispose();
+    }
   });
 }
 
@@ -337,6 +355,7 @@ function itemTexture(id) {
   const c = icon(spec, 128);
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
+  t.userData.shared = true; // cached below for the whole session
   return t;
 }
 const texCache = {};
@@ -378,6 +397,7 @@ function bobItemFloat(st, b, t) {
 function hideItemFloat(st) {
   if (st.icon) {
     R.scene.remove(st.icon);
+    disposeTree(st.icon);
     const i = floats.indexOf(st.icon);
     if (i >= 0) floats.splice(i, 1);
     st.icon = null;
@@ -427,6 +447,7 @@ function bearRise(st, b, t) {
 function hideBear(st) {
   if (st.bear) {
     R.scene.remove(st.bear);
+    disposeTree(st.bear);
     st.bear = null;
   }
 }

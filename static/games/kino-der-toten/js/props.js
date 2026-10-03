@@ -216,6 +216,7 @@ function beamFade() {
   x.fillStyle = gr;
   x.fillRect(0, 0, 4, 64);
   beamFadeTex = new THREE.CanvasTexture(c);
+  beamFadeTex.userData.shared = true;
   return beamFadeTex;
 }
 
