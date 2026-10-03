@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Kino der Toten: Rift Edition</title>
+<meta name="description" content="Round-based zombies in the Kino der Toten theatre, rebuilt for the browser. No guns: you hold the line as Amumu, Katarina or Master Yi.">
+<link rel="stylesheet" href="./style.css">
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<canvas id="gl" tabindex="0" aria-label="Game view"></canvas>
+
+<!-- full-screen tints -->
+<div id="vision" class="fx-layer"></div>
+<div id="hurt" class="fx-layer"></div>
+<div id="gasfx" class="fx-layer"></div>
+<div id="flashfx" class="fx-layer"></div>
+<div id="fade" class="fx-layer"></div>
+
+<!-- ============================================================ HUD -->
+<div id="hud" hidden>
+  <div id="round" aria-label="Round"><svg id="roundSvg" viewBox="0 0 220 120"></svg></div>
+  <div id="perks"></div>
+
+  <div id="pointsBox">
+    <div id="pops"></div>
+    <div id="points" class="num">500</div>
+  </div>
+
+  <div id="minimapBox"><canvas id="minimap" width="220" height="220"></canvas><div id="roomName"></div></div>
+
+  <div id="powerups"></div>
+  <div id="announce"></div>
+  <div id="subannounce"></div>
+  <div id="toasts"></div>
+  <div id="prompt"></div>
+  <div id="channel"><div class="lbl" id="channelLbl"></div><div class="bar"><i id="channelBar"></i></div></div>
+
+  <div id="bar">
+    <div id="portrait"><canvas id="portraitCv" width="128" height="128"></canvas><div id="lvl" class="num">1</div><svg id="xpRing" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" /></svg></div>
+    <div id="mid">
+      <div id="abilities"></div>
+      <div id="bars">
+        <div class="res hp"><i id="hpFill"></i><i id="hpShield"></i><span id="hpTxt" class="num"></span></div>
+        <div class="res mana" id="manaRow"><i id="manaFill"></i><span id="manaTxt" class="num"></span></div>
+      </div>
+    </div>
+    <div id="side">
+      <div id="items"></div>
+      <div id="stats" class="num"></div>
+    </div>
+  </div>
+
+  <div id="downed" hidden>
+    <div class="big">YOU ARE DOWN</div>
+    <div class="small" id="downedMsg"></div>
+    <div class="bar"><i id="downedBar"></i></div>
+  </div>
+
+  <div id="swap" hidden>
+    <div class="ttl" id="swapTtl">Inventory full</div>
+    <div class="sub">Press <b>1-6</b> or click an item slot to replace it. <b>Esc</b> to keep what you have.</div>
+  </div>
+
+  <div id="papMenu" hidden>
+    <div class="ttl">Pack-a-Punch</div>
+    <div class="sub" id="papSub">Choose an ability to upgrade (5000)</div>
+    <div id="papOpts"></div>
+  </div>
+
+  <button id="pauseBtn" class="corner-btn" aria-label="Pause">❚❚</button>
+</div>
+
+<!-- touch controls (shown on touch devices) -->
+<div id="touch" hidden>
+  <div id="stick"><div id="stickNub"></div></div>
+  <div id="tbtns">
+    <button class="tb big" id="tAtk" data-act="attack">⚔</button>
+    <button class="tb" id="tQ" data-act="Q">Q</button>
+    <button class="tb" id="tW" data-act="W">W</button>
+    <button class="tb" id="tE" data-act="E">E</button>
+    <button class="tb" id="tR" data-act="R">R</button>
+    <button class="tb small" id="tFlash" data-act="flash">F</button>
+    <button class="tb use" id="tUse" data-act="use">USE</button>
+  </div>
+</div>
+
+<!-- ============================================================ screens -->
+<div id="loading" class="screen">
+  <div class="title-block">
+    <div class="kino-title">KINO DER TOTEN</div>
+    <div class="kino-sub">RIFT EDITION</div>
+  </div>
+  <div class="spin"></div>
+  <div id="loadMsg" class="dim">Restoring the projector...</div>
+</div>
+
+<div id="menu" class="screen" hidden>
+  <div class="title-block">
+    <div class="kino-title">KINO DER TOTEN</div>
+    <div class="kino-sub">RIFT EDITION</div>
+    <p class="tag">The theatre is the same. The guns are gone. Pick a champion and see what round you reach.</p>
+  </div>
+  <div class="menu-btns">
+    <button class="mbtn primary" id="mPlay">PLAY</button>
+    <button class="mbtn" id="mHelp">HOW TO PLAY</button>
+    <button class="mbtn" id="mSettings">SETTINGS</button>
+  </div>
+  <div id="records" class="records"></div>
+  <div class="legal">Unofficial fan tribute. Not affiliated with or endorsed by Activision, Treyarch or Riot Games. Every model, texture, sound and tune here is original.</div>
+</div>
+
+<div id="select" class="screen panel-screen" hidden>
+  <div class="sel-head">
+    <button class="ghost" data-back>Back</button>
+    <h2>Choose your champion</h2>
+    <div class="spacer"></div>
+  </div>
+  <div id="champCards"></div>
+  <div id="champInfo"></div>
+  <div class="sel-foot"><button class="mbtn primary" id="lockIn" disabled>LOCK IN</button></div>
+</div>
+
+<div id="help" class="screen panel-screen" hidden>
+  <div class="sel-head">
+    <button class="ghost" data-back>Back</button>
+    <h2>How to play</h2>
+    <div class="spacer"></div>
+  </div>
+  <div class="help-body" id="helpBody"></div>
+</div>
+
+<div id="settings" class="screen panel-screen" hidden>
+  <div class="sel-head">
+    <button class="ghost" data-back>Back</button>
+    <h2>Settings</h2>
+    <div class="spacer"></div>
+  </div>
+  <div class="settings-body" id="settingsBody"></div>
+</div>
+
+<div id="pause" class="screen modal" hidden>
+  <div class="box">
+    <h2>Paused</h2>
+    <div class="pause-info" id="pauseInfo"></div>
+    <div class="menu-btns">
+      <button class="mbtn primary" id="pResume">RESUME</button>
+      <button class="mbtn" id="pHelp">HOW TO PLAY</button>
+      <button class="mbtn" id="pSettings">SETTINGS</button>
+      <button class="mbtn danger" id="pQuit">END GAME</button>
+    </div>
+  </div>
+</div>
+
+<div id="over" class="screen modal" hidden>
+  <div class="box wide">
+    <div class="over-title">GAME OVER</div>
+    <div class="over-sub" id="overSub"></div>
+    <div class="over-stats" id="overStats"></div>
+    <div class="row-btns">
+      <button class="mbtn primary" id="oAgain">PLAY AGAIN</button>
+      <button class="mbtn" id="oChamp">CHANGE CHAMPION</button>
+      <button class="mbtn" id="oMenu">MENU</button>
+    </div>
+  </div>
+</div>
+
+<div id="err" class="screen" hidden>
+  <div class="box">
+    <h2>The projector jammed</h2>
+    <p id="errMsg" class="dim"></p>
+    <button class="mbtn" onclick="location.reload()">RELOAD</button>
+  </div>
+</div>
+
+<script type="module" src="./js/main.js"></script>
+<script>
+if (window.self !== window.top) {
+  const st = document.createElement("style");
+  st.textContent = "*, *::before, *::after { cursor: none !important; }";
+  document.head.appendChild(st);
+  const post = (kind, e) => {
+    const t = e && e.target instanceof Element ? e.target : null;
+    top.postMessage({
+      type: "pixel-cursor", kind,
+      x: e ? e.clientX : 0, y: e ? e.clientY : 0,
+      clickable: !!(t && t.closest("a, button, [role=button], input, select, textarea, label")),
+      draggable: !!(t && t.closest("[draggable=true]")),
+    }, "*");
+  };
+  document.addEventListener("mousemove", e => post("move", e), { passive: true });
+  document.addEventListener("mousedown", e => post("down", e), { passive: true });
+  document.addEventListener("mouseup",   e => post("up", e),   { passive: true });
+  document.addEventListener("mouseleave", () => post("leave"));
+}
+</script>
+</body>
+</html>
