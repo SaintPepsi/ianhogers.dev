@@ -588,7 +588,8 @@ export function createGame(env) {
     // windows with long queues are less attractive
     const sp = pick(list.filter((s) => s.kind !== 'window' || s.w.queue.length < 5).concat([])) || pick(list);
     if (!sp) return false;
-    const hp = sp.kind === 'quad' ? Math.floor(g.zHealth * 0.75) : g.zHealth;
+    const base = Math.max(1, Math.round(g.zHealth * R.HEALTH_SCALE));
+    const hp = sp.kind === 'quad' ? Math.floor(base * 0.75) : base;
     const z = makeZombie(sp.kind === 'quad' ? 'nova' : 'zombie', hp, R.rollSpeed(g.round));
     if (sp.kind === 'window') {
       const w = sp.w;
@@ -634,7 +635,7 @@ export function createGame(env) {
       const zn = zoneName(x, z);
       if (!zn || !g.activeZones.has(zn)) continue;
       if (!reachable(x, z)) continue;
-      const dog = makeZombie('dog', R.dogHealth(g.dogIndex), 'dog');
+      const dog = makeZombie('dog', Math.round(R.dogHealth(g.dogIndex) * R.HEALTH_SCALE), 'dog');
       dog.x = x;
       dog.z = z;
       dog.y = grid.heightAt(x, z);
@@ -1203,6 +1204,7 @@ export function createGame(env) {
   function buyPerk(kind) {
     const p = g.player;
     const info = R.PERKS[kind];
+    if (p.drinking > 0) return; // the perk only lands when the bottle is empty: no second sale meanwhile
     if (kind === 'revive') {
       if (world.perks.revive.gone) return;
       if (g.qrLife) return ui.toast('You already have Quick Revive');
@@ -1800,7 +1802,8 @@ export function createGame(env) {
       ui.prompt(null);
       return;
     }
-    const it = p.downed || g.over ? null : interactables();
+    // hands are full while drinking a perk, like Black Ops
+    const it = p.downed || g.over || p.drinking > 0 ? null : interactables();
     g.interact = it;
     ui.prompt(it, g.points);
     if (!it) return;
@@ -1934,7 +1937,9 @@ export function createGame(env) {
       g.fieldT = 0.2;
       refreshFields(false);
     }
-    // zombies
+    // zombies (count who is already swinging: see MAX_SWINGS)
+    g.swinging = 0;
+    for (const z of g.zombies) if (!z.dead && (z.state === 'attack' || z.state === 'leap')) g.swinging++;
     const poro = g.poroTarget();
     for (const z of g.zombies) {
       if (poro && !z.dead && z.state === 'chase') {

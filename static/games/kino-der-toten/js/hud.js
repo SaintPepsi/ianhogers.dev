@@ -185,7 +185,7 @@ export function createHud(holder, settings, opts) {
           up = document.createElement('button');
           up.className = 'up';
           up.textContent = '+';
-          up.title = 'Rank up (Ctrl + ' + key + ')';
+          up.title = 'Rank up (Alt + ' + key + ')';
           up.hidden = true;
           up.addEventListener('click', (e) => {
             e.stopPropagation();

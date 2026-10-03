@@ -12,6 +12,14 @@ export function zombieHealth(round) {
   return h;
 }
 
+/**
+ * Health conversion, the counterpart of the bite conversion in zombies.js. Black Ops' starting
+ * guns kill round-one zombies in about a second; a level-one champion's basic attacks are much
+ * slower, so zombies keep their per-round curve above but at this fraction of it.
+ */
+export let HEALTH_SCALE = 0.5;
+export const setHealthScale = (v) => (HEALTH_SCALE = v); // for balance tests
+
 /** Zombies in a solo round. */
 export function zombieCount(round) {
   let max = 24;

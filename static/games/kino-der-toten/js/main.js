@@ -90,6 +90,12 @@ async function boot() {
   window.addEventListener('keydown', unlock);
   setupTouch();
   window.addEventListener('blur', () => state === 'playing' && pause());
+  // a run in progress asks before the tab closes or reloads (League hands reach for Ctrl+W)
+  window.addEventListener('beforeunload', (e) => {
+    if (testMode || !game || game.over || (state !== 'playing' && state !== 'paused')) return;
+    e.preventDefault();
+    e.returnValue = '';
+  });
   document.addEventListener('visibilitychange', () => document.hidden && state === 'playing' && pause());
   requestAnimationFrame(loop);
   if (testMode) exposeTest();
@@ -459,14 +465,14 @@ function buildIntent(dt) {
   const aimW = R.screenToWorld(m.x, m.y, p.y + 0.5);
   if (aimW && !isTouch) it.aim = aimW;
   const hoverZ = aimW ? zombieNear(aimW.x, aimW.z, 1.1) : null;
-  const ctrl = input.ctrl();
+  const rank = input.rankMod();
   if (settings.scheme === 'wasd') {
-    const v = input.moveVec();
+    const v = rank && !isTouch ? { x: 0, y: 0 } : input.moveVec(); // Alt+W ranks W, it doesn't walk
     it.move = { x: v.x, z: v.y };
     it.attack = m.left;
     it.attackStart = m.leftPressed;
     if (m.left && hoverZ) it.attackTarget = hoverZ;
-    if (!ctrl) {
+    if (!rank) {
       if (m.rightPressed) it.cast = 'Q';
       else if (input.keyPressed('ShiftLeft') || input.keyPressed('ShiftRight')) it.cast = 'W';
       else if (input.keyPressed('KeyE')) it.cast = 'E';
@@ -497,13 +503,13 @@ function buildIntent(dt) {
       it.attackTarget = hoverZ;
     }
     if (input.keyPressed('KeyS')) it.stop = true;
-    if (!ctrl) {
+    if (!rank) {
       for (const k of ['Q', 'W', 'E', 'R']) if (input.keyPressed('Key' + k)) it.cast = k;
       if (input.keyPressed('KeyD')) it.flash = true;
     }
     if (p.attackOrder && (p.attackOrder.dead || !p.attackOrder.targetable)) p.attackOrder = null;
   }
-  if (ctrl) for (const k of ['Q', 'W', 'E', 'R']) if (input.keyPressed('Key' + k)) it.levelUp = k;
+  if (rank) for (const k of ['Q', 'W', 'E', 'R']) if (input.keyPressed('Key' + k)) it.levelUp = k;
   it.use = input.keyPressed('KeyF');
   it.useHeld = input.key('KeyF');
   const ik = ['Digit1', 'Digit2', 'Digit3', 'Digit5', 'Digit6', 'Digit7'];
@@ -883,6 +889,13 @@ function exposeTest() {
       return it ? (it.bare ? it.text : it.text + (it.cost ? ' [' + it.cost + ']' : '')) : null;
     },
     render: () => renderGameFrame(0.016),
+    /** One real frame (input, simulation, render) while the loop is frozen with __kinoFreeze. */
+    frame(dt = 1 / 30) {
+      const f = window.__kinoFreeze;
+      window.__kinoFreeze = false;
+      tick(dt);
+      window.__kinoFreeze = f;
+    },
     map: () => map,
     world: () => world,
     R: () => R,

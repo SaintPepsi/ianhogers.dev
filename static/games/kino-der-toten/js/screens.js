@@ -183,7 +183,7 @@ export function createScreens(o) {
            <tr><td>${k('Q')}${k('W')}${k('E')}${k('R')}</td><td>Abilities, aimed at the cursor</td></tr>
            <tr><td>${k('D')}</td><td>Flash</td></tr>`}
       <tr><td>${k('F')}</td><td>Buy, open, take, use. Hold it at a broken window to rebuild boards (10 points each).</td></tr>
-      <tr><td>${k('Ctrl')} + ${k('Q')}/${k('W')}/${k('E')}/${k('R')}</td><td>Rank up an ability (or turn on auto ranking in Settings)</td></tr>
+      <tr><td>${k('Alt')} + ${k('Q')}/${k('W')}/${k('E')}/${k('R')}</td><td>Rank up an ability, or click the + over it (or turn on auto ranking in Settings)</td></tr>
       <tr><td>${k('1')}${k('2')}${k('3')}${k('5')}${k('6')}${k('7')}</td><td>Item actives (League's item keys)</td></tr>
       <tr><td>${k('4')}</td><td>Throw Poro-Snax (the Cymbal Monkey) if the box gave you some</td></tr>
       <tr><td>${k('G')}</td><td>Plant a Noxious Trap (the Claymores from the stage wall)</td></tr>
@@ -192,7 +192,7 @@ export function createScreens(o) {
       </table>
       <h3>Black Ops rules, kept</h3>
       <ul>
-        <li>Zombie health and numbers per round, spawn speed, walkers turning into runners and sprinters: all from the original scripts. Round 1 has 6 walkers with 150 health; round 10 zombies have 1045.</li>
+        <li>Zombie numbers per round, spawn speed, walkers turning into runners and sprinters: all from the original scripts. Health follows the original curve at half strength, since a champion hits far slower than a gun: round 1 has 6 walkers with 75 health, round 10 zombies have 523.</li>
         <li>Points: 10 per hit that doesn't kill, 60 for a kill, 100 for a crit or a landed skillshot kill (the headshot), 130 for a basic-attack kill (the knife kill). Board repairs pay 10 each, capped per round. Going down costs 5%.</li>
         <li>Two bites put a champion without Juggernog close to going down; Juggernog multiplies your health by 2.5, like 100 to 250 in Black Ops. Health comes back on its own a few seconds after you stop getting hit.</li>
         <li>Perks: Juggernog 2500, Speed Cola 3000 (cooldowns instead of reloads), Double Tap 2000 (attack speed instead of fire rate), Quick Revive 500 in solo (gets you back up once; the machine leaves after three). Going down loses them all.</li>
@@ -207,6 +207,7 @@ export function createScreens(o) {
         <li>Abilities use live patch numbers. Level 1 to 18 from kills, a skill point per level, R at 6, 11 and 16.</li>
         <li>Zombies have no armor or magic resist and count as monsters (so Alpha Strike and Sunfire get their monster bonus); League's damage caps against monsters are switched off.</li>
         <li>Champion health doesn't grow with level here. Black Ops decides how many bites you can take; items and Juggernog are how you get tougher.</li>
+        <li>You fight in melee, where guns never had to, so zombies take turns: at most two swing at you at the same time.</li>
       </ul>
       <p class="dim">Unofficial fan tribute, made with love for both games. Not affiliated with or endorsed by Activision, Treyarch or Riot Games. Every model, texture, sound and tune here is original.</p>`;
   }

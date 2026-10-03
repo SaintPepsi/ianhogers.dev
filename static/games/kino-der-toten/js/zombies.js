@@ -7,6 +7,9 @@ import { sfx } from './audio.js';
 // League-scale bite damage keeps Black Ops' ratios: a 60 bite against 100 health.
 export const BITE = { zombie: 320, nova: 240, dog: 213 };
 export const SPEED = { walk: 1.05, run: 2.3, sprint: 2.85, nova: 2.45, dog: 3.7, crawl: 0.7 };
+// Champions fight in melee, where guns never had to. Only this many zombies may be mid-swing (or
+// mid-leap) at once; the rest crowd in and wait their turn, so a horde is dangerous, not instant death.
+export const MAX_SWINGS = 2;
 const WALK_STRIDE = { walk: 1.25, run: 1.9, sprint: 2.4, nova: 1.0, dog: 1.6, crawl: 0.7 };
 
 let nextId = 1;
@@ -272,7 +275,8 @@ function chase(z, dt, g, disabled, p) {
   // attack?
   if (!away && !poroLured(z, g) && !p.downed && z.atkCd <= 0 && targetable(p)) {
     const reach = p.r + z.r + (z.kind === 'dog' ? 0.5 : 0.45);
-    if (d <= reach) {
+    if (d <= reach && g.swinging < MAX_SWINGS) {
+      g.swinging++;
       z.state = 'attack';
       z.t = 0;
       z.actT = 0;
@@ -280,7 +284,8 @@ function chase(z, dt, g, disabled, p) {
       return;
     }
     // Nova crawlers leap from 2.4-3.7 m with a clear line
-    if (z.kind === 'nova' && z.leapCd <= 0 && d > 2.4 && d < 3.7 && Math.abs(p.y - z.y) < 0.8 && g.grid.los(z.x, z.z, p.x, p.z, 0.3)) {
+    if (z.kind === 'nova' && z.leapCd <= 0 && g.swinging < MAX_SWINGS && d > 2.4 && d < 3.7 && Math.abs(p.y - z.y) < 0.8 && g.grid.los(z.x, z.z, p.x, p.z, 0.3)) {
+      g.swinging++;
       z.state = 'leap';
       z.t = 0;
       z.lx = z.x;

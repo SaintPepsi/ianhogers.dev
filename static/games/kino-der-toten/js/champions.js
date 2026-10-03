@@ -355,7 +355,16 @@ export class Champion {
 
     // level up hotkeys / clicks are handled by the game; casts here
     if (intent.levelUp) this.rankUp(intent.levelUp);
-    if (intent.cast) this.tryCast(intent.cast, intent);
+    if (intent.cast) {
+      const r = this.tryCast(intent.cast, intent);
+      // like League, a cast pressed during another cast's wind-up goes off right after it
+      this.queued = r === 'casting' ? { key: intent.cast, aim: intent.aim ? { ...intent.aim } : null, t: 0.45 } : null;
+    } else if (this.queued) {
+      const q = this.queued;
+      q.t -= dt;
+      if (q.t <= 0) this.queued = null;
+      else if (this.tryCast(q.key, { ...intent, aim: q.aim || intent.aim }) !== 'casting') this.queued = null;
+    }
     if (intent.flash) this.tryFlash(intent);
     if (intent.item >= 0) g.items.activate(this, intent.item, intent);
 
@@ -565,11 +574,12 @@ export class Champion {
     return null;
   }
 
+  /** Returns true when the ability went off, otherwise why it didn't ('cd', 'mana', 'casting', ...). */
   tryCast(key, intent) {
     const why = this.abilityReady(key);
     if (why) {
       if (why !== 'casting' && why !== 'busy') this.g.events.emit('castFail', key, why);
-      return false;
+      return why;
     }
     if (this.channel && !(this.id === 'yi' && key !== 'W' && this.channel.kind === 'meditate' && (key === 'E' || key === 'R'))) {
       // casting something else interrupts a channel (except Yi's E/R during Meditate)
@@ -582,7 +592,7 @@ export class Champion {
       this.g.items.onCast(this, key);
       this.g.events.emit('cast', key);
     } else this.g.events.emit('castFail', key, 'target');
-    return ok;
+    return ok || 'target';
   }
 
   tryFlash(intent) {
@@ -590,7 +600,9 @@ export class Champion {
       if (this.cd.flash > 0) this.g.events.emit('castFail', 'flash', 'cd');
       return;
     }
-    const aim = intent.aim || { x: this.x + Math.cos(this.ang), z: this.z + Math.sin(this.ang) };
+    let aim = intent.aim;
+    // cursor on (or right next to) the champion: full Flash the way you're facing
+    if (!aim || Math.hypot(aim.x - this.x, aim.z - this.z) < 0.6) aim = { x: this.x + Math.cos(this.ang) * FLASH.range, z: this.z + Math.sin(this.ang) * FLASH.range };
     let dx = aim.x - this.x, dz = aim.z - this.z;
     const l = Math.hypot(dx, dz) || 1;
     dx /= l;
@@ -645,6 +657,7 @@ export class Champion {
   onDowned() {
     this.channel && this.kit.endChannel('down');
     this.cast = null;
+    this.queued = null;
     this.atk.wind = -1;
     this.buffs.highlander = 0;
     this.shield = 0;

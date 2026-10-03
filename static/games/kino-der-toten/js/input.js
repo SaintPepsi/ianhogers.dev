@@ -36,6 +36,7 @@ export const SCHEMES = {
 };
 
 const ITEM_KEYS = ['Digit1', 'Digit2', 'Digit3', 'Digit4', 'Digit5', 'Digit6'];
+const RANK_KEYS = ['KeyQ', 'KeyW', 'KeyE', 'KeyR'];
 
 export function createInput(canvas) {
   const down = new Set();
@@ -62,6 +63,9 @@ export function createInput(canvas) {
   on(window, 'keydown', (e) => {
     if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
     if (enabled && isGameKey(e.code)) e.preventDefault();
+    // Alt + Q/W/E/R ranks abilities (League's Ctrl + key would close or reload the tab here);
+    // keep Alt from reaching the browser's menus while playing
+    if (enabled && (e.code === 'AltLeft' || e.code === 'AltRight' || (e.altKey && RANK_KEYS.includes(e.code)))) e.preventDefault();
     if (!down.has(e.code)) pressed.add(e.code);
     down.add(e.code);
   });
@@ -123,7 +127,8 @@ export function createInput(canvas) {
     keyPressed: (code) => pressed.has(code),
     action: (name) => has(SCHEMES[scheme][name]),
     actionPressed: (name) => hit(SCHEMES[scheme][name]),
-    ctrl: () => down.has('ControlLeft') || down.has('ControlRight'),
+    /** Held to rank up abilities with Q/W/E/R. */
+    rankMod: () => down.has('AltLeft') || down.has('AltRight'),
     /** Movement vector from keys or the touch stick, in screen space (x right, y down). */
     moveVec() {
       if (touch.stick.on) return { x: touch.stick.x, y: touch.stick.y };
