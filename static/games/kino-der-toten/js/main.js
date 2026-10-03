@@ -784,6 +784,7 @@ function renderGameFrame(dt, it) {
   R.follow(p.x, p.y, p.z, dt || 0.016, { snap, leadX: lead.x, leadZ: lead.z });
   snap = false;
   fadeChandelier(p, dt || 0.016);
+  fadeStage(p, dt || 0.016);
   if (fovKick > 0) {
     fovKick = Math.max(0, fovKick - (dt || 0.016) * 2);
     R.camera.fov += 30 * fovKick * 0.5;
@@ -837,6 +838,37 @@ function fadeChandelier(p, dt) {
   if (Math.abs(chandelierFade - want) < 0.01) chandelierFade = want;
   ch.userData.setFade(chandelierFade);
 }
+// Backstage (where the power switch is) sits behind the cinema screen and the stage curtain, and
+// the camera looks over them from the front. While you're back there they turn see-through.
+let stageFade = 1;
+function fadeStage(p, dt) {
+  const scr = world.screen && world.screen.mesh;
+  if (!scr) return;
+  const box = (scr.userData.box ||= new THREE.Box3().setFromObject(scr));
+  const halfW = (box.max.x - box.min.x) / 2;
+  const behind = p.z < scr.position.z - 0.1 && Math.abs(p.x - scr.position.x) < halfW + 4;
+  const want = behind ? 0 : 1;
+  stageFade += (want - stageFade) * Math.min(1, dt * 6);
+  if (Math.abs(stageFade - want) < 0.01) stageFade = want;
+  fadeGroup(scr, stageFade);
+  // the curtain stays a ghost: before the power it's a closed wall you can bump into
+  if (world.curtain) fadeGroup(world.curtain, 0.3 + 0.7 * stageFade);
+}
+/** Make every material under a group see-through (a < 1) or restore it (a = 1). */
+function fadeGroup(group, a) {
+  if (group.userData.fade === a) return;
+  group.userData.fade = a;
+  group.visible = a > 0.02;
+  group.traverse((o) => {
+    if (!o.isMesh) return;
+    const m = o.material;
+    const base = (m.userData.fadeBase ||= { opacity: m.opacity, transparent: m.transparent, depthWrite: m.depthWrite });
+    const solid = a >= 1;
+    m.transparent = solid ? base.transparent : true;
+    m.opacity = base.opacity * a;
+    m.depthWrite = solid ? base.depthWrite : false;
+  });
+}
 function setPapGlow(m, v) {
   const b = m.userData.baseEmissive;
   if (!b) return;
@@ -862,6 +894,11 @@ function menuView(dt) {
   if (chandelierFade !== 1 && world.chandelier) {
     chandelierFade = 1;
     world.chandelier.mesh.userData.setFade(1);
+  }
+  if (stageFade !== 1 && world.screen) {
+    stageFade = 1;
+    fadeGroup(world.screen.mesh, 1);
+    if (world.curtain) fadeGroup(world.curtain, 1);
   }
   R.playerLight.position.set(tx, 3, tz);
   R.playerLight.intensity = 10;

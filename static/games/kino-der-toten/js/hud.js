@@ -31,6 +31,9 @@ export function createHud(holder, settings, opts) {
     minimap: $('minimap'), roomName: $('roomName'), gl: $('gl'), vision: $('vision'),
   };
   const mm = els.minimap.getContext('2d');
+  // the on-screen ways out of the two choice menus (Esc does the same on a keyboard)
+  $('swapKeep').addEventListener('click', () => G() && G().swap && G().chooseSwap(-1));
+  $('papCancel').addEventListener('click', () => G() && G().papMenu && G().papChoose(null));
   let abilityEls = {};
   let itemEls = [];
   let puEls = {};
@@ -253,7 +256,7 @@ export function createHud(holder, settings, opts) {
       const p = G().player;
       const def = CHAMPS[p.id];
       els.papOpts.innerHTML = '';
-      els.papSub.textContent = `Choose an ability to upgrade (5,000). Esc to cancel.`;
+      els.papSub.textContent = 'Choose an ability to upgrade (5,000).';
       for (const k of ['Q', 'W', 'E', 'R']) {
         const b = document.createElement('button');
         b.className = 'papo';

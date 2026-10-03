@@ -712,6 +712,7 @@ export function createWorld(scene, map, tex, opts = {}) {
   const doorAnims = [];
   const api = {
     root, lights, perks, boxes, boxMesh, chalk, doors: doorObjs, windows: windowObjs, traps, turrets, power, teleporter, mainframe, pap, screen, chandelier, meteors, cable,
+    curtain: curtainObj,
     powered: false,
     setPower(on) {
       api.powered = on;

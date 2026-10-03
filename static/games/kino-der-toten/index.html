@@ -65,13 +65,15 @@
 
   <div id="swap" hidden>
     <div class="ttl" id="swapTtl">Inventory full</div>
-    <div class="sub">Press <b>1-6</b> or click an item slot to replace it. <b>Esc</b> to keep what you have.</div>
+    <div class="sub"><span class="kb-only">Press the slot's key (<b>1 2 3 5 6 7</b>) or click a slot to replace that item.</span><span class="touch-only">Tap an item slot to replace that item.</span></div>
+    <button class="mbtn small" id="swapKeep">Keep what I have</button>
   </div>
 
   <div id="papMenu" hidden>
     <div class="ttl">Pack-a-Punch</div>
     <div class="sub" id="papSub">Choose an ability to upgrade (5000)</div>
     <div id="papOpts"></div>
+    <button class="mbtn small" id="papCancel">Cancel</button>
   </div>
 
   <button id="pauseBtn" class="corner-btn" aria-label="Pause">❚❚</button>
